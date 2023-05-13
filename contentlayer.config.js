@@ -4,6 +4,19 @@ import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
+module.exports = {
+	async redirects() {
+	  return [
+		{
+		  source: '/blog',
+		  destination: 'https://deveric-blog.azurewebsites.net',
+		  permanent: false,
+		  basePath: false
+		},
+	  ]
+	},
+  };
+
 /** @type {import('contentlayer/source-files').ComputedFields} */
 const computedFields = {
 	path: {
