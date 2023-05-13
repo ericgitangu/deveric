@@ -6,21 +6,21 @@ import { Analytics } from "./components/analytics";
 
 export const metadata: Metadata = {
 	title: {
-		default: "deveric.io",
+		default: "Eric Gitangu - deveric.io",
 		template: "%s | deveric.io",
 	},
-	description: "Software engineer at upstash.com and founder of planetfall.io",
+	description: "Developer, Engineer %26 code-blooded tinkerer.",
 	openGraph: {
-		title: "deveric.io",
+		title: "Eric Gitangu - deveric.io",
 		description:
-			"Software engineer at upstash.com and founder of planetfall.io",
-		url: "https://deveric.io",
-		siteName: "deveric.io",
+			"Eric Gitangu, Senior Software engineer and code-blooeded developer",
+		url: "https://developer.ericgitangu.com/",
+		siteName: "Eric Gitangu - deveric.io",
 		images: [
 			{
-				url: "https://deveric.io/og.png",
-				width: 1920,
-				height: 1080,
+				url: "./ericgitangu.jpeg",
+				width: 800,
+				height: 800,
 			},
 		],
 		locale: "en-US",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 		},
 	},
 	twitter: {
-		title: "deveric",
+		title: "dev_ericgitangu",
 		card: "summary_large_image",
 	},
 	icons: {

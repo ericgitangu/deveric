@@ -23,7 +23,7 @@ export const Article: React.FC<Props> = ({ project, views }) => {
 							<span>SOON</span>
 						)}
 					</span>
-					<span className="text-zinc-500 text-xs  flex items-center gap-1">
+					<span className="text-slate-400 text-xs  flex items-center gap-1">
 						<Eye className="w-4 h-4" />{" "}
 						{Intl.NumberFormat("en-US", { notation: "compact" }).format(views)}
 					</span>

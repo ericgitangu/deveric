@@ -6,5 +6,12 @@
   .text-edge-outline {
     -webkit-text-stroke: 1px rgba(255,255,255,0.3);
   }
+  .html {
+    scroll-behavior: smooth;
+  }
+  .links {
+    text-color: #94a3b8;
+    text-size: 1.2rem;
+  }
 } 
 

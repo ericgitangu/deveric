@@ -20,18 +20,16 @@ export default async function ProjectsPage() {
 		return acc;
 	}, {} as Record<string, number>);
 
-	const featured = allProjects.find(
-		(project) => project.slug === "planetfall",
-	)!;
-	const top2 = allProjects.find((project) => project.slug === "envshare")!;
-	const top3 = allProjects.find((project) => project.slug === "qstash")!;
+	const featured = allProjects.find((project) => project.slug === "blog")!;
+	const top2 = allProjects.find((project) => project.slug === "deveric.io")!;
+	const top3 = allProjects.find((project) => project.slug === "ecommerce")!;
 	const sorted = allProjects
 		.filter((p) => p.published)
 		.filter(
 			(project) =>
 				project.slug !== featured.slug &&
-				project.slug !== top2.slug &&
-				project.slug !== top3.slug,
+				project.slug !== top2?.slug &&
+				project.slug !== top3?.slug,
 		)
 		.sort(
 			(a, b) =>
@@ -69,7 +67,7 @@ export default async function ProjectsPage() {
 											<span>SOON</span>
 										)}
 									</div>
-									<span className="text-zinc-500 text-xs  flex items-center gap-1">
+									<span className="text-slate-400 text-xs  flex items-center gap-1">
 										<Eye className="w-4 h-4" />{" "}
 										{Intl.NumberFormat("en-US", { notation: "compact" }).format(
 											views[featured.slug] ?? 0,
@@ -87,7 +85,7 @@ export default async function ProjectsPage() {
 									{featured.description}
 								</p>
 								<div className="absolute bottom-4 md:bottom-8">
-								<p className="text-zinc-200 hover:text-zinc-50 hidden lg:block">
+									<p className="text-zinc-200 hover:text-zinc-50 hidden lg:block">
 										Read more <span aria-hidden="true">&rarr;</span>
 									</p>
 								</div>

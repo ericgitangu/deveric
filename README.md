@@ -14,15 +14,15 @@ My personal website, built with [Next.js](https://nextjs.org/), [Tailwind CSS](h
 
 
 ```sh-session
-git clone https://github.com/deveric/deveric.io.git
+git clone https://github.com/ericgitangu/deveric.io.git
 cd deveric.io
 ```
 
 
-Create a `.env` file similar to [`.env.example`](https://github.com/deveric/deveric.io/blob/main/.env.example).
+Create a `.env` file similar to [`.env.example`](https://github.com/ericgitangu/deveric.io/blob/main/.env.example).
 
 Then install dependencies and run the development server:
-```sh-session
+
 pnpm install
 pnpm dev
 ```

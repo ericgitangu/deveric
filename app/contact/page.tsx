@@ -1,36 +1,60 @@
 "use client";
-import { Github, Mail, Twitter } from "lucide-react";
+import { Github, Mail, Twitter, Linkedin } from "lucide-react";
 import Link from "next/link";
 import { Navigation } from "../components/nav";
 import { Card } from "../components/card";
+import { FaDiscord } from "react-icons/fa";
+import { FaReddit } from "react-icons/fa";
 
 const socials = [
 	{
 		icon: <Twitter size={20} />,
-		href: "https://twitter.com/deveric_",
+		href: "https://twitter.com/dev_ericgitangu",
 		label: "Twitter",
-		handle: "@deveric_",
+		handle: "@dev_ericgitangu",
+	},
+	{
+		icon: <Linkedin size={20} />,
+		href: "https://www.linkedin.com/in/ericgitangu",
+		label: "LinkedIn",
+		handle: "ericgitangu",
 	},
 	{
 		icon: <Mail size={20} />,
-		href: "mailto:dev@deveric.io",
+		href: "mailto:developer.ericgitangu.com",
 		label: "Email",
-		handle: "dev@deveric.io",
+		handle: "developer.ericgitangu.com",
 	},
 	{
 		icon: <Github size={20} />,
-		href: "https://github.com/deveric",
+		href: "https://github.com/ericgitangu",
 		label: "Github",
-		handle: "deveric",
+		handle: "ericgitangu",
 	},
+	{
+		icon: <FaDiscord size={20} />,
+		href: "https://discord.com/users/637500198976880670",
+		label: "Discord",
+		handle: "#theace0854",
+	},
+	{
+		icon: <FaReddit size={20}/>,
+		href: "https://www.reddit.com/user/Dev_Eric_Gitangu",
+		label: "reddit",
+		handle: "Dev_Eric_Gitangu",
+	}
 ];
 
 export default function Example() {
 	return (
 		<div className=" bg-gradient-to-tl from-zinc-900/0 via-zinc-900 to-zinc-900/0">
 			<Navigation />
+			<div className="my-16"></div>
+			<div className="z-10 text-center text-xl text-transparent duration-1000 bg-white cursor-default text-edge-outline animate-title font-display sm:text-6xl md:text-9xl whitespace-nowrap bg-clip-text ">
+				Let's connect!
+			</div>
 			<div className="container flex items-center justify-center min-h-screen px-4 mx-auto">
-				<div className="grid w-full grid-cols-1 gap-8 mx-auto mt-32 sm:mt-0 sm:grid-cols-3 lg:gap-16">
+				<div className="grid w-full grid-cols-1 gap-8 mx-auto mt-8 sm:mt-0 sm:grid-cols-3 lg:gap-16">
 					{socials.map((s) => (
 						<Card>
 							<Link
