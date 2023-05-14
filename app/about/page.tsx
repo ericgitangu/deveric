@@ -11,7 +11,7 @@ export default function About() {
 				className="absolute inset-0 -z-10 animate-fade-in"
 				quantity={500}
 			/>
-			<div className="z-10 text-xl text-transparent duration-1000 bg-white cursor-default text-edge-outline animate-title font-display sm:text-6xl md:text-9xl whitespace-nowrap bg-clip-text ">
+			<div className="z-10 text-4xl text-transparent duration-1000 bg-white cursor-default text-edge-outline animate-title font-display sm:text-6xl md:text-9xl whitespace-nowrap bg-clip-text ">
 				About
 			</div>
 
