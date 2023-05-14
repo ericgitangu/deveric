@@ -49,7 +49,7 @@ export default async function ProjectsPage() {
 						of my hobby projects some inflight. I am always working on something
 						new, so check back often.
 						<Link href="https://github.com/ericgitangu/">
-							View more of my projects{' '}<span aria-hidden="true">&rarr;</span>
+							View more of my projects <span aria-hidden="true">&rarr;</span>
 						</Link>
 					</p>
 				</div>
