@@ -47,9 +47,9 @@ export default async function ProjectsPage() {
 					<p className="mt-4 text-zinc-400">
 						Welcome to my tinkering workspace. Here you will find a collection
 						of my hobby projects some inflight. I am always working on something
-						new, so check back often. For more projects
+						new, so check back often.
 						<Link href="https://github.com/ericgitangu/">
-							<span aria-hidden="true">&rarr;</span>
+							View more of my projects{' '}<span aria-hidden="true">&rarr;</span>
 						</Link>
 					</p>
 				</div>

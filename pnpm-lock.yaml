@@ -44,12 +44,12 @@ dependencies:
   '@types/react-dom': 18.0.11
   '@upstash/redis': 1.20.6
   '@vercel/analytics': 0.1.11_react@18.2.0
-  contentlayer: 0.3.2_rj6s2lz7i5wcv4deewctnswlby
+  contentlayer: 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
   framer-motion: 10.12.10_biqbaboplfbrettd7655fr4n2y
   lucide-react: 0.127.0_react@18.2.0
   markdown-wasm: 1.2.0
   next: 13.2.4_756ubwvsgazzkcxtigvs4yqbci
-  next-contentlayer: 0.3.2_4k476r5ot7kerw6myrrnx6yvui
+  next-contentlayer: 0.3.2_etvmf4y2yj6kvyhc5dxospq33m
   postcss-import: 15.1.0_postcss@8.4.23
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
@@ -88,34 +88,37 @@ packages:
       regenerator-runtime: 0.13.11
     dev: false
 
-  /@contentlayer/cli/0.3.2_rj6s2lz7i5wcv4deewctnswlby:
+  /@contentlayer/cli/0.3.2_bzkdd4cyeo5fapnidobeos4hoy:
     resolution: {integrity: sha512-KLzB2z3Klbl4bU7VTJ8EaY1d17GCBFtwgvtNAVLOqUJ4LRw46+jT+qBMk8gyy7R1xDNF2H1a/yGYs8t8rlFVmg==}
     dependencies:
-      '@contentlayer/core': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
+      '@contentlayer/core': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
       '@contentlayer/utils': 0.3.2_typescript@5.0.2
-      clipanion: 3.2.0
+      clipanion: 3.2.0_typanion@3.12.1
       typanion: 3.12.1
     transitivePeerDependencies:
       - '@effect-ts/otel-node'
+      - esbuild
       - markdown-wasm
       - supports-color
       - typescript
     dev: false
 
-  /@contentlayer/client/0.3.2_rj6s2lz7i5wcv4deewctnswlby:
+  /@contentlayer/client/0.3.2_bzkdd4cyeo5fapnidobeos4hoy:
     resolution: {integrity: sha512-5m7IFd0Z8qRBAOnAYwWcf/SFe1SmtHmeV1kO4pldEuD8J/5sxKeefdGHLNnH3sxlGfeJhEdDnymJtppg8v0D8w==}
     dependencies:
-      '@contentlayer/core': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
+      '@contentlayer/core': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
     transitivePeerDependencies:
       - '@effect-ts/otel-node'
+      - esbuild
       - markdown-wasm
       - supports-color
       - typescript
     dev: false
 
-  /@contentlayer/core/0.3.2_rj6s2lz7i5wcv4deewctnswlby:
+  /@contentlayer/core/0.3.2_bzkdd4cyeo5fapnidobeos4hoy:
     resolution: {integrity: sha512-5ZLzS3s4Lp5Tlw+U4kUUK9frYmi8sc970spJSvLSxtOTDHDE7xemGT9HSj0V4DcmIkY9TT7pCmMFRfpEv7IC6Q==}
     peerDependencies:
+      esbuild: 0.17.x
       markdown-wasm: 1.x
     peerDependenciesMeta:
       esbuild:
@@ -143,10 +146,10 @@ packages:
       - typescript
     dev: false
 
-  /@contentlayer/source-files/0.3.2_rj6s2lz7i5wcv4deewctnswlby:
+  /@contentlayer/source-files/0.3.2_bzkdd4cyeo5fapnidobeos4hoy:
     resolution: {integrity: sha512-VYUaUbT3Hg3fSEEKpjDdfGEkw4bl4BaLHJWf5sulrkBtjdyNJ3RwUdnsqN3i+bibhcYF4ZvnFme4xtHBuEChmw==}
     dependencies:
-      '@contentlayer/core': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
+      '@contentlayer/core': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
       '@contentlayer/utils': 0.3.2_typescript@5.0.2
       chokidar: 3.5.3
       fast-glob: 3.2.12
@@ -159,19 +162,21 @@ packages:
       zod: 3.21.4
     transitivePeerDependencies:
       - '@effect-ts/otel-node'
+      - esbuild
       - markdown-wasm
       - supports-color
       - typescript
     dev: false
 
-  /@contentlayer/source-remote-files/0.3.2_rj6s2lz7i5wcv4deewctnswlby:
+  /@contentlayer/source-remote-files/0.3.2_bzkdd4cyeo5fapnidobeos4hoy:
     resolution: {integrity: sha512-BuABBHemn/UzhARsQh2XH13VUeb5HoRI3NkJeCGEMSnstzI72Dcc6krELwG3cTFYmgb95TV8NuIZKcrz8IsX6A==}
     dependencies:
-      '@contentlayer/core': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
-      '@contentlayer/source-files': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
+      '@contentlayer/core': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
+      '@contentlayer/source-files': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
       '@contentlayer/utils': 0.3.2_typescript@5.0.2
     transitivePeerDependencies:
       - '@effect-ts/otel-node'
+      - esbuild
       - markdown-wasm
       - supports-color
       - typescript
@@ -1363,8 +1368,10 @@ packages:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
     dev: false
 
-  /clipanion/3.2.0:
+  /clipanion/3.2.0_typanion@3.12.1:
     resolution: {integrity: sha512-XaPQiJQZKbyaaDbv5yR/cAt/ORfZfENkr4wGQj+Go/Uf/65ofTQBCPirgWFeJctZW24V3mxrFiEnEmqBflrJYA==}
+    peerDependencies:
+      typanion: '*'
     dependencies:
       typanion: 3.12.1
     dev: false
@@ -1424,20 +1431,21 @@ packages:
   /concat-map/0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
-  /contentlayer/0.3.2_rj6s2lz7i5wcv4deewctnswlby:
+  /contentlayer/0.3.2_bzkdd4cyeo5fapnidobeos4hoy:
     resolution: {integrity: sha512-fQN3l/KvUW+nIvXiaShpOCvXX4alNbvfo56vnVxHVm6vKP10bb/IRhjMXPXZzr+5hmCaeep9wMpCAvOKB6NJHA==}
     engines: {node: '>=14.18'}
     hasBin: true
     requiresBuild: true
     dependencies:
-      '@contentlayer/cli': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
-      '@contentlayer/client': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
-      '@contentlayer/core': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
-      '@contentlayer/source-files': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
-      '@contentlayer/source-remote-files': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
+      '@contentlayer/cli': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
+      '@contentlayer/client': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
+      '@contentlayer/core': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
+      '@contentlayer/source-files': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
+      '@contentlayer/source-remote-files': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
       '@contentlayer/utils': 0.3.2_typescript@5.0.2
     transitivePeerDependencies:
       - '@effect-ts/otel-node'
+      - esbuild
       - markdown-wasm
       - supports-color
       - typescript
@@ -2772,20 +2780,21 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  /next-contentlayer/0.3.2_4k476r5ot7kerw6myrrnx6yvui:
+  /next-contentlayer/0.3.2_etvmf4y2yj6kvyhc5dxospq33m:
     resolution: {integrity: sha512-pihb/VtBq30eV+WpaWakWVtA1DWKzfXeaL7l/vR4MvrTO8UtZaX9H6wY0oSOqrmy674BRjXiQ03PbEOE5D6/iA==}
     peerDependencies:
       next: ^12 || ^13
       react: '*'
       react-dom: '*'
     dependencies:
-      '@contentlayer/core': 0.3.2_rj6s2lz7i5wcv4deewctnswlby
+      '@contentlayer/core': 0.3.2_bzkdd4cyeo5fapnidobeos4hoy
       '@contentlayer/utils': 0.3.2_typescript@5.0.2
       next: 13.2.4_756ubwvsgazzkcxtigvs4yqbci
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     transitivePeerDependencies:
       - '@effect-ts/otel-node'
+      - esbuild
       - markdown-wasm
       - supports-color
       - typescript
