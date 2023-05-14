@@ -37,7 +37,10 @@ export default async function ProjectsPage() {
 				new Date(b.date ?? Number.POSITIVE_INFINITY).getTime() -
 				new Date(a.date ?? Number.POSITIVE_INFINITY).getTime(),
 		);
-	const redirect: React.MouseEventHandler<HTMLSpanElement> | undefined = () : void => { window.location.href = "https://github.com/ericgitangu/"};
+	const redirect: React.MouseEventHandler<HTMLSpanElement> | undefined =
+		(): void => {
+			window.location.href = "https://github.com/ericgitangu/";
+		};
 	return (
 		<div className="relative pb-16">
 			<Navigation />
@@ -47,7 +50,12 @@ export default async function ProjectsPage() {
 						Projects
 					</h2>
 					<p className="mt-4 text-zinc-400">
-						Welcome to my tinkering workspace. Here you will find a collection of my hobby projects some inflight. I am always working on something new, so check back often. For more projects <span  onClick={redirect} aria-hidden="true">&rarr;</span>
+						Welcome to my tinkering workspace. Here you will find a collection
+						of my hobby projects some inflight. I am always working on something
+						new, so check back often. For more projects{" "}
+						<span onClick={redirect} aria-hidden="true">
+							&rarr;
+						</span>
 					</p>
 				</div>
 				<div className="w-full h-px bg-zinc-800" />

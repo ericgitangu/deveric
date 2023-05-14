@@ -24,7 +24,6 @@ export default function Home() {
 							{item.name}
 						</Link>
 					))}
-
 				</ul>
 			</nav>
 			<div className="hidden w-screen h-px animate-glow md:block animate-fade-left bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0" />
@@ -33,13 +32,25 @@ export default function Home() {
 				quantity={100}
 			/>
 			<h1 className="flex z-10 text-4xl text-transparent duration-1000 bg-white cursor-default text-edge-outline animate-title font-display sm:text-6xl md:text-9xl whitespace-nowrap bg-clip-text ">
-				deveric <span aria-hidden="true"><Image style={{borderRadius:"50%",marginTop:"-1rem"}} src="/favicon.png" width={75} height={75} alt={'Eric Gitangus photo'} /></span>
+				deveric{" "}
+				<span aria-hidden="true">
+					<Image
+						style={{ borderRadius: "50%", marginTop: "-1rem" }}
+						src="/favicon.png"
+						width={75}
+						height={75}
+						alt={"Eric Gitangus photo"}
+					/>
+				</span>
 			</h1>
 
 			<div className="hidden w-screen h-px animate-glow md:block animate-fade-right bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0" />
 			<div className="my-16 mx-8 text-center animate-fade-in">
 				<h2 className="text-sm text-slate-400 ">
-					I'm Eric Gitangu<b>(Deveric)</b>, a code-blooded Full Stack Senior Software Decentralized App Developer that never strays from challenges but rather embraces them. I get a thrill from solving challenging problems optimally.
+					I'm Eric Gitangu<b>(Deveric)</b>, a code-blooded Full Stack Senior
+					Software Decentralized App Developer that never strays from challenges
+					but rather embraces them. I get a thrill from solving challenging
+					problems optimally.
 				</h2>
 			</div>
 		</div>

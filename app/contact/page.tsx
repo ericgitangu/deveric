@@ -38,18 +38,18 @@ const socials = [
 		handle: "#theace0854",
 	},
 	{
-		icon: <FaReddit size={20}/>,
+		icon: <FaReddit size={20} />,
 		href: "https://www.reddit.com/user/Dev_Eric_Gitangu",
 		label: "reddit",
 		handle: "Dev_Eric_Gitangu",
-	}
+	},
 ];
 
 export default function Example() {
 	return (
 		<div className=" bg-gradient-to-tl from-zinc-900/0 via-zinc-900 to-zinc-900/0">
 			<Navigation />
-			<div className="my-16"></div>
+			<div className="my-16" />
 			<div className="z-10 text-center text-4xl text-transparent duration-1000 bg-white cursor-default text-edge-outline animate-title font-display sm:text-6xl md:text-9xl whitespace-nowrap bg-clip-text ">
 				Let's connect!
 			</div>
