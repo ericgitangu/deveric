@@ -7,7 +7,7 @@ import { Navigation } from "../components/nav";
 export default function About() {
 	const redirect: React.MouseEventHandler<HTMLSpanElement> | undefined =
 		(): void => {
-			window.location.href = "https://deveric-blog-io.azurewebsites.net/";
+			window.location.href = "https://blog.ericgitangu.com/";
 		};
 	return (
 		<div className="flex flex-col items-center justify-center w-screen h-screen overflow-hidden bg-gradient-to-tl from-black via-zinc-600/20 to-black">
