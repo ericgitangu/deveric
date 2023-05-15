@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 	openGraph: {
 		title: "Eric Gitangu - deveric.io",
 		description:
-			"Eric Gitangu, Senior Software engineer and code-blooeded developer",
+			"Eric Gitangu, Senior Software engineer and code-blooded developer",
 		url: "https://developer.ericgitangu.com/",
 		siteName: "Eric Gitangu - deveric.io",
 		images: [
