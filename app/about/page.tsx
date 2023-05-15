@@ -31,7 +31,7 @@ export default function About() {
 					mention an enthusiast for ethical software practices. This combination
 					of interests is what ultimately led me to my passion for contributing
 					and joining various developer communities on Slack and Discord. I love
-					building projects from scratch. From the ground up with a single
+					building projects from scratch. From the ground up from a single
 					initial init commit to a full blown project. Outside of development, I
 					participate actively on various programming platforms, LeetCode,
 					TopCoder, Hackerrank & CodingGames but I wouldn't mind taking on
