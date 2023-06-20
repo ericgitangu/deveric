@@ -18,9 +18,9 @@ export const metadata: Metadata = {
 		siteName: "Eric Gitangu - deveric.io",
 		images: [
 			{
-				url: "./ericgitangu.jpeg",
-				width: 800,
-				height: 800,
+				url: "https://media.licdn.com/dms/image/D4D03AQGrFBDkYWUNqA/profile-displayphoto-shrink_800_800/0/1664606973025?e=2147483647&v=beta&t=k0kebZyN6d08jZJ9rQGx33XFWr2xlep8JlAWl6Z47aY",
+				width: 1200,
+				height: 630,
 			},
 		],
 		locale: "en-US",
