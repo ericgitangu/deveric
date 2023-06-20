@@ -6,7 +6,7 @@ import { Analytics } from "./components/analytics";
 
 export const metadata: Metadata = {
 	title: {
-		default: "Eric Gitangu - deveric.io",
+		default: "Eric Gitangu - https://deveric.io",
 		template: "%s | deveric.io",
 	},
 	description: "Developer, Engineer %26 code-blooded tinkerer.",
