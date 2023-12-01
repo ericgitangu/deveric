@@ -4,7 +4,7 @@ import React from "react";
 import Particles from "../components/particles";
 import { Navigation } from "../components/nav";
 
-export default function About() {
+export default function Blog() {
 	const redirect: React.MouseEventHandler<HTMLSpanElement> | undefined =
 		(): void => {
 			window.location.href = "https://deveric-blog-io.azurewebsites.net/";
