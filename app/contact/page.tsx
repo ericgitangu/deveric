@@ -35,13 +35,13 @@ const socials = [
 		icon: <FaDiscord size={20} />,
 		href: "https://discord.com/users/637500198976880670",
 		label: "Discord",
-		handle: "#theace0854",
+		handle: "dev.eric.gitangu",
 	},
 	{
 		icon: <FaReddit size={20} />,
 		href: "https://www.reddit.com/user/Dev_Eric_Gitangu",
 		label: "reddit",
-		handle: "Dev_Eric_Gitangu",
+		handle: "dev_eric_gitangu",
 	},
 ];
 
