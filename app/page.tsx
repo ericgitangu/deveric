@@ -48,10 +48,26 @@ export default function Home() {
 			<div className="hidden w-screen h-px animate-glow md:block animate-fade-right bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0" />
 			<div className="my-16 mx-8 text-center animate-fade-in">
 				<h2 className="text-sm text-slate-400 ">
-					I'm Eric Gitangu<b>(Deveric)</b>, a code-blooded Full Stack Senior
-					Software Decentralized App Developer that never strays from challenges
-					but rather embraces them. I get a thrill from solving challenging
-					problems optimally.
+					I'm Eric Gitangu<b>(Deveric)</b>, a code-blooded Experienced
+					engineering leader skilled in architecting scalable systems, driving
+					technical strategy, and building high-performing teams and solutions..
+					<br />
+					Currently working as a Director of Engineering at
+					<Link href={"https://vishnusystems.life"} className="text-blue-600">
+						{" Vishnu Systems, Inc. "}
+					</Link>{" "}
+					As the owner of this vertical market product suite, I'm be responsible
+					for driving the market research, requirements gathering, engineering
+					coordination, partnering with interdisciplinary teams. My goal is to
+					initially understand the customers and understand the cybersecurity
+					industry vertical for health delivery organizations, medical device
+					manufacturers and innovation centers’ requirements, identify
+					opportunities for new products and features for existing and new
+					customers. I oversee our product from the beginning of its lifecycle
+					to its end. This means I set the vision and as an engineer participate
+					in the product for internal and external execution, direct any
+					updates, and make sure the product is filling customer needs until the
+					product is retired.
 				</h2>
 			</div>
 		</div>
