@@ -52,6 +52,7 @@ export default function Home() {
 					engineering leader skilled in architecting scalable systems, driving
 					technical strategy, and building high-performing teams and solutions..
 					<br />
+					<br />
 					Currently working as a Director of Engineering at
 					<Link href={"https://vishnusystems.life"} className="text-blue-600">
 						{" Vishnu Systems, Inc. "}
