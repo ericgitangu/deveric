@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 		default: "Eric Gitangu - https://deveric.io",
 		template: "%s | deveric.io",
 	},
-	description: "Developer, Engineer %26 code-blooded tinkerer.",
+	description: "Developer, Engineer %26 code-blooded tinkerer - Director of Engineering at Vishnu Systems, Inc.",
 	openGraph: {
 		title: "Eric Gitangu - Deveric.",
 		description:
-			"Eric Gitangu, Director of Engineering / Co-Founder but primitively, a code-blooded developer",
+			"Eric Gitangu, Director of Engineering / Co-Founder at Vishnu Systems, Inc. Primally, a code-blooded software engineer.",
 		url: "https://developer.ericgitangu.com/",
 		siteName: "Eric Gitangu - deveric.io",
 		images: [
