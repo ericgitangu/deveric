@@ -9,7 +9,8 @@ export const metadata: Metadata = {
 		default: "Eric Gitangu - https://deveric.io",
 		template: "%s | deveric.io",
 	},
-	description: "Developer, Engineer %26 code-blooded tinkerer - Director of Engineering at Vishnu Systems, Inc.",
+	description:
+		"Developer, Engineer %26 code-blooded tinkerer - Director of Engineering at Vishnu Systems, Inc.",
 	openGraph: {
 		title: "Eric Gitangu - Deveric.",
 		description:

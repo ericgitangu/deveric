@@ -19,9 +19,15 @@ export default function About() {
 			<div className="text-center animate-fade-in">
 				<p style={{ margin: "1.5em" }} />
 				<div className="mx-4 text-xs text-slate-400">
-					Name's <b>Eric Gitangu</b> but it just easier to call me <b>Eric</b>{" "}
-					or <b>Deveric</b> online. I'm currently the Senior FullStack dApp
-					Developer, with various interests and skils not limited to Distributed
+					The name's <b>Eric Gitangu</b> but it just easier to call me{" "}
+					<b>Eric</b> or <b>Deveric</b> online. I'm currently the Currently
+					working as a Director of Engineering at
+					<Link href={"https://vishnusystems.life"} className="text-blue-600">
+						{" Vishnu Systems, Inc. "}
+					</Link>{" "}
+					with 7+ years of experience as a Senior FullStack dApp Engineer using
+					various stacks, Golang, Java, Kotlin, JavaScript Frameworks, Elixir +
+					Phoenix, with various interests and skils not limited to Distributed
 					Development, Data Science, Artificial Inteligence & Machine Learning.
 				</div>
 				<p style={{ margin: "1.5em" }} />
