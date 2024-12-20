@@ -1,33 +1,76 @@
 <div align="center">
-    <a href="https://deveric.io"><h1 align="center">deveric.io</h1></a>
+    <a href="https://developer.ericgitangu.com">
+        <img src="https://developer.ericgitangu.com/_next/image?url=%2Ffavicon.png&w=96&q=75" style="border-radius: 50%" alt="deveric.io logo"/>
+        <h1 align="center">Eric Gitangu - deveric</h1>
+    </a>
     
-My personal website, built with [Next.js](https://nextjs.org/), [Tailwind CSS](https://tailwindcss.com/), [Upstash](https://upstash.com?ref=deveric.io), [Contentlayer](https://www.contentlayer.dev/) and deployed to [Vercel](https://vercel.com/).
+My personal website, built with [Next.js 13](https://nextjs.org/), [Tailwind CSS](https://tailwindcss.com/), [Upstash Redis](https://upstash.com?ref=deveric.io), [Contentlayer](https://www.contentlayer.dev/) and deployed to [Vercel](https://vercel.com/).
 
 </div>
 
 <br/>
 
+## Features
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/upstash/clone?demo-title=Next.js%20Portfolio%20with%20Pageview%20Counter&demo-description=Portfolio%20site%20with%20pageview%20counter%2C%20built%20with%20Next.js%2013%20App%20Router%2C%20Contentlayer%2C%20and%20Upstash%20Redis.&demo-url=https%3A%2F%2Fdeveric.io%2F&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F1DA8n5a6WaP9p1FXf9LmUY%2Fc6264fa2732355787bf657df92dda8a1%2FCleanShot_2023-04-17_at_14.17.37.png&project-name=Next.js%20Portfolio%20with%20Pageview%20Counter&repository-name=nextjs-portfolio-pageview-counter&repository-url=https%3A%2F%2Fgithub.com%2Fdeveric%2Fdeveric.io&from=templates&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17)
+- ⚡️ Next.js 13 App Router
+- 🎨 Tailwind CSS for styling
+- 📈 Upstash Redis for view counting
+- 📝 MDX for content management via Contentlayer
+- 🎭 Framer Motion animations
+- 📊 Vercel Analytics integration
+- 🌓 Dark mode optimized
+- 📱 Responsive design
+- 🔍 SEO optimized with meta tags
+- 🔗 Social media integration
+- 📄 Blog support
+- 🖼️ Project showcase
+- 📊 Page view counter
+- 🎨 Custom animations
+- 🔒 TypeScript support
 
-## Running Locally
+## Tech Stack
 
+- **Framework:** Next.js 13
+- **Styling:** Tailwind CSS
+- **Content:** MDX + Contentlayer
+- **Database:** Upstash Redis
+- **Analytics:** Vercel Analytics
+- **Deployment:** Vercel
+- **Animations:** Framer Motion
+- **Icons:** Lucide React
+- **Markdown:** Rehype + Remark plugins
+- **Code Formatting:** Rome
+- **Font:** Inter (Google Fonts) + CalSans
 
-```sh-session
-git clone https://github.com/ericgitangu/deveric.io.git
-cd deveric.io
-```
+## My spiel
 
+I'm a seasoned software engineering leader with over 8 years of experience, currently serving as the Director of Engineering at [Vishnu Systems, Inc](https://vishnusystems.life). I specialize in architecting scalable systems, driving technical strategy, and building high-performing engineering teams.
 
-Create a `.env` file similar to [`.env.example`](https://github.com/ericgitangu/deveric.io/blob/main/.env.example).
+### Professional Expertise
 
-Then install dependencies and run the development server:
+- 🎯 Technical Leadership & Strategy
+- 🛡️ AI/ML Security Solutions
+- 🏗️ Scalable System Architecture
+- 👥 Team Building & Mentorship
+- 🚀 Product Development Lifecycle
 
-pnpm install
-pnpm dev
-```
+### Technical Proficiency
 
+- **Languages:** Python, Java, Golang, React, C++, JavaScript, Solidity, NextJS, Rust
+- **Cloud & Infrastructure:** AWS, Google Cloud, Azure
+- **Data & Analytics:** Big Data, Google BigQuery
+- **Blockchain:** Smart Contracts, DApps
+- **DevOps:** Kubernetes, CI/CD, Docker
 
-## Cloning / Forking
+### Notable Achievements
 
-Please remove all of my personal information (projects, images, etc.) before deploying your own version of this site.
+- 🎓 Microsoft Scholarship Recipient (2012-2013)
+- 🏆 Google Scholarship Recipient (2011-2012)
+- 📚 Dean's List - University of Massachusetts Lowell
+
+### Connect With Me
+
+- 📧 [Email](mailto:developer.ericgitangu@gmail.com)
+- 🔗 [LinkedIn](https://www.linkedin.com/in/ericgitangu)
+- 🌐 [Portfolio](https://developer.ericgitangu.com)
+- 📝 [Blog](https://deveric-blog.azurewebsites.net)
