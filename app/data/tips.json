@@ -1,0 +1,252 @@
+[
+    {
+        "id": 1,
+        "domain": "Systems Architecture",
+        "tip": "Use microservices to improve scalability and maintainability."
+    },
+    {
+        "id": 2,
+        "domain": "AI & ML",
+        "tip": "Always preprocess your data to enhance model performance."
+    },
+    {
+        "id": 3,
+        "domain": "Cybersecurity",
+        "tip": "Implement multi-factor authentication to bolster security."
+    },
+    {
+        "id": 4,
+        "domain": "Systems Architecture",
+        "tip": "Utilize caching mechanisms to reduce latency and improve performance."
+    },
+    {
+        "id": 5,
+        "domain": "AI & ML",
+        "tip": "Regularly evaluate your models against new data to ensure accuracy."
+    },
+    {
+        "id": 6,
+        "domain": "Cybersecurity",
+        "tip": "Conduct regular security audits to identify and mitigate vulnerabilities."
+    },
+    {
+        "id": 7,
+        "domain": "Systems Architecture",
+        "tip": "Design for failure by implementing redundancy and failover strategies."
+    },
+    {
+        "id": 8,
+        "domain": "AI & ML",
+        "tip": "Leverage transfer learning to accelerate model training with limited data."
+    },
+    {
+        "id": 9,
+        "domain": "Cybersecurity",
+        "tip": "Educate employees about phishing attacks and safe online practices."
+    },
+    {
+        "id": 10,
+        "domain": "Frontend Development",
+        "tip": "Optimize images and assets to improve page load times."
+    },
+    {
+        "id": 11,
+        "domain": "Backend Development",
+        "tip": "Use connection pooling to efficiently manage database connections."
+    },
+    {
+        "id": 12,
+        "domain": "DevOps",
+        "tip": "Automate deployment processes to reduce human error and improve reliability."
+    },
+    {
+        "id": 13,
+        "domain": "Database Design",
+        "tip": "Properly index your database tables to optimize query performance."
+    },
+    {
+        "id": 14,
+        "domain": "Cloud Computing",
+        "tip": "Take advantage of auto-scaling to handle varying workloads efficiently."
+    },
+    {
+        "id": 15,
+        "domain": "Mobile Development",
+        "tip": "Implement offline functionality to improve user experience."
+    },
+    {
+        "id": 16,
+        "domain": "Testing",
+        "tip": "Write unit tests to catch bugs early in the development cycle."
+    },
+    {
+        "id": 17,
+        "domain": "UI/UX",
+        "tip": "Design with accessibility in mind to make your application usable by everyone."
+    },
+    {
+        "id": 18,
+        "domain": "Version Control",
+        "tip": "Write clear commit messages to maintain code history effectively."
+    },
+    {
+        "id": 19,
+        "domain": "Code Quality",
+        "tip": "Follow consistent coding standards across your project."
+    },
+    {
+        "id": 20,
+        "domain": "Performance",
+        "tip": "Profile your code to identify and fix performance bottlenecks."
+    },
+    {
+        "id": 21,
+        "domain": "API Design",
+        "tip": "Use versioning in your APIs to maintain backward compatibility."
+    },
+    {
+        "id": 22,
+        "domain": "Frontend Development",
+        "tip": "Implement lazy loading for better initial page load performance."
+    },
+    {
+        "id": 23,
+        "domain": "Backend Development",
+        "tip": "Use message queues for handling asynchronous tasks."
+    },
+    {
+        "id": 24,
+        "domain": "DevOps",
+        "tip": "Monitor system metrics to proactively identify issues."
+    },
+    {
+        "id": 25,
+        "domain": "Database Design",
+        "tip": "Normalize your database schema to reduce data redundancy."
+    },
+    {
+        "id": 26,
+        "domain": "Cloud Computing",
+        "tip": "Use content delivery networks (CDNs) to improve global access."
+    },
+    {
+        "id": 27,
+        "domain": "Mobile Development",
+        "tip": "Optimize battery usage in mobile applications."
+    },
+    {
+        "id": 28,
+        "domain": "Testing",
+        "tip": "Implement end-to-end testing for critical user flows."
+    },
+    {
+        "id": 29,
+        "domain": "UI/UX",
+        "tip": "Use consistent visual hierarchy to guide user attention."
+    },
+    {
+        "id": 30,
+        "domain": "Version Control",
+        "tip": "Use feature branches for isolated development."
+    },
+    {
+        "id": 31,
+        "domain": "Code Quality",
+        "tip": "Conduct regular code reviews to maintain code quality."
+    },
+    {
+        "id": 32,
+        "domain": "Performance",
+        "tip": "Minimize HTTP requests to improve page load times."
+    },
+    {
+        "id": 33,
+        "domain": "API Design",
+        "tip": "Use appropriate HTTP methods for RESTful operations."
+    },
+    {
+        "id": 34,
+        "domain": "Systems Architecture",
+        "tip": "Implement circuit breakers to handle service failures gracefully."
+    },
+    {
+        "id": 35,
+        "domain": "AI & ML",
+        "tip": "Handle class imbalance in training data for better model performance."
+    },
+    {
+        "id": 36,
+        "domain": "Cybersecurity",
+        "tip": "Implement rate limiting to prevent brute force attacks."
+    },
+    {
+        "id": 37,
+        "domain": "Frontend Development",
+        "tip": "Use CSS Grid and Flexbox for responsive layouts."
+    },
+    {
+        "id": 38,
+        "domain": "Backend Development",
+        "tip": "Implement proper error handling and logging."
+    },
+    {
+        "id": 39,
+        "domain": "DevOps",
+        "tip": "Use infrastructure as code for consistent environments."
+    },
+    {
+        "id": 40,
+        "domain": "Database Design",
+        "tip": "Implement database backups and recovery procedures."
+    },
+    {
+        "id": 41,
+        "domain": "Cloud Computing",
+        "tip": "Use managed services to reduce operational overhead."
+    },
+    {
+        "id": 42,
+        "domain": "Mobile Development",
+        "tip": "Implement proper state management in mobile apps."
+    },
+    {
+        "id": 43,
+        "domain": "Testing",
+        "tip": "Use mocking to isolate units in testing."
+    },
+    {
+        "id": 44,
+        "domain": "UI/UX",
+        "tip": "Provide clear feedback for user actions."
+    },
+    {
+        "id": 45,
+        "domain": "Version Control",
+        "tip": "Keep commits atomic and focused on single changes."
+    },
+    {
+        "id": 46,
+        "domain": "Code Quality",
+        "tip": "Use static code analysis tools to catch common issues."
+    },
+    {
+        "id": 47,
+        "domain": "Performance",
+        "tip": "Implement proper browser caching strategies."
+    },
+    {
+        "id": 48,
+        "domain": "API Design",
+        "tip": "Document your APIs thoroughly for better usability."
+    },
+    {
+        "id": 49,
+        "domain": "Systems Architecture",
+        "tip": "Use event-driven architecture for loose coupling."
+    },
+    {
+        "id": 50,
+        "domain": "AI & ML",
+        "tip": "Consider model interpretability in critical applications."
+    }
+]
