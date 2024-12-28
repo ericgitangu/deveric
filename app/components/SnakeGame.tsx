@@ -225,7 +225,7 @@ const SnakeGame: React.FC = () => {
                 ctx.fillRect(0, 0, dynamicCanvasSize, dynamicCanvasSize);
 
                 // Draw food
-                ctx.fillStyle = 'red';
+                ctx.fillStyle = 'purple';
                 ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
 
                 // Draw snake
@@ -240,7 +240,7 @@ const SnakeGame: React.FC = () => {
     // Swipe handlers
     const handlers = useSwipeable({
         onSwiped: (eventData) => {
-            const { dir } = eventData; // dir can be 'Up', 'Down', 'Left', 'Right'
+            const { dir } = eventData;
 
             switch (dir) {
                 case 'Up':
@@ -266,8 +266,8 @@ const SnakeGame: React.FC = () => {
     // Define columns for DataGrid
     const columns: GridColDef[] = [
         { field: 'name', headerName: 'Name', width: 150, headerClassName: 'text-black' },
-        { field: 'score', headerName: 'Score', width: 100, type: 'number', headerClassName: 'text-black' },
-        { field: 'timestamp', headerName: 'Timestamp', width: 200, headerClassName: 'text-black' },
+        { field: 'score', headerName: 'Score', width: 150, type: 'number', headerClassName: 'text-black' },
+        { field: 'timestamp', headerName: 'Timestamp', width: 150, headerClassName: 'text-black' },
     ];
 
     return (
@@ -286,9 +286,9 @@ const SnakeGame: React.FC = () => {
                             fontWeight: 'bold',
                             borderRadius: '8px',
                             textTransform: 'uppercase',
-                            backgroundColor: '#3b82f6', // Tailwind's blue-500 equivalent
+                            backgroundColor: '#3b82f6',
                             '&:hover': {
-                                backgroundColor: '#2563eb', // Tailwind's blue-600 equivalent
+                                backgroundColor: '#2563eb',
                             },
                             transition: 'transform 0.2s, background-color 0.3s',
                         }}
@@ -353,7 +353,7 @@ const SnakeGame: React.FC = () => {
 
             {/* Leaderboard */}
             <div className="w-full max-w-2xl">
-                <h2 className="text-white text-xl mb-2">Leaderboard</h2>
+                <h2 className="text-white text-xl mb-2">Scoreboard</h2>
                 <div className="h-60">
                     <DataGrid
                         rows={leaderboard}
@@ -365,17 +365,17 @@ const SnakeGame: React.FC = () => {
                         autoHeight
                         hideFooter
                         sx={{
-                            backgroundColor: '#1f2937', // Tailwind's gray-800
-                            color: '#d1d5db', // Tailwind's gray-300
+                            backgroundColor: '#1f2937',
+                            color: '#d1d5db',
                             '& .MuiDataGrid-columnHeaders': {
-                                backgroundColor: '#374151', // Tailwind's gray-700
+                                backgroundColor: '#374151',
                                 color: '#d1d5db',
                             },
                             '& .MuiDataGrid-row:nth-of-type(odd)': {
-                                backgroundColor: '#1f2937', // Tailwind's gray-800
+                                backgroundColor: '#1f2937',
                             },
                             '& .MuiDataGrid-row:nth-of-type(even)': {
-                                backgroundColor: '#111827', // Tailwind's gray-900
+                                backgroundColor: '#111827',
                             },
                         }}
                     />
