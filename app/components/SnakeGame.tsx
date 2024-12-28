@@ -265,7 +265,7 @@ const SnakeGame: React.FC = () => {
 
     // Define columns for DataGrid
     const columns: GridColDef[] = [
-        { field: 'name', headerName: 'Name', width: 150, headerClassName: 'text-black' },
+        { field: 'name', headerName: 'Name', width: 120, headerClassName: 'text-black' },
         { field: 'score', headerName: 'Score', width: 120, type: 'number', headerClassName: 'text-black' },
         { field: 'timestamp', headerName: 'Timestamp', width: 180, headerClassName: 'text-black' },
     ];
@@ -352,13 +352,12 @@ const SnakeGame: React.FC = () => {
             )}
 
             {/* Leaderboard */}
-            <div className="w-full max-w-2xl">
-                <h2 className="text-white text-xl mb-2">Scoreboard</h2>
-                <div className="h-60">
+            <div className="w-full max-w-2xl px-4 sm:px-6 mx-auto">
+                <h2 className="text-white text-xl mb-2 text-center sm:text-left">Scoreboard</h2>
+                <div className="h-60 overflow-x-auto">
                     <DataGrid
                         rows={leaderboard}
                         columns={columns}
-                        // Update the pagination props based on your DataGrid version
                         paginationModel={{ page: 0, pageSize: 5 }}
                         pageSizeOptions={[5]}
                         disableRowSelectionOnClick
@@ -367,6 +366,11 @@ const SnakeGame: React.FC = () => {
                         sx={{
                             backgroundColor: '#1f2937',
                             color: '#d1d5db',
+                            width: '100%',
+                            minWidth: '300px',
+                            '& .MuiDataGrid-main': {
+                                overflow: 'auto'
+                            },
                             '& .MuiDataGrid-columnHeaders': {
                                 backgroundColor: '#374151',
                                 color: '#d1d5db',
@@ -377,6 +381,10 @@ const SnakeGame: React.FC = () => {
                             '& .MuiDataGrid-row:nth-of-type(even)': {
                                 backgroundColor: '#111827',
                             },
+                            '& .MuiDataGrid-cell': {
+                                whiteSpace: 'normal',
+                                wordWrap: 'break-word'
+                            }
                         }}
                     />
                 </div>
