@@ -24,10 +24,11 @@ export default function About() {
 					<Link href={"https://vishnusystems.life"} className="text-blue-600">
 						{" Vishnu Systems, Inc. "}
 					</Link>{" "}
-					with 7+ years of experience as a Senior FullStack dApp Engineer using
-					various stacks, Golang, Java, Kotlin, JavaScript Frameworks, Elixir +
-					Phoenix, with various interests and skils not limited to Distributed
-					Development, Data Science, Artificial Inteligence & Machine Learning.
+					with a little over 10 years of experience as a Senior FullStack, DApp, ML,
+					Data, and AI Engineer using various stacks; Rust, Golang, Java, Kotlin,
+					JavaScript Frameworks, Elixir + Phoenix, with various interests and skils
+					not limited to Distributed Development, Data Science, Artificial Inteligence
+					& Machine Learning with a focus on CNN, RAGs, CNNs and LLMs using PyTorch & TensorFlow.
 				</div>
 				<p style={{ margin: "1.5em" }} />
 				<div className="mx-8 text-xs text-slate-400">
