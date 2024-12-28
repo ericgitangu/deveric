@@ -266,8 +266,8 @@ const SnakeGame: React.FC = () => {
     // Define columns for DataGrid
     const columns: GridColDef[] = [
         { field: 'name', headerName: 'Name', width: 150, headerClassName: 'text-black' },
-        { field: 'score', headerName: 'Score', width: 150, type: 'number', headerClassName: 'text-black' },
-        { field: 'timestamp', headerName: 'Timestamp', width: 150, headerClassName: 'text-black' },
+        { field: 'score', headerName: 'Score', width: 120, type: 'number', headerClassName: 'text-black' },
+        { field: 'timestamp', headerName: 'Timestamp', width: 180, headerClassName: 'text-black' },
     ];
 
     return (
