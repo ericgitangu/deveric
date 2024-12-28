@@ -27,6 +27,9 @@ My personal website, built with [Next.js 13](https://nextjs.org/), [Tailwind CSS
 - 📊 Page view counter
 - 🎨 Custom animations
 - 🔒 TypeScript support
+- 📃 Resume request support
+- 🕺 Fun zone with an interactive snack games with stats
+- 💡 Development tips fetched async & randomly,with auto-update
 
 ## Tech Stack
 
