@@ -27,22 +27,11 @@ export default function Home() {
 		const resumeLink = "https://drive.google.com/file/d/15RahOYQMSFlZtL2i2kkRW3qHSQSW8K8s/view?usp=sharing";
 		const mailtoLink = "mailto:developer.ericgitangu@gmail.com";
 
-		const newWindow = window.open(resumeLink, "_blank", "noopener,noreferrer");
+		window.open(resumeLink, "_blank", "noopener,noreferrer");
 
-		if (newWindow) {
-			// Successfully opened the resume link
-			setSnackbarMessage("Resume requested successfully!");
-			setSnackbarSeverity("success");
-			setSnackbarOpen(true);
-		} else {
-			// Popup blocked or failed to open
-			window.location.href = mailtoLink;
-			setSnackbarMessage(
-				"Failed to open resume link. Please email me to request my resume."
-			);
-			setSnackbarSeverity("error");
-			setSnackbarOpen(true);
-		}
+		setSnackbarMessage("Resume requested initiated! Use your preferred Gmail account to request.");
+		setSnackbarSeverity("success");
+		setSnackbarOpen(true);
 	};
 
 	const handleSnackbarClose = (
