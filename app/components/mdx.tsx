@@ -11,7 +11,6 @@ function clsx(...args: (string | undefined | false | null)[]): string {
 	return args.filter(Boolean).join(" ");
 }
 
-
 const components = {
 	h1: (({ className, ...props }: ComponentPropsWithoutRef<"h1">) => (
 		<h1
@@ -79,7 +78,7 @@ const components = {
 				"font-medium text-zinc-900 underline underline-offset-4",
 				className,
 			)}
-			href={href || '#'}
+			href={href || "#"}
 			{...props}
 		/>
 	)) as CustomComponent<"a">,
@@ -103,7 +102,10 @@ const components = {
 		<li className={clsx("mt-2", className)} {...props} />
 	)) as CustomComponent<"li">,
 
-	blockquote: (({ className, ...props }: ComponentPropsWithoutRef<"blockquote">) => (
+	blockquote: (({
+		className,
+		...props
+	}: ComponentPropsWithoutRef<"blockquote">) => (
 		<blockquote
 			className={clsx(
 				"mt-6 border-l-2 border-zinc-300 pl-6 italic text-zinc-800 [&>*]:text-zinc-600",
@@ -150,19 +152,13 @@ const components = {
 		<hr className="my-4 border-zinc-200 md:my-8" {...props} />
 	)) as React.FC<React.HTMLAttributes<HTMLHRElement>>,
 
-	table: (({
-		className,
-		...props
-	}: React.HTMLAttributes<HTMLTableElement>) => (
+	table: (({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
 		<div className="w-full my-6 overflow-y-auto">
 			<table className={clsx("w-full", className)} {...props} />
 		</div>
 	)) as React.FC<React.HTMLAttributes<HTMLTableElement>>,
 
-	tr: (({
-		className,
-		...props
-	}: React.HTMLAttributes<HTMLTableRowElement>) => (
+	tr: (({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
 		<tr
 			className={clsx(
 				"m-0 border-t border-zinc-300 p-0 even:bg-zinc-100",
@@ -200,8 +196,6 @@ const components = {
 
 	Image, // Mapping 'Image' from next/image if used in MDX
 };
-
-
 
 interface MdxProps {
 	code: string;
