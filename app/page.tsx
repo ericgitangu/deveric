@@ -1,4 +1,4 @@
-'use client'
+"use client";
 // /app/page.tsx
 
 import Link from "next/link";
@@ -24,19 +24,22 @@ export default function Home() {
 	>("info");
 
 	const handleButtonClick = () => {
-		const resumeLink = "https://drive.google.com/file/d/15RahOYQMSFlZtL2i2kkRW3qHSQSW8K8s/view?usp=sharing";
+		const resumeLink =
+			"https://drive.google.com/file/d/15RahOYQMSFlZtL2i2kkRW3qHSQSW8K8s/view?usp=sharing";
 		const mailtoLink = "mailto:developer.ericgitangu@gmail.com";
 
 		window.open(resumeLink, "_blank", "noopener,noreferrer");
 
-		setSnackbarMessage("Resume requested initiated! Use your preferred Gmail account to request.");
+		setSnackbarMessage(
+			"Resume requested initiated! Use your preferred Gmail account to request.",
+		);
 		setSnackbarSeverity("success");
 		setSnackbarOpen(true);
 	};
 
 	const handleSnackbarClose = (
 		event?: React.SyntheticEvent | Event,
-		reason?: string
+		reason?: string,
 	) => {
 		if (reason === "clickaway") {
 			return;

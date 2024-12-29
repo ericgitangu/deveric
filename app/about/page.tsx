@@ -20,15 +20,17 @@ export default function About() {
 				<p style={{ margin: "1.5em" }} />
 				<div className="mx-4 text-xs text-slate-400">
 					The name's <b>Eric Gitangu</b> but it just easier to call me{" "}
-					<b>Eric</b> or <b>Deveric</b> online. I'm currently the Director of Engineering at
+					<b>Eric</b> or <b>Deveric</b> online. I'm currently the Director of
+					Engineering at
 					<Link href={"https://vishnusystems.life"} className="text-blue-600">
 						{" Vishnu Systems, Inc. "}
 					</Link>{" "}
-					with a little over 10 years of experience as a Senior FullStack, DApp, ML,
-					Data, and AI Engineer using various stacks; Rust, Golang, Java, Kotlin,
-					JavaScript Frameworks, Elixir + Phoenix, with various interests and skils
-					not limited to Distributed Development, Data Science, Artificial Inteligence
-					& Machine Learning with a focus on CNN, RAGs, CNNs and LLMs using PyTorch & TensorFlow.
+					with a little over 10 years of experience as a Senior FullStack, DApp,
+					ML, Data, and AI Engineer using various stacks; Rust, Golang, Java,
+					Kotlin, JavaScript Frameworks, Elixir + Phoenix, with various
+					interests and skils not limited to Distributed Development, Data
+					Science, Artificial Inteligence & Machine Learning with a focus on
+					CNN, RAGs, CNNs and LLMs using PyTorch & TensorFlow.
 				</div>
 				<p style={{ margin: "1.5em" }} />
 				<div className="mx-8 text-xs text-slate-400">

@@ -27,18 +27,44 @@ export default function Certification() {
 			<div className="my-8 sm:my-16 animate-fade-in w-full max-w-4xl mx-auto">
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-6 px-4">
 					<div className="space-y-4">
-						<p className="text-zinc-400 text-center">1. Backend Specialization from Meta</p>
-						<p className="text-zinc-400 text-center">2. Database Specialization from Meta</p>
-						<p className="text-zinc-400 text-center">3. React-Native Specialization from Meta</p>
-						<p className="text-zinc-400 text-center">4. Android Specialization from Meta</p>
-						<p className="text-zinc-400 text-center">5. Frontend Specialization from Meta</p>
+						<p className="text-zinc-400 text-center">
+							1. Backend Specialization from Meta
+						</p>
+						<p className="text-zinc-400 text-center">
+							2. Database Specialization from Meta
+						</p>
+						<p className="text-zinc-400 text-center">
+							3. React-Native Specialization from Meta
+						</p>
+						<p className="text-zinc-400 text-center">
+							4. Android Specialization from Meta
+						</p>
+						<p className="text-zinc-400 text-center">
+							5. Frontend Specialization from Meta
+						</p>
 					</div>
 					<div className="space-y-4">
-						<p className="text-zinc-400 text-center">6. Golang Specialization from UC Irvine</p>
-						<p className="text-zinc-400 text-center">7. Rust Specialization from Duke University</p>
-						<p className="text-zinc-400 text-center">8. Immediate Cybersecurity from CodePath</p>
-						<p className="text-zinc-400 text-center">9. Cross Platform Development from Meta</p>
-						<p className="text-zinc-400 text-center">10. <a href="https://www.linkedin.com/in/ericgitangu/details/certifications/" className="text-blue-700 hover:text-blue-500 transition-colors">And 70+ more in my LinkedIn Profile</a></p>
+						<p className="text-zinc-400 text-center">
+							6. Golang Specialization from UC Irvine
+						</p>
+						<p className="text-zinc-400 text-center">
+							7. Rust Specialization from Duke University
+						</p>
+						<p className="text-zinc-400 text-center">
+							8. Immediate Cybersecurity from CodePath
+						</p>
+						<p className="text-zinc-400 text-center">
+							9. Cross Platform Development from Meta
+						</p>
+						<p className="text-zinc-400 text-center">
+							10.{" "}
+							<a
+								href="https://www.linkedin.com/in/ericgitangu/details/certifications/"
+								className="text-blue-700 hover:text-blue-500 transition-colors"
+							>
+								And 70+ more in my LinkedIn Profile
+							</a>
+						</p>
 					</div>
 				</div>
 			</div>
