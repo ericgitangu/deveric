@@ -51,7 +51,7 @@ export default function Certification() {
 							7. Rust Specialization from Duke University
 						</p>
 						<p className="text-zinc-400 text-center">
-							8. Immediate Cybersecurity from CodePath
+							8. Intermediate Cybersecurity from CodePath
 						</p>
 						<p className="text-zinc-400 text-center">
 							9. Cross Platform Development from Meta
