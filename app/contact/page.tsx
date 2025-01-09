@@ -10,7 +10,7 @@ const socials = [
 	{
 		icon: <Twitter size={20} />,
 		href: "https://twitter.com/dev_ericgitangu",
-		label: "Twitter",
+		label: "X",
 		handle: "@dev_ericgitangu",
 	},
 	{
