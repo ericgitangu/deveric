@@ -1,0 +1,79 @@
+---
+title: Reflekt Journal
+description: AI-powered journaling app with sentiment analysis, insights, and PWA support
+date: "2024-12-07"
+url: https://reflekt-eric-gitangus-projects.vercel.app
+repository: ericgitangu/refleckt_journal_app
+published: true
+---
+
+An intelligent journaling application that leverages AI to provide deep insights into your thoughts and emotions through sentiment analysis and personalized reflections.
+
+## Built with
+
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS / shadcn/ui
+- Rust (AWS Lambda microservices)
+- AWS (DynamoDB, API Gateway, EventBridge)
+- OpenAI / Anthropic APIs
+
+## Key Features
+
+### AI-Powered Insights
+- Real-time sentiment analysis of journal entries
+- Keyword extraction and theme identification
+- Personalized reflections and suggestions
+- Mood tracking over time
+
+### Modern Architecture
+- Serverless Rust microservices on AWS Lambda (ARM64)
+- Event-driven architecture with EventBridge
+- DynamoDB for scalable data storage
+- JWT authentication with NextAuth.js
+
+### Progressive Web App
+- Installable on desktop and mobile
+- Offline-first with service workers
+- Native app experience
+
+### Smart Features
+- Dynamic writing prompts
+- Tag suggestions based on content
+- Entry search and export
+- Customizable themes and settings
+
+## Tech Stack
+
+### Frontend
+- Next.js 14 with App Router
+- React 18 with Server Components
+- Tailwind CSS with shadcn/ui
+- Jotai for state management
+- SWR for data fetching
+
+### Backend (Rust)
+- 6 Lambda microservices
+- entry-service: CRUD operations
+- ai-service: OpenAI/Anthropic integration
+- analytics-service: Stats and trends
+- prompts-service: Dynamic prompts
+- settings-service: User preferences
+- authorizer: JWT validation
+
+### Infrastructure
+- AWS SAM/CloudFormation
+- API Gateway (REST)
+- DynamoDB tables
+- EventBridge for async events
+- Cognito for auth
+
+## Preview
+
+Live at [reflekt-eric-gitangus-projects.vercel.app](https://reflekt-eric-gitangus-projects.vercel.app)
+
+## Connect
+
+- **Portfolio**: [developer.ericgitangu.com](https://developer.ericgitangu.com)
+- **GitHub**: [ericgitangu](https://github.com/ericgitangu)
+- **LinkedIn**: [Eric Gitangu](https://linkedin.com/in/ericgitangu)
