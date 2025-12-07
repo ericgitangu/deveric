@@ -1,0 +1,59 @@
+---
+title: Elixir Identicons
+description: Generate unique identicon avatars from strings using Elixir
+date: "2024-12-06"
+url: https://github.com/ericgitangu/elixir-create-identicons
+repository: ericgitangu/elixir-create-identicons
+published: true
+---
+
+A command-line tool that generates unique, visually distinct identicon images from input strings using Elixir's functional programming paradigm.
+
+## Built with
+
+- Elixir
+- OTP
+- EEx (Embedded Elixir)
+
+## Key Features
+
+### Deterministic Generation
+- Same input always produces identical identicon
+- MD5 hashing for consistent color and pattern
+- Symmetrical 5x5 grid pattern
+
+### Functional Design
+- Pure functional implementation
+- Pattern matching for grid generation
+- Pipe operator for clean data flow
+
+### Image Output
+- PNG image generation
+- Customizable grid size
+- Color derived from input hash
+
+## How It Works
+
+1. **Hash Input**: Convert string to MD5 hash
+2. **Pick Color**: Extract RGB values from hash
+3. **Build Grid**: Create 5x5 grid from hash bytes
+4. **Mirror Row**: Apply horizontal symmetry
+5. **Filter Odds**: Determine filled squares
+6. **Generate Image**: Render to PNG file
+
+## Use Cases
+
+- Default user avatars
+- Visual identifiers for hashes
+- Unique project/repo icons
+- Anonymous user representation
+
+## Preview
+
+Repository: [github.com/ericgitangu/elixir-create-identicons](https://github.com/ericgitangu/elixir-create-identicons)
+
+## Connect
+
+- **Portfolio**: [developer.ericgitangu.com](https://developer.ericgitangu.com)
+- **GitHub**: [ericgitangu](https://github.com/ericgitangu)
+- **LinkedIn**: [Eric Gitangu](https://linkedin.com/in/ericgitangu)
