@@ -12,7 +12,7 @@ const navigation = [
 	{ name: "Certifications", href: "/certifications" },
 	{ name: "About", href: "/about" },
 	{ name: "Contact", href: "/contact" },
-	{ name: "Blog", href: "/blog" },
+	{ name: "Journal", href: "https://reflect.ericgitangu.com" },
 	{ name: "Fun", href: "/fun" },
 ];
 
@@ -52,15 +52,27 @@ export default function Home() {
 			{/* Navigation Menu */}
 			<nav className="my-16 animate-fade-in">
 				<ul className="flex items-center justify-center gap-4">
-					{navigation.map((item) => (
-						<Link
-							key={item.href}
-							href={item.href}
-							className="text-sm duration-500 text-slate-400 hover:text-zinc-300"
-						>
-							{item.name}
-						</Link>
-					))}
+					{navigation.map((item) =>
+						item.href.startsWith("http") ? (
+							<a
+								key={item.href}
+								href={item.href}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-sm duration-500 text-slate-400 hover:text-zinc-300"
+							>
+								{item.name}
+							</a>
+						) : (
+							<Link
+								key={item.href}
+								href={item.href}
+								className="text-sm duration-500 text-slate-400 hover:text-zinc-300"
+							>
+								{item.name}
+							</Link>
+						)
+					)}
 				</ul>
 			</nav>
 
