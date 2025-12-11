@@ -52,14 +52,12 @@ export const Navigation: React.FC = () => {
 						>
 							Contact
 						</Link>
-						<a
-							href="https://reflect.ericgitangu.com"
-							target="_blank"
-							rel="noopener noreferrer"
+						<Link
+							href="/journal"
 							className="duration-200 text-zinc-400 hover:text-zinc-100 text-sm"
 						>
 							Journal
-						</a>
+						</Link>
 						<Link
 							href="/fun"
 							className="duration-200 text-zinc-400 hover:text-zinc-100 text-sm"
