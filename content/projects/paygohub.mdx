@@ -1,0 +1,140 @@
+---
+title: PayGoHub - Solar Pay-As-You-Go Platform
+description: A full-stack ASP.NET Core MVC application for managing solar energy pay-as-you-go customers, payments, loans, and installations
+date: "2024-12-21"
+url: https://paygohub-web.fly.dev/
+repository: ericgitangu/PayGoHub.git
+published: true
+---
+
+# Preview
+
+PayGoHub is a comprehensive solar energy Pay-As-You-Go (PAYGO) management platform built with ASP.NET Core MVC following Clean Architecture principles. It enables solar energy companies to manage customers, track payments, handle loans, schedule installations, and monitor devices across multiple African markets.
+
+The platform features a modern dashboard with real-time KPIs, Chart.js visualizations, and full CRUD operations for all entities. It's designed for the solar home systems industry, particularly targeting markets in Kenya, Tanzania, Uganda, and other African countries.
+
+**Live Demo:** [paygohub-web.fly.dev](https://paygohub-web.fly.dev/)
+
+# Architecture
+
+The application follows **Clean Architecture** with a multi-project solution structure:
+
+```
+PayGoHub/
+├── src/
+│   ├── PayGoHub.Domain/           # Entities, Enums, Interfaces
+│   ├── PayGoHub.Application/      # Services, DTOs, Validators
+│   ├── PayGoHub.Infrastructure/   # EF Core, DbContext, Repositories
+│   └── PayGoHub.Web/              # MVC Controllers, Views, Assets
+├── tests/
+│   ├── PayGoHub.Tests/            # Unit & Integration Tests (xUnit)
+│   └── PayGoHub.E2E/              # End-to-End Tests (Playwright .NET)
+├── docker-compose.yml
+├── fly.toml
+└── Dockerfile
+```
+
+# Key Features
+
+- **Dashboard** - Real-time KPIs with revenue, customer growth, active loans, and installations
+- **Revenue Charts** - Interactive Chart.js visualizations with monthly trends
+- **Customer Management** - Full CRUD with region/district organization
+- **Payment Processing** - M-Pesa, MTN MoMo, Bank, and Cash payment tracking
+- **Loan Management** - Loan lifecycle from application to payoff
+- **Installation Scheduling** - Technician assignment and completion tracking
+- **Device Monitoring** - Solar home system device status and health
+
+# Technology Stack
+
+## Backend
+- ASP.NET Core 10.0 MVC
+- Entity Framework Core 10.0
+- PostgreSQL (Npgsql)
+- Clean Architecture Pattern
+- Dependency Injection
+
+## Frontend
+- Razor Views with Bootstrap 5
+- Chart.js for Data Visualization
+- Bootstrap Icons
+- Responsive Sidebar Navigation
+
+## Testing
+- xUnit for Unit Testing
+- Playwright .NET for E2E Testing
+- Coverlet for Code Coverage
+- ReportGenerator for HTML Reports
+
+## DevOps
+- Docker & Docker Compose
+- GitHub Actions CI/CD
+- Fly.io Deployment
+- PostgreSQL on Fly Postgres
+
+# CI/CD Pipeline
+
+The GitHub Actions pipeline includes:
+
+```yaml
+Jobs:
+  - Build & Test (Unit tests with coverage)
+  - Code Quality (Format checking)
+  - Security Scan (Vulnerability detection)
+  - Integration Tests (Docker Compose)
+  - Docker Build (Multi-stage Dockerfile)
+  - E2E Tests (Playwright with Chromium)
+```
+
+All test results are generated as HTML reports using:
+- **ReportGenerator** for coverage reports
+- **dotnet test --logger html** for test results
+- Screenshots on failure for E2E tests
+
+# Deployment
+
+## Fly.io Configuration
+
+```toml
+app = 'paygohub-web'
+primary_region = 'jnb'  # Johannesburg
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+
+[[http_service.checks]]
+  path = "/health"
+  interval = "15s"
+```
+
+## Commands
+
+```bash
+# Local Development
+docker compose up -d
+
+# Deploy to Fly.io
+fly deploy
+
+# View Logs
+fly logs --app paygohub-web
+```
+
+# Database Schema
+
+Core entities with soft delete and audit fields:
+
+- **Customer** - Contact info, region, status
+- **Payment** - Amount, method (M-Pesa/MoMo/Bank/Cash), status
+- **Loan** - Principal, interest rate, balance, status
+- **Installation** - System type (SHS-80W to SHS-200W), scheduling
+- **Device** - Serial number, battery health, sync status
+
+# Future Roadmap
+
+- **Rust Lambda Functions** - Serverless payment processing on AWS
+- **M-Pesa Integration** - Real-time mobile money webhooks
+- **Device IoT** - Real-time solar controller telemetry
+- **Multi-tenant** - White-label solution for solar companies
