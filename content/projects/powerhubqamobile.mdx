@@ -1,0 +1,76 @@
+---
+title: PowerHub QA Mobile
+description: Mobile-first QA testing dashboard with gamification for ENGIE PowerHub across African markets
+date: "2024-12-28"
+url: https://powerhub-qa-mobile.fly.dev/
+repository: ericgitangu/powerhub-qa-mobile
+published: true
+---
+
+A mobile-first Progressive Web App for QA engineers to monitor test execution, track achievements, and learn BDD testing across ENGIE PowerHub's African market deployments.
+
+## Built with
+
+- Next.js 15 (App Router)
+- TypeScript
+- Tailwind CSS / shadcn/ui
+- Rust (8 AWS Lambda microservices)
+- AWS (DynamoDB, API Gateway, EventBridge, S3)
+- Fly.io (PostgreSQL, Redis)
+
+## Key Features
+
+### Gamification System
+- 10-level progression with XP tracking
+- 15+ achievements for testing milestones
+- Confetti celebrations on completions
+- Wiki engagement rewards (+5 XP per article)
+
+### BDD Tutorial
+- 7-step interactive Cucumber/Gherkin course
+- Progressive step unlocking
+- LocalStorage progress persistence
+- 125 XP for full completion
+
+### Market Health Monitoring
+- Real-time ping checks across 8 African markets
+- Color-coded status (green/orange/red)
+- Response time tracking (<500ms healthy)
+- System health badge in navigation
+
+### Test Execution
+- 12 test types (RSpec, Cucumber, Playwright, K6)
+- Real-time execution status
+- Report parsing and visualization
+- Multi-market test targeting
+
+## Architecture
+
+### Frontend (Fly.io - Frankfurt)
+- Next.js 15 PWA with service workers
+- PostgreSQL for user data
+- Redis for session caching
+- Mobile-optimized UI
+
+### Backend (AWS eu-west-1)
+- test-execution-service: Test triggering
+- gamification-service: Points/achievements
+- metrics-aggregator-service: Stats collection
+- notification-service: EventBridge alerts
+- report-parser-service: S3/Cucumber parsing
+- websocket-handler: Real-time updates
+- authorizer: JWT validation
+
+## Markets Supported
+
+Uganda, Kenya, Tanzania, Rwanda, Nigeria, Benin, Zambia, Mozambique
+
+## Preview
+
+Live at [powerhub-qa-mobile.fly.dev](https://powerhub-qa-mobile.fly.dev/)
+
+## Connect
+
+- **Portfolio**: [developer.ericgitangu.com](https://developer.ericgitangu.com)
+- **GitHub**: [ericgitangu](https://github.com/ericgitangu)
+- **LinkedIn**: [Eric Gitangu](https://linkedin.com/in/ericgitangu)
