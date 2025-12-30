@@ -1,7 +1,7 @@
 ---
 title: PowerHub QA Mobile
 description: Mobile-first QA testing dashboard with gamification for ENGIE PowerHub across African markets
-date: "2024-12-28"
+date: "2024-12-30"
 url: https://powerhub-qa-mobile.fly.dev/
 repository: ericgitangu/powerhub-qa-mobile
 published: true
@@ -14,9 +14,18 @@ A mobile-first Progressive Web App for QA engineers to monitor test execution, t
 - Next.js 15 (App Router)
 - TypeScript
 - Tailwind CSS / shadcn/ui
-- Rust (8 AWS Lambda microservices)
-- AWS (DynamoDB, API Gateway, EventBridge, S3)
+- Rust 1.92 (7 AWS Lambda microservices on ARM64/Graviton2)
+- AWS (DynamoDB, API Gateway, EventBridge, S3, Lambda)
 - Fly.io (PostgreSQL, Redis)
+
+## ARM64 Lambda Build System
+
+Cross-compiled Rust microservices for AWS Lambda Graviton2:
+
+- **Target**: `aarch64-unknown-linux-gnu` (glibc for AL2023)
+- **Tool**: `cross` (Docker-based, no Zig dependency)
+- **Crypto**: `aws-lc-rs` (AWS's optimized BoringSSL fork)
+- **CPU**: `target-cpu=neoverse-n1` for Graviton2 optimization
 
 ## Key Features
 
@@ -52,14 +61,14 @@ A mobile-first Progressive Web App for QA engineers to monitor test execution, t
 - Redis for session caching
 - Mobile-optimized UI
 
-### Backend (AWS eu-west-1)
-- test-execution-service: Test triggering
-- gamification-service: Points/achievements
-- metrics-aggregator-service: Stats collection
-- notification-service: EventBridge alerts
-- report-parser-service: S3/Cucumber parsing
-- websocket-handler: Real-time updates
-- authorizer: JWT validation
+### Backend (AWS eu-west-1 - ARM64/Graviton2)
+- **test-execution-service**: Test triggering, GitLab CI integration
+- **gamification-service**: Points, achievements, streaks, leaderboard
+- **metrics-aggregator-service**: Time-series metrics aggregation
+- **notification-service**: Teams, email, PagerDuty alerts
+- **report-parser-service**: Cucumber/K6 JSON parsing from S3
+- **websocket-handler**: Real-time React state updates
+- **authorizer**: JWT validation for API Gateway
 
 ## Markets Supported
 
