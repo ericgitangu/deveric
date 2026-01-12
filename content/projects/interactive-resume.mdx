@@ -1,0 +1,198 @@
+---
+title: Interactive Resume with AI Chatbot
+description: A modern, interactive resume web application featuring an AI-powered chatbot that answers questions about my professional background, built with Next.js 16, Claude AI, and deployed on Fly.io
+repository: ericgitangu/resume-app
+url: https://resume.ericgitangu.com/
+date: 2026-01-12
+published: true
+---
+
+A cutting-edge interactive resume that goes beyond the traditional PDF format. This application showcases my professional experience through dynamic visualizations, real-time data rendering, and an AI chatbot powered by Claude that can answer detailed questions about my background, skills, and experience.
+
+## Why This Project?
+
+Traditional resumes are static and one-dimensional. This interactive resume demonstrates:
+- **Technical Excellence**: Full-stack development capabilities with modern frameworks
+- **AI Integration**: Practical implementation of LLMs for contextual Q&A
+- **User Experience**: Thoughtful design with accessibility and responsiveness
+- **DevOps Skills**: Production deployment on Fly.io with custom domain and SSL
+
+## Built With
+
+- **Framework**: Next.js 16 (App Router, Turbopack)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4 + shadcn/ui components
+- **AI**: Claude AI (Anthropic) with RAG architecture
+- **Visualizations**: Recharts, Chart.js
+- **Animations**: Framer Motion
+- **Deployment**: Fly.io with Docker
+- **Domain**: Custom SSL via Fly.io certificates
+
+## Key Features
+
+### AI-Powered Chatbot
+- **Claude Integration**: Powered by Claude Sonnet for intelligent, contextual responses
+- **RAG Architecture**: Resume data indexed and retrieved for accurate answers
+- **Streaming Responses**: Real-time text streaming for natural conversation flow
+- **Context-Aware**: Answers questions about experience, skills, projects, and certifications
+- **Professional Tone**: Configured to maintain professional yet conversational responses
+
+Example questions the chatbot can answer:
+- "What's Eric's experience with billing systems?"
+- "Does he have Web3/blockchain experience?"
+- "Tell me about his work in Kenya"
+- "What databases has he worked with at scale?"
+- "What certifications does Eric hold?"
+
+### Interactive Visualizations
+
+#### Career Progression Chart
+- Grafana-style horizontal timeline (2009-Present)
+- Career levels plotted over time (Intern to Team Lead)
+- Interactive tooltips with role details
+- Color-coded markers: Blue for US positions, Green for Kenya
+- Milestone indicators for certifications and achievements
+
+#### Skills Radar Chart
+- Multi-dimensional view of core competencies
+- Categories: Backend (95%), Architecture (95%), Cloud (90%), DevOps (88%), Databases (90%), Frontend (85%), Leadership (88%)
+- Theme-aware colors for dark/light mode
+
+#### Technology Experience Bar Chart
+- Years of experience per technology
+- Grouped by category (Backend, Frontend, Databases, Cloud)
+- Hover states with detailed proficiency levels
+
+### Professional Sections
+
+#### Experience Timeline
+- Vertical timeline with company logos
+- Expandable role cards with achievements
+- Location badges (Kenya/US)
+- Technology tags per role
+- Current: Ignite Energy Access, ENGIE Energy Access
+- Previous: Vishnu Systems, Baw Bab Technologies, RGA, Veracode, IBM
+
+#### Skills & Expertise
+- Grouped by domain: Backend, Databases, Cloud, DevOps, Architecture, Frontend, Leadership
+- Proficiency indicators with certification backing
+- 80+ professional certifications displayed
+
+#### Certifications Wall
+- Masonry layout with 80+ certifications
+- Filterable by category and issuer
+- Categories: Cloud, Backend, Frontend, AI/ML, Blockchain, Security
+- Issuers: Coursera, LinkedIn Learning, HackerRank, Meta, Google, AWS
+
+#### Projects Showcase
+- Filterable grid by technology stack
+- Live demo links and GitHub repositories
+- Featured projects highlighted
+
+### Download Options
+- **PDF Resume**: Generated from structured data
+- **Word Document**: Editable .docx format
+- Both include QR code linking back to interactive version
+
+## Technical Architecture
+
+### Frontend
+```
+src/
+├── app/
+│   ├── page.tsx              # Main resume view
+│   ├── layout.tsx            # Root layout with SEO
+│   └── api/
+│       ├── chat/route.ts     # Claude AI endpoint
+│       └── download/         # PDF/Word generation
+├── components/
+│   ├── Hero.tsx              # Full viewport intro
+│   ├── Summary.tsx           # Professional summary
+│   ├── Experience/           # Timeline & career chart
+│   ├── Skills/               # Radar, bar charts, pills
+│   ├── Projects/             # Filterable grid
+│   ├── Certifications/       # Masonry wall
+│   └── Chatbot/              # AI chat widget
+├── data/
+│   ├── resume.json           # Structured profile
+│   ├── experience.json       # Work history
+│   ├── skills.json           # Skills with levels
+│   ├── certifications.json   # 80+ certs
+│   └── projects.json         # All projects
+└── lib/
+    ├── anthropic.ts          # Claude client
+    └── rag.ts                # Context retrieval
+```
+
+### AI Implementation
+- **System Prompt**: Configured as professional representative
+- **Context Injection**: Full resume data embedded in system prompt
+- **Streaming**: Edge runtime with ReadableStream for real-time responses
+- **Error Handling**: Graceful fallbacks for API issues
+
+### Deployment
+```toml
+# fly.toml
+app = "eric-gitangu-resume"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+```
+
+## Design Philosophy
+
+**"An Elevator Pitch in Visual Form"** - This isn't just a resume; it's a demonstration of what a 10+ year senior engineer can build:
+
+- **Clean**: Minimal, professional aesthetic
+- **Fast**: Optimized for performance (Lighthouse 90+)
+- **Accessible**: WCAG 2.1 AA compliant
+- **Responsive**: Mobile-first design
+- **Dark Mode**: System-aware theme switching
+
+### Color Palette
+- Dark mode primary with accent colors
+- Inspired by GitHub/Linear aesthetic
+- Theme-aware chart colors
+
+### Typography
+- **Headings**: Inter (clean, professional)
+- **Body**: Inter (readable)
+- **Code**: JetBrains Mono
+
+## Performance
+
+- **Static Generation**: Pre-rendered pages where possible
+- **Edge Runtime**: AI endpoint runs on edge for low latency
+- **Image Optimization**: Next.js Image component
+- **Code Splitting**: Automatic chunking
+- **Caching**: Optimized headers for static assets
+
+## SEO & Metadata
+
+- Comprehensive Open Graph tags
+- Twitter Card support
+- Structured data for rich snippets
+- Canonical URLs
+- Sitemap generation
+- 30+ targeted keywords
+
+## Live Demo
+
+Experience it at [resume.ericgitangu.com](https://resume.ericgitangu.com/)
+
+Try asking the AI chatbot:
+- "What technologies does Eric specialize in?"
+- "Tell me about his leadership experience"
+- "What's his education background?"
+
+## Connect
+
+- **Portfolio**: [developer.ericgitangu.com](https://developer.ericgitangu.com)
+- **GitHub**: [ericgitangu](https://github.com/ericgitangu)
+- **LinkedIn**: [Eric Gitangu](https://linkedin.com/in/ericgitangu)
+- **Email**: [developer.ericgitangu@gmail.com](mailto:developer.ericgitangu@gmail.com)
