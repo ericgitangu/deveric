@@ -25,14 +25,12 @@ export default function Home() {
 	>("info");
 
 	const handleButtonClick = () => {
-		const resumeLink =
-			"https://drive.google.com/file/d/15RahOYQMSFlZtL2i2kkRW3qHSQSW8K8s/view?usp=sharing";
-		const mailtoLink = "mailto:developer.ericgitangu@gmail.com";
+		const resumeLink = "https://resume.ericgitangu.com";
 
 		window.open(resumeLink, "_blank", "noopener,noreferrer");
 
 		setSnackbarMessage(
-			"Resume requested initiated! Use your preferred Gmail account to request.",
+			"Opening interactive resume with AI chatbot!",
 		);
 		setSnackbarSeverity("success");
 		setSnackbarOpen(true);
@@ -99,9 +97,9 @@ export default function Home() {
 					technical strategy, and building high-performing teams and solutions..
 				</h2>
 			</div>
-			{/* Resume Request Button */}
+			{/* Interactive Resume Button */}
 			<div className="my-16 mx-8 text-center animate-fade-in">
-				<Tooltip title="Download my resume from Google Drive">
+				<Tooltip title="View my interactive resume with AI chatbot">
 					<Button
 						variant="contained"
 						color="primary"
@@ -121,9 +119,9 @@ export default function Home() {
 							},
 							transition: "transform 0.2s, background-color 0.3s, color 0.3s",
 						}}
-						aria-label="Request my Resume"
+						aria-label="View my Interactive Resume"
 					>
-						REQUEST MY RESUME
+						VIEW MY INTERACTIVE RESUME
 					</Button>
 				</Tooltip>
 			</div>
