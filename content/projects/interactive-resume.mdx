@@ -1,13 +1,13 @@
 ---
 title: Interactive Resume with AI Chatbot
-description: A modern, interactive resume web application featuring an AI-powered chatbot that answers questions about my professional background, built with Next.js 16, Claude AI, and deployed on Fly.io
+description: A modern, interactive resume web application featuring an AI-powered chatbot that answers questions about my professional background, built with Next.js 16 and deployed on Fly.io
 repository: ericgitangu/resume-app
 url: https://resume.ericgitangu.com/
 date: 2026-01-12
 published: true
 ---
 
-A cutting-edge interactive resume that goes beyond the traditional PDF format. This application showcases my professional experience through dynamic visualizations, real-time data rendering, and an AI chatbot powered by Claude that can answer detailed questions about my background, skills, and experience.
+A cutting-edge interactive resume that goes beyond the traditional PDF format. This application showcases my professional experience through dynamic visualizations, real-time data rendering, and an AI chatbot that can answer detailed questions about my background, skills, and experience.
 
 ## Why This Project?
 
@@ -22,7 +22,7 @@ Traditional resumes are static and one-dimensional. This interactive resume demo
 - **Framework**: Next.js 16 (App Router, Turbopack)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4 + shadcn/ui components
-- **AI**: Claude AI (Anthropic) with RAG architecture
+- **AI**: LLM with RAG architecture
 - **Visualizations**: Recharts, Chart.js
 - **Animations**: Framer Motion
 - **Deployment**: Fly.io with Docker
@@ -31,7 +31,7 @@ Traditional resumes are static and one-dimensional. This interactive resume demo
 ## Key Features
 
 ### AI-Powered Chatbot
-- **Claude Integration**: Powered by Claude Sonnet for intelligent, contextual responses
+- **LLM Integration**: Powered by advanced AI for intelligent, contextual responses
 - **RAG Architecture**: Resume data indexed and retrieved for accurate answers
 - **Streaming Responses**: Real-time text streaming for natural conversation flow
 - **Context-Aware**: Answers questions about experience, skills, projects, and certifications
@@ -103,7 +103,7 @@ src/
 │   ├── page.tsx              # Main resume view
 │   ├── layout.tsx            # Root layout with SEO
 │   └── api/
-│       ├── chat/route.ts     # Claude AI endpoint
+│       ├── chat/route.ts     # AI chatbot endpoint
 │       └── download/         # PDF/Word generation
 ├── components/
 │   ├── Hero.tsx              # Full viewport intro
@@ -120,7 +120,7 @@ src/
 │   ├── certifications.json   # 80+ certs
 │   └── projects.json         # All projects
 └── lib/
-    ├── anthropic.ts          # Claude client
+    ├── ai-client.ts          # AI client
     └── rag.ts                # Context retrieval
 ```
 
