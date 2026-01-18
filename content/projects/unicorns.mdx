@@ -1,0 +1,208 @@
+---
+title: UniCorns - Multi-Tenant SaaS Super-App for African SMBs
+description: A comprehensive multi-tenant business management platform featuring 5 Rust microservices, Next.js 16 frontend, native Android app, and AI-powered features for healthcare, retail, and professional services
+date: "2026-01-17"
+url: https://unicorns.ericgitangu.com
+repository: ericgitangu/unicorns
+published: true
+---
+
+# Preview
+
+UniCorns is a comprehensive multi-tenant SaaS super-app designed for African small and medium businesses. It provides enterprise-grade features across multiple business verticals including healthcare clinics, pharmacies, retail stores, restaurants, and professional services.
+
+The platform features 5 Rust microservices on AWS Lambda, a Next.js 16 frontend deployed on Fly.io, native Android app with Jetpack Compose, and AI-powered features using Claude for product identification and healthcare summaries.
+
+**Live Demo:** [unicorns.ericgitangu.com](https://unicorns.ericgitangu.com)
+
+# Architecture
+
+## System Overview
+
+The platform follows a serverless microservices architecture on AWS:
+
+```
+UniCorns/
+├── services/                    # Rust Lambda Microservices
+│   ├── auth/                   # Authentication, teams, loyalty
+│   ├── inventory/              # Products, stock, AI vision
+│   ├── patient/                # EMR, vitals, AI summaries
+│   ├── pos/                    # Carts, checkout, M-Pesa
+│   ├── websocket/              # Real-time notifications
+│   ├── authorizer/             # JWT validation
+│   └── common/                 # Shared utilities
+├── web/                        # Next.js 16 Frontend
+│   ├── app/                    # App Router
+│   ├── components/             # shadcn/ui components
+│   └── lib/                    # API, auth, utilities
+├── mobile/                     # Native Android (Kotlin)
+│   └── app/                    # Jetpack Compose UI
+└── infrastructure/             # AWS CDK (TypeScript)
+```
+
+## AWS Services
+
+- **API Gateway** - HTTP API + WebSocket API
+- **Lambda** - Rust functions on ARM64 (Graviton2)
+- **DynamoDB** - Single-table design for all data
+- **Cognito** - Authentication with Google OAuth
+- **S3** - Media storage with presigned URLs
+- **EventBridge** - Async event processing
+- **SES** - Transactional emails
+- **Secrets Manager** - API keys and credentials
+
+# Key Features
+
+## For All Businesses
+
+- **Multi-Tenant Isolation** - Complete data separation per tenant
+- **Team Management** - Role-based access (Owner, Admin, Manager, Staff, Viewer)
+- **Inventory Tracking** - Products, locations, stock movements
+- **AI Product Scanning** - Claude Vision for automatic product identification
+- **POS System** - Shopping carts, checkout, transaction history
+- **Mobile Payments** - M-Pesa and Airtel Money STK Push integration
+- **Real-time Dashboard** - Revenue charts, category breakdown, alerts
+- **Customer Loyalty** - Points system with tier progression
+- **Booking System** - Appointments, reservations, scheduling
+- **Reviews & Ratings** - Customer feedback with moderation
+
+## For Healthcare (Clinics & Pharmacies)
+
+- **Patient EMR** - Complete electronic medical records
+- **Vitals Management** - BP, heart rate, temperature with LOINC codes
+- **Conditions** - Diagnoses with ICD-10 coding
+- **Medications** - Prescriptions with RxNorm coding
+- **Allergies** - Tracking with SNOMED CT codes
+- **Lab Results** - Lab orders and results with LOINC
+- **Clinical Documents** - Upload and manage patient documents
+- **AI Patient Summaries** - Claude-powered health summaries
+- **Risk Analysis** - Automated health risk assessment
+- **Medication Review** - Drug interaction checking
+
+# Technology Stack
+
+## Backend (Rust)
+
+- Rust 2024 Edition
+- AWS Lambda (cargo-lambda)
+- AWS SDK for Rust
+- Tokio async runtime
+- Serde for serialization
+- UUID, Chrono, Tracing
+
+## Frontend (Next.js)
+
+- Next.js 16 with App Router
+- TypeScript 5.x
+- Tailwind CSS + shadcn/ui
+- Zustand for state management
+- AWS Amplify Auth (Cognito)
+- Recharts for visualizations
+- Framer Motion animations
+
+## Mobile (Android)
+
+- Kotlin 2.0
+- Jetpack Compose
+- Material Design 3
+- Hilt for DI
+- Retrofit + OkHttp
+- DataStore for preferences
+- Coil for image loading
+
+## Infrastructure
+
+- AWS CDK (TypeScript)
+- Docker for Lambda builds
+- Fly.io for frontend
+- Firebase for Android distribution
+
+# API Documentation
+
+Interactive Swagger/OpenAPI documentation for all 5 microservices:
+
+| Service | Endpoints | Description |
+|---------|-----------|-------------|
+| Auth | 30+ | Authentication, teams, loyalty, reviews |
+| Inventory | 45+ | Products, locations, AI vision, bookings |
+| Patient | 35+ | EMR, vitals, conditions, AI summaries |
+| POS | 15+ | Carts, checkout, M-Pesa, Airtel |
+| WebSocket | Real-time | Notifications, live updates |
+
+**Total:** 100+ documented API endpoints
+
+# Mobile Payment Integration
+
+## M-Pesa STK Push Flow
+
+1. User selects M-Pesa payment
+2. Backend initiates STK Push request to Safaricom
+3. User receives push notification on phone
+4. User enters PIN to confirm
+5. Safaricom sends callback to webhook
+6. Transaction status updated in real-time
+
+## Supported Providers
+
+- **M-Pesa** - Kenya (Safaricom)
+- **Airtel Money** - Kenya, Uganda, Tanzania
+- **Card Payments** - Stripe integration ready
+
+# AI Features
+
+## Claude Vision Product Identification
+
+Scan products with camera to automatically:
+- Identify product name and brand
+- Suggest category and pricing
+- Extract barcode if visible
+- Generate product description
+
+## Healthcare AI Summaries
+
+Claude-powered clinical decision support:
+- Comprehensive patient summaries
+- Risk factor identification
+- Medication interaction alerts
+- Visit preparation briefings
+
+# Deployment
+
+## Frontend (Fly.io)
+
+```bash
+cd web
+fly deploy
+```
+
+## Backend (AWS)
+
+```bash
+cd services
+./build-lambdas.sh
+
+cd ../infrastructure
+cdk deploy --all
+```
+
+## Mobile (Firebase)
+
+```bash
+cd mobile
+./gradlew assembleRelease
+firebase appdistribution:distribute app/build/outputs/apk/release/app-release.apk
+```
+
+# Live Endpoints
+
+- **Frontend:** https://unicorns.ericgitangu.com
+- **API:** https://57yjh6yece.execute-api.us-east-1.amazonaws.com
+- **WebSocket:** wss://39s2sqlkx0.execute-api.us-east-1.amazonaws.com/prod
+
+# Future Roadmap
+
+- **iOS App** - React Native or native Swift
+- **eTIMS Integration** - Kenya Revenue Authority tax compliance
+- **Additional Markets** - Nigeria, South Africa expansion
+- **Offline Mode** - Local-first with sync
+- **Business Intelligence** - Advanced analytics and forecasting
