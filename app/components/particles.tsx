@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import { useMousePosition } from "../../util/mouse";
 
 interface ParticlesProps {
@@ -9,6 +9,8 @@ interface ParticlesProps {
 	staticity?: number;
 	ease?: number;
 	refresh?: boolean;
+	twinkle?: boolean;
+	constellation?: boolean;
 }
 
 export default function Particles({
@@ -17,15 +19,34 @@ export default function Particles({
 	staticity = 50,
 	ease = 50,
 	refresh = false,
+	twinkle = true,
+	constellation = true,
 }: ParticlesProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const canvasContainerRef = useRef<HTMLDivElement>(null);
 	const context = useRef<CanvasRenderingContext2D | null>(null);
-	const circles = useRef<any[]>([]);
+	const circles = useRef<Circle[]>([]);
 	const mousePosition = useMousePosition();
 	const mouse = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 	const canvasSize = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
 	const dpr = typeof window !== "undefined" ? window.devicePixelRatio : 1;
+	const animationFrame = useRef<number>(0);
+
+	type Circle = {
+		x: number;
+		y: number;
+		translateX: number;
+		translateY: number;
+		size: number;
+		alpha: number;
+		targetAlpha: number;
+		dx: number;
+		dy: number;
+		magnetism: number;
+		isBrightStar: boolean;
+		twinkleSpeed: number;
+		twinklePhase: number;
+	};
 
 	useEffect(() => {
 		if (canvasRef.current) {
@@ -37,6 +58,9 @@ export default function Particles({
 
 		return () => {
 			window.removeEventListener("resize", initCanvas);
+			if (animationFrame.current) {
+				cancelAnimationFrame(animationFrame.current);
+			}
 		};
 	}, []);
 
@@ -67,19 +91,6 @@ export default function Particles({
 		}
 	};
 
-	type Circle = {
-		x: number;
-		y: number;
-		translateX: number;
-		translateY: number;
-		size: number;
-		alpha: number;
-		targetAlpha: number;
-		dx: number;
-		dy: number;
-		magnetism: number;
-	};
-
 	const resizeCanvas = () => {
 		if (canvasContainerRef.current && canvasRef.current && context.current) {
 			circles.current.length = 0;
@@ -98,12 +109,21 @@ export default function Particles({
 		const y = Math.floor(Math.random() * canvasSize.current.h);
 		const translateX = 0;
 		const translateY = 0;
-		const size = Math.floor(Math.random() * 2) + 0.1;
+		// 10% chance of being a bright star
+		const isBrightStar = Math.random() < 0.1;
+		const size = isBrightStar
+			? Math.random() * 2 + 1.5 // Bright stars: 1.5-3.5px
+			: Math.floor(Math.random() * 2) + 0.1; // Regular stars: 0.1-2px
 		const alpha = 0;
-		const targetAlpha = parseFloat((Math.random() * 0.6 + 0.1).toFixed(1));
+		const targetAlpha = isBrightStar
+			? parseFloat((Math.random() * 0.4 + 0.6).toFixed(2)) // Bright: 0.6-1.0
+			: parseFloat((Math.random() * 0.6 + 0.1).toFixed(2)); // Regular: 0.1-0.7
 		const dx = (Math.random() - 0.5) * 0.2;
 		const dy = (Math.random() - 0.5) * 0.2;
 		const magnetism = 0.1 + Math.random() * 4;
+		// Twinkle parameters
+		const twinkleSpeed = Math.random() * 0.03 + 0.01; // Speed of twinkling
+		const twinklePhase = Math.random() * Math.PI * 2; // Random starting phase
 		return {
 			x,
 			y,
@@ -115,21 +135,82 @@ export default function Particles({
 			dx,
 			dy,
 			magnetism,
+			isBrightStar,
+			twinkleSpeed,
+			twinklePhase,
 		};
 	};
 
 	const drawCircle = (circle: Circle, update = false) => {
 		if (context.current) {
-			const { x, y, translateX, translateY, size, alpha } = circle;
+			const { x, y, translateX, translateY, size, alpha, isBrightStar } =
+				circle;
 			context.current.translate(translateX, translateY);
 			context.current.beginPath();
 			context.current.arc(x, y, size, 0, 2 * Math.PI);
-			context.current.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+
+			if (isBrightStar && alpha > 0.3) {
+				// Add a subtle glow effect for bright stars
+				const gradient = context.current.createRadialGradient(
+					x,
+					y,
+					0,
+					x,
+					y,
+					size * 3,
+				);
+				gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+				gradient.addColorStop(0.4, `rgba(200, 220, 255, ${alpha * 0.5})`);
+				gradient.addColorStop(1, "rgba(200, 220, 255, 0)");
+				context.current.fillStyle = gradient;
+				context.current.arc(x, y, size * 3, 0, 2 * Math.PI);
+			} else {
+				context.current.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+			}
 			context.current.fill();
 			context.current.setTransform(dpr, 0, 0, dpr, 0, 0);
 
 			if (!update) {
 				circles.current.push(circle);
+			}
+		}
+	};
+
+	const drawConstellationLines = () => {
+		if (!context.current || !constellation) return;
+
+		const brightStars = circles.current.filter(
+			(c) => c.isBrightStar && c.alpha > 0.4,
+		);
+		const connectionDistance = 150;
+
+		context.current.strokeStyle = "rgba(150, 180, 255, 0.15)";
+		context.current.lineWidth = 0.5;
+
+		for (let i = 0; i < brightStars.length; i++) {
+			for (let j = i + 1; j < brightStars.length; j++) {
+				const star1 = brightStars[i];
+				const star2 = brightStars[j];
+				const dx =
+					star1.x + star1.translateX - (star2.x + star2.translateX);
+				const dy =
+					star1.y + star1.translateY - (star2.y + star2.translateY);
+				const distance = Math.sqrt(dx * dx + dy * dy);
+
+				if (distance < connectionDistance) {
+					const opacity = 1 - distance / connectionDistance;
+					context.current.strokeStyle = `rgba(150, 180, 255, ${opacity * 0.15})`;
+					context.current.beginPath();
+					context.current.moveTo(
+						star1.x + star1.translateX,
+						star1.y + star1.translateY,
+					);
+					context.current.lineTo(
+						star2.x + star2.translateX,
+						star2.y + star2.translateY,
+					);
+					context.current.stroke();
+				}
 			}
 		}
 	};
@@ -168,26 +249,49 @@ export default function Particles({
 
 	const animate = () => {
 		clearContext();
+
+		// Draw constellation lines first (behind stars)
+		if (constellation) {
+			drawConstellationLines();
+		}
+
 		circles.current.forEach((circle: Circle, i: number) => {
-			// Handle the alpha value
+			// Handle the alpha value with twinkling
 			const edge = [
-				circle.x + circle.translateX - circle.size, // distance from left edge
-				canvasSize.current.w - circle.x - circle.translateX - circle.size, // distance from right edge
-				circle.y + circle.translateY - circle.size, // distance from top edge
-				canvasSize.current.h - circle.y - circle.translateY - circle.size, // distance from bottom edge
+				circle.x + circle.translateX - circle.size,
+				canvasSize.current.w - circle.x - circle.translateX - circle.size,
+				circle.y + circle.translateY - circle.size,
+				canvasSize.current.h - circle.y - circle.translateY - circle.size,
 			];
 			const closestEdge = edge.reduce((a, b) => Math.min(a, b));
 			const remapClosestEdge = parseFloat(
 				remapValue(closestEdge, 0, 20, 0, 1).toFixed(2),
 			);
-			if (remapClosestEdge > 1) {
-				circle.alpha += 0.02;
-				if (circle.alpha > circle.targetAlpha) {
-					circle.alpha = circle.targetAlpha;
-				}
-			} else {
-				circle.alpha = circle.targetAlpha * remapClosestEdge;
+
+			// Base alpha calculation
+			let baseAlpha = circle.targetAlpha;
+			if (remapClosestEdge <= 1) {
+				baseAlpha = circle.targetAlpha * remapClosestEdge;
 			}
+
+			// Apply twinkling effect
+			if (twinkle) {
+				circle.twinklePhase += circle.twinkleSpeed;
+				const twinkleFactor = circle.isBrightStar
+					? 0.3 + Math.sin(circle.twinklePhase) * 0.3 // Bright stars: more dramatic twinkle
+					: 0.7 + Math.sin(circle.twinklePhase) * 0.15; // Regular: subtle twinkle
+				circle.alpha = baseAlpha * twinkleFactor;
+			} else {
+				if (remapClosestEdge > 1) {
+					circle.alpha += 0.02;
+					if (circle.alpha > circle.targetAlpha) {
+						circle.alpha = circle.targetAlpha;
+					}
+				} else {
+					circle.alpha = baseAlpha;
+				}
+			}
+
 			circle.x += circle.dx;
 			circle.y += circle.dy;
 			circle.translateX +=
@@ -196,19 +300,17 @@ export default function Particles({
 			circle.translateY +=
 				(mouse.current.y / (staticity / circle.magnetism) - circle.translateY) /
 				ease;
-			// circle gets out of the canvas
+
+			// Circle gets out of the canvas
 			if (
 				circle.x < -circle.size ||
 				circle.x > canvasSize.current.w + circle.size ||
 				circle.y < -circle.size ||
 				circle.y > canvasSize.current.h + circle.size
 			) {
-				// remove the circle from the array
 				circles.current.splice(i, 1);
-				// create a new circle
 				const newCircle = circleParams();
 				drawCircle(newCircle);
-				// update the circle position
 			} else {
 				drawCircle(
 					{
@@ -223,7 +325,7 @@ export default function Particles({
 				);
 			}
 		});
-		window.requestAnimationFrame(animate);
+		animationFrame.current = window.requestAnimationFrame(animate);
 	};
 
 	return (
