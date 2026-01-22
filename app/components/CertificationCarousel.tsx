@@ -42,7 +42,6 @@ export function CertificationCarousel() {
   const [filterMode, setFilterMode] = useState<"domain" | "authority">("domain");
   const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
   const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
   const { triggerHaptic } = useHapticSnackbar();
 
   const filteredCerts = useMemo(() => {
@@ -117,45 +116,29 @@ export function CertificationCarousel() {
 
   // Auto-scroll every 5 seconds (silent, no haptic)
   useEffect(() => {
-    // Clear any existing interval
-    if (autoScrollRef.current) {
-      clearInterval(autoScrollRef.current);
-      autoScrollRef.current = null;
-    }
-
     // Don't start auto-scroll if paused or only 1 item
     if (isAutoScrollPaused || filteredCerts.length <= 1) {
       return;
     }
 
-    // Start new auto-scroll interval
-    autoScrollRef.current = setInterval(() => {
-      setPage((prev) => {
-        const [currentPage] = prev;
-        const nextPage = currentPage + 1;
-        if (nextPage >= filteredCerts.length) {
-          return [0, 1]; // Loop back to start
-        }
+    const totalCerts = filteredCerts.length;
+
+    // Start auto-scroll interval
+    const intervalId = setInterval(() => {
+      setPage(([currentPage]) => {
+        const nextPage = (currentPage + 1) % totalCerts;
         return [nextPage, 1];
       });
     }, 5000);
 
-    return () => {
-      if (autoScrollRef.current) {
-        clearInterval(autoScrollRef.current);
-        autoScrollRef.current = null;
-      }
-    };
+    return () => clearInterval(intervalId);
   }, [isAutoScrollPaused, filteredCerts.length]);
 
-  // Cleanup timeouts on unmount
+  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (pauseTimeoutRef.current) {
         clearTimeout(pauseTimeoutRef.current);
-      }
-      if (autoScrollRef.current) {
-        clearInterval(autoScrollRef.current);
       }
     };
   }, []);
@@ -336,15 +319,15 @@ export function CertificationCarousel() {
       )}
 
       {/* Navigation hints */}
-      <p className="text-center text-xs text-zinc-400 md:hidden mt-4 animate-pulse">
-        <span className="inline-block animate-pulse">&#10024;</span>
-        {" "}Swipe left or right to navigate{" "}
-        <span className="inline-block animate-pulse">&#10024;</span>
+      <p className="text-center text-sm text-zinc-200 md:hidden mt-4 animate-text-shine">
+        <span className="inline-block text-yellow-400 animate-shine">✦</span>
+        <span className="mx-2">Swipe left or right to navigate</span>
+        <span className="inline-block text-yellow-400 animate-shine" style={{ animationDelay: "0.75s" }}>✦</span>
       </p>
-      <p className="hidden md:block text-center text-xs text-zinc-400 mt-4 animate-pulse">
-        <span className="inline-block animate-pulse">&#10024;</span>
-        {" "}Use arrow keys or click to navigate{" "}
-        <span className="inline-block animate-pulse">&#10024;</span>
+      <p className="hidden md:block text-center text-sm text-zinc-200 mt-4 animate-text-shine">
+        <span className="inline-block text-yellow-400 animate-shine">✦</span>
+        <span className="mx-2">Use arrow keys or click to navigate</span>
+        <span className="inline-block text-yellow-400 animate-shine" style={{ animationDelay: "0.75s" }}>✦</span>
       </p>
 
       {/* View all on LinkedIn */}
