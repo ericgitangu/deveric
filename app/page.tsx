@@ -8,6 +8,7 @@ import { BioSection } from "./components/BioSection";
 import { SkillCarousel } from "./components/SkillCarousel";
 import { HapticLink } from "./components/HapticLink";
 import { HapticButton } from "./components/HapticButton";
+import { GlowButton } from "./components/GlowButton";
 import { useHapticSnackbar } from "@/context/HapticSnackbarContext";
 
 const navigation = [
@@ -93,14 +94,12 @@ export default function Home() {
 
         {/* Interactive Resume Button - Prominent */}
         <div className="animate-fade-in">
-          <HapticButton
+          <GlowButton
             onClick={handleButtonClick}
-            variant="primary"
-            hapticType="success"
             ariaLabel="View my Interactive Resume"
           >
             View Interactive Resume
-          </HapticButton>
+          </GlowButton>
         </div>
 
         {/* Scroll Hint */}
