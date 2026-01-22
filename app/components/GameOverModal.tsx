@@ -221,12 +221,43 @@ export function GameOverModal({
               </form>
             )}
 
-            {/* Great Attempt - Play Again Button */}
+            {/* Great Attempt - Instructions and Play Again */}
             {isGreatAttempt && (
-              <div className="p-6">
-                <p className="text-center text-zinc-400 mb-4">
+              <div className="p-6 space-y-4">
+                <p className="text-center text-zinc-400">
                   You didn't score any points this time, but don't give up!
                 </p>
+
+                {/* Game Instructions */}
+                <div className="bg-zinc-800/50 rounded-xl p-4 space-y-3">
+                  <h4 className="text-sm font-semibold text-zinc-200 text-center">
+                    How to Play
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-2">
+                      <p className="text-blue-400 font-medium">Desktop</p>
+                      <ul className="text-zinc-400 space-y-1">
+                        <li>↑ Arrow Up</li>
+                        <li>↓ Arrow Down</li>
+                        <li>← Arrow Left</li>
+                        <li>→ Arrow Right</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-emerald-400 font-medium">Mobile</p>
+                      <ul className="text-zinc-400 space-y-1">
+                        <li>Swipe Up</li>
+                        <li>Swipe Down</li>
+                        <li>Swipe Left</li>
+                        <li>Swipe Right</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <p className="text-center text-zinc-500 text-xs mt-2">
+                    Eat the purple food to grow and score points!
+                  </p>
+                </div>
+
                 <button
                   onClick={handleClose}
                   className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-colors"

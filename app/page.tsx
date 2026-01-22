@@ -25,6 +25,35 @@ export default function Home() {
   const resumeButtonRef = useRef<HTMLDivElement>(null);
   const { showSnackbar, triggerHaptic } = useHapticSnackbar();
 
+  // Smooth scroll with custom duration (slower scroll)
+  const smoothScrollTo = (element: HTMLElement | null, duration: number = 2000) => {
+    if (!element) return;
+
+    const targetPosition = element.getBoundingClientRect().top + window.pageYOffset - 100;
+    const startPosition = window.pageYOffset;
+    const distance = targetPosition - startPosition;
+    let startTime: number | null = null;
+
+    const easeInOutCubic = (t: number): number => {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
+
+    const animation = (currentTime: number) => {
+      if (startTime === null) startTime = currentTime;
+      const timeElapsed = currentTime - startTime;
+      const progress = Math.min(timeElapsed / duration, 1);
+      const ease = easeInOutCubic(progress);
+
+      window.scrollTo(0, startPosition + distance * ease);
+
+      if (timeElapsed < duration) {
+        requestAnimationFrame(animation);
+      }
+    };
+
+    requestAnimationFrame(animation);
+  };
+
   const handleResumeClick = () => {
     const resumeLink = "https://resume.ericgitangu.com";
     window.open(resumeLink, "_blank", "noopener,noreferrer");
@@ -33,12 +62,12 @@ export default function Home() {
 
   const scrollToResume = () => {
     triggerHaptic("navigation");
-    resumeButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    smoothScrollTo(resumeButtonRef.current, 2500); // 2.5 seconds for slower scroll
   };
 
   const scrollToAbout = () => {
     triggerHaptic("navigation");
-    aboutSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+    smoothScrollTo(aboutSectionRef.current, 2000); // 2 seconds
   };
 
   return (

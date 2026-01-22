@@ -40,6 +40,7 @@ export function CertificationCarousel() {
   const [[page, direction], setPage] = useState([0, 0]);
   const [filter, setFilter] = useState<FilterType>("featured");
   const [filterMode, setFilterMode] = useState<"domain" | "authority">("domain");
+  const [isPaused, setIsPaused] = useState(false);
   const { triggerHaptic } = useHapticSnackbar();
 
   const filteredCerts = useMemo(() => {
@@ -57,8 +58,12 @@ export function CertificationCarousel() {
   }, [filter]);
 
   const paginate = useCallback(
-    (newDirection: number) => {
-      triggerHaptic("navigation");
+    (newDirection: number, isUserAction: boolean = true) => {
+      if (isUserAction) {
+        triggerHaptic("navigation");
+        setIsPaused(true);
+        setTimeout(() => setIsPaused(false), 10000); // Resume after 10s
+      }
       setPage((prev) => {
         const [currentPage] = prev;
         const nextPage = currentPage + newDirection;
@@ -76,6 +81,8 @@ export function CertificationCarousel() {
 
   const goToPage = useCallback((index: number) => {
     triggerHaptic("click");
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 10000); // Resume after 10s
     setPage((prev) => [index, index > prev[0] ? 1 : -1]);
   }, [triggerHaptic]);
 
@@ -97,6 +104,24 @@ export function CertificationCarousel() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goNext, goPrev]);
+
+  // Auto-scroll every 5 seconds (silent, no haptic)
+  useEffect(() => {
+    if (isPaused || filteredCerts.length <= 1) return;
+
+    const autoScroll = setInterval(() => {
+      setPage((prev) => {
+        const [currentPage] = prev;
+        const nextPage = currentPage + 1;
+        if (nextPage >= filteredCerts.length) {
+          return [0, 1]; // Loop back to start
+        }
+        return [nextPage, 1];
+      });
+    }, 5000);
+
+    return () => clearInterval(autoScroll);
+  }, [isPaused, filteredCerts.length]);
 
   // Clamp page to valid range to prevent undefined access during filter transitions
   const safePageIndex = Math.max(0, Math.min(page, filteredCerts.length - 1));
