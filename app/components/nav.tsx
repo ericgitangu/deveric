@@ -1,7 +1,7 @@
 "use client";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
+import { HapticLink } from "./HapticLink";
 
 export const Navigation: React.FC = () => {
 	const ref = useRef<HTMLElement>(null);
@@ -28,50 +28,50 @@ export const Navigation: React.FC = () => {
 			>
 				<div className="container flex flex-row-reverse items-center justify-between p-2 top-0 mx-auto">
 					<div className="flex justify-between gap-2">
-						<Link
+						<HapticLink
 							href="/certifications"
 							className="duration-200 text-zinc-400 hover:text-zinc-100 text-sm"
 						>
 							Certifications
-						</Link>
-						<Link
+						</HapticLink>
+						<HapticLink
 							href="/projects"
 							className="duration-200 text-zinc-400 hover:text-zinc-100 text-sm"
 						>
 							Projects
-						</Link>
-						<Link
+						</HapticLink>
+						<HapticLink
 							href="/contact"
 							className="duration-200 text-zinc-400 hover:text-zinc-100 text-sm"
 						>
 							Contact
-						</Link>
-						<Link
+						</HapticLink>
+						<HapticLink
 							href="/blog"
 							className="duration-200 text-zinc-400 hover:text-zinc-100 text-sm"
 						>
 							Blog
-						</Link>
-						<Link
+						</HapticLink>
+						<HapticLink
 							href="/journal"
 							className="duration-200 text-zinc-400 hover:text-zinc-100 text-sm"
 						>
 							Journal
-						</Link>
-						<Link
+						</HapticLink>
+						<HapticLink
 							href="/fun"
 							className="duration-200 text-zinc-400 hover:text-zinc-100 text-sm"
 						>
 							Fun
-						</Link>
+						</HapticLink>
 					</div>
 
-					<Link
+					<HapticLink
 						href="/"
 						className="duration-200 text-zinc-300 hover:text-zinc-100 text-sm"
 					>
 						<ArrowLeft className="w-6 h-6 " />
-					</Link>
+					</HapticLink>
 				</div>
 			</div>
 		</header>

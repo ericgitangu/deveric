@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { skillAreas } from "@/about/data";
 import { SkillCard } from "./SkillCard";
 import { CarouselDots } from "./CarouselDots";
+import { useHapticSnackbar } from "@/context/HapticSnackbarContext";
 
 const slideVariants = {
   enter: (direction: number) => ({
@@ -25,10 +26,12 @@ const slideVariants = {
 
 export function SkillCarousel() {
   const [[page, direction], setPage] = useState([0, 0]);
+  const { triggerHaptic } = useHapticSnackbar();
 
   const paginate = useCallback(
     (newDirection: number) => {
       const nextPage = page + newDirection;
+      triggerHaptic("navigation");
       if (nextPage >= 0 && nextPage < skillAreas.length) {
         setPage([nextPage, newDirection]);
       } else if (nextPage < 0) {
@@ -37,12 +40,13 @@ export function SkillCarousel() {
         setPage([0, newDirection]);
       }
     },
-    [page]
+    [page, triggerHaptic]
   );
 
   const goToPage = useCallback((index: number) => {
+    triggerHaptic("click");
     setPage((prev) => [index, index > prev[0] ? 1 : -1]);
-  }, []);
+  }, [triggerHaptic]);
 
   const goNext = useCallback(() => paginate(1), [paginate]);
   const goPrev = useCallback(() => paginate(-1), [paginate]);

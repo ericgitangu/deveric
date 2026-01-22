@@ -13,6 +13,7 @@ import {
 } from "@/certifications/data";
 import { CertificationCard } from "./CertificationCard";
 import { CarouselDots } from "./CarouselDots";
+import { useHapticSnackbar } from "@/context/HapticSnackbarContext";
 
 const slideVariants = {
   enter: (direction: number) => ({
@@ -39,6 +40,7 @@ export function CertificationCarousel() {
   const [[page, direction], setPage] = useState([0, 0]);
   const [filter, setFilter] = useState<FilterType>("featured");
   const [filterMode, setFilterMode] = useState<"domain" | "authority">("domain");
+  const { triggerHaptic } = useHapticSnackbar();
 
   const filteredCerts = useMemo(() => {
     if (filter === "all") return certifications;
@@ -56,6 +58,7 @@ export function CertificationCarousel() {
 
   const paginate = useCallback(
     (newDirection: number) => {
+      triggerHaptic("navigation");
       const nextPage = page + newDirection;
       if (nextPage >= 0 && nextPage < filteredCerts.length) {
         setPage([nextPage, newDirection]);
@@ -65,12 +68,13 @@ export function CertificationCarousel() {
         setPage([0, newDirection]);
       }
     },
-    [page, filteredCerts.length]
+    [page, filteredCerts.length, triggerHaptic]
   );
 
   const goToPage = useCallback((index: number) => {
+    triggerHaptic("click");
     setPage((prev) => [index, index > prev[0] ? 1 : -1]);
-  }, []);
+  }, [triggerHaptic]);
 
   const goNext = useCallback(() => paginate(1), [paginate]);
   const goPrev = useCallback(() => paginate(-1), [paginate]);
@@ -110,6 +114,7 @@ export function CertificationCarousel() {
           <div className="flex bg-zinc-800 rounded-lg p-1">
             <button
               onClick={() => {
+                triggerHaptic("click");
                 setFilterMode("domain");
                 setFilter("featured");
               }}
@@ -123,6 +128,7 @@ export function CertificationCarousel() {
             </button>
             <button
               onClick={() => {
+                triggerHaptic("click");
                 setFilterMode("authority");
                 setFilter("all");
               }}
@@ -141,7 +147,10 @@ export function CertificationCarousel() {
         <div className="flex flex-wrap justify-center gap-2">
           {filterMode === "domain" && (
             <button
-              onClick={() => setFilter("featured")}
+              onClick={() => {
+                triggerHaptic("click");
+                setFilter("featured");
+              }}
               className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
                 filter === "featured"
                   ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50"
@@ -152,7 +161,10 @@ export function CertificationCarousel() {
             </button>
           )}
           <button
-            onClick={() => setFilter("all")}
+            onClick={() => {
+              triggerHaptic("click");
+              setFilter("all");
+            }}
             className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
               filter === "all"
                 ? "bg-zinc-600 text-zinc-100 border border-zinc-500"
@@ -168,7 +180,10 @@ export function CertificationCarousel() {
             return (
               <button
                 key={option}
-                onClick={() => setFilter(option as FilterType)}
+                onClick={() => {
+                  triggerHaptic("click");
+                  setFilter(option as FilterType);
+                }}
                 className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
                   filter === option
                     ? "bg-zinc-600 text-zinc-100 border border-zinc-500"
@@ -263,15 +278,16 @@ export function CertificationCarousel() {
 
       {/* View all on LinkedIn */}
       <div className="text-center mt-6">
-        <a
-          href={linkedInCertificationsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={() => {
+            triggerHaptic("navigation");
+            window.open(linkedInCertificationsUrl, "_blank", "noopener,noreferrer");
+          }}
           className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
         >
           <span>View all certifications on LinkedIn</span>
           <ExternalLink className="w-4 h-4" />
-        </a>
+        </button>
       </div>
     </div>
   );
