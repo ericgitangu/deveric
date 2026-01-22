@@ -42,6 +42,7 @@ export function CertificationCarousel() {
   const [filterMode, setFilterMode] = useState<"domain" | "authority">("domain");
   const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
   const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
   const { triggerHaptic } = useHapticSnackbar();
 
   const filteredCerts = useMemo(() => {
@@ -116,9 +117,19 @@ export function CertificationCarousel() {
 
   // Auto-scroll every 5 seconds (silent, no haptic)
   useEffect(() => {
-    if (isAutoScrollPaused || filteredCerts.length <= 1) return;
+    // Clear any existing interval
+    if (autoScrollRef.current) {
+      clearInterval(autoScrollRef.current);
+      autoScrollRef.current = null;
+    }
 
-    const autoScrollInterval = setInterval(() => {
+    // Don't start auto-scroll if paused or only 1 item
+    if (isAutoScrollPaused || filteredCerts.length <= 1) {
+      return;
+    }
+
+    // Start new auto-scroll interval
+    autoScrollRef.current = setInterval(() => {
       setPage((prev) => {
         const [currentPage] = prev;
         const nextPage = currentPage + 1;
@@ -129,14 +140,22 @@ export function CertificationCarousel() {
       });
     }, 5000);
 
-    return () => clearInterval(autoScrollInterval);
+    return () => {
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current);
+        autoScrollRef.current = null;
+      }
+    };
   }, [isAutoScrollPaused, filteredCerts.length]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (pauseTimeoutRef.current) {
         clearTimeout(pauseTimeoutRef.current);
+      }
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current);
       }
     };
   }, []);
@@ -317,11 +336,15 @@ export function CertificationCarousel() {
       )}
 
       {/* Navigation hints */}
-      <p className="text-center text-xs text-zinc-500 md:hidden mt-2">
-        Swipe left or right to navigate
+      <p className="text-center text-xs text-zinc-400 md:hidden mt-4 animate-pulse">
+        <span className="inline-block animate-pulse">&#10024;</span>
+        {" "}Swipe left or right to navigate{" "}
+        <span className="inline-block animate-pulse">&#10024;</span>
       </p>
-      <p className="hidden md:block text-center text-xs text-zinc-500 mt-2">
-        Use arrow keys or click to navigate
+      <p className="hidden md:block text-center text-xs text-zinc-400 mt-4 animate-pulse">
+        <span className="inline-block animate-pulse">&#10024;</span>
+        {" "}Use arrow keys or click to navigate{" "}
+        <span className="inline-block animate-pulse">&#10024;</span>
       </p>
 
       {/* View all on LinkedIn */}
