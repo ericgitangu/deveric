@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -26,27 +26,44 @@ const slideVariants = {
 
 export function SkillCarousel() {
   const [[page, direction], setPage] = useState([0, 0]);
+  const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
+  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { triggerHaptic } = useHapticSnackbar();
+
+  const pauseAutoScroll = useCallback(() => {
+    setIsAutoScrollPaused(true);
+    if (pauseTimeoutRef.current) {
+      clearTimeout(pauseTimeoutRef.current);
+    }
+    pauseTimeoutRef.current = setTimeout(() => {
+      setIsAutoScrollPaused(false);
+    }, 10000); // Resume after 10s
+  }, []);
 
   const paginate = useCallback(
     (newDirection: number) => {
-      const nextPage = page + newDirection;
       triggerHaptic("navigation");
-      if (nextPage >= 0 && nextPage < skillAreas.length) {
-        setPage([nextPage, newDirection]);
-      } else if (nextPage < 0) {
-        setPage([skillAreas.length - 1, newDirection]);
-      } else {
-        setPage([0, newDirection]);
-      }
+      pauseAutoScroll();
+      setPage((prev) => {
+        const [currentPage] = prev;
+        const nextPage = currentPage + newDirection;
+        if (nextPage >= 0 && nextPage < skillAreas.length) {
+          return [nextPage, newDirection];
+        } else if (nextPage < 0) {
+          return [skillAreas.length - 1, newDirection];
+        } else {
+          return [0, newDirection];
+        }
+      });
     },
-    [page, triggerHaptic]
+    [triggerHaptic, pauseAutoScroll]
   );
 
   const goToPage = useCallback((index: number) => {
     triggerHaptic("click");
+    pauseAutoScroll();
     setPage((prev) => [index, index > prev[0] ? 1 : -1]);
-  }, [triggerHaptic]);
+  }, [triggerHaptic, pauseAutoScroll]);
 
   const goNext = useCallback(() => paginate(1), [paginate]);
   const goPrev = useCallback(() => paginate(-1), [paginate]);
@@ -68,6 +85,32 @@ export function SkillCarousel() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goNext, goPrev]);
+
+  // Auto-scroll every 5 seconds
+  useEffect(() => {
+    if (isAutoScrollPaused || skillAreas.length <= 1) {
+      return;
+    }
+
+    const totalSkills = skillAreas.length;
+    const intervalId = setInterval(() => {
+      setPage(([currentPage]) => {
+        const nextPage = (currentPage + 1) % totalSkills;
+        return [nextPage, 1];
+      });
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [isAutoScrollPaused]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const currentSkill = skillAreas[page];
 
@@ -139,12 +182,12 @@ export function SkillCarousel() {
       />
 
       {/* Mobile swipe hint */}
-      <p className="text-center text-xs text-zinc-500 md:hidden">
+      <p className="text-center text-sm text-zinc-200 md:hidden mt-2 animate-text-shine">
         Swipe left or right to navigate
       </p>
 
       {/* Desktop keyboard hint */}
-      <p className="hidden md:block text-center text-xs text-zinc-500">
+      <p className="hidden md:block text-center text-sm text-zinc-200 mt-2 animate-text-shine">
         Use arrow keys or click to navigate
       </p>
     </div>
