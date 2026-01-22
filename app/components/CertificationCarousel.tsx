@@ -320,14 +320,10 @@ export function CertificationCarousel() {
 
       {/* Navigation hints */}
       <p className="text-center text-sm text-zinc-200 md:hidden mt-4 animate-text-shine">
-        <span className="inline-block text-yellow-400 animate-shine">✦</span>
-        <span className="mx-2">Swipe left or right to navigate</span>
-        <span className="inline-block text-yellow-400 animate-shine" style={{ animationDelay: "0.75s" }}>✦</span>
+        Swipe left or right to navigate
       </p>
       <p className="hidden md:block text-center text-sm text-zinc-200 mt-4 animate-text-shine">
-        <span className="inline-block text-yellow-400 animate-shine">✦</span>
-        <span className="mx-2">Use arrow keys or click to navigate</span>
-        <span className="inline-block text-yellow-400 animate-shine" style={{ animationDelay: "0.75s" }}>✦</span>
+        Use arrow keys or click to navigate
       </p>
 
       {/* View all on LinkedIn */}
