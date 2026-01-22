@@ -153,7 +153,7 @@ export const skillAreas: SkillArea[] = [
 export const bioData = {
   name: "Eric Gitangu",
   alias: "Deveric",
-  title: "Director of Engineering",
+  title: "Software Engineer Architect / Lead",
   company: {
     name: "Vishnu Systems, Inc.",
     url: "https://vishnusystems.life",

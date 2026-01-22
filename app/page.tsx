@@ -139,7 +139,7 @@ export default function Home() {
         </div>
 
         {/* Scroll Hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <div className="mt-8">
           <ScrollHint onClick={scrollToAbout} />
         </div>
       </section>
