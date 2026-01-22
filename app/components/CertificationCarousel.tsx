@@ -59,16 +59,19 @@ export function CertificationCarousel() {
   const paginate = useCallback(
     (newDirection: number) => {
       triggerHaptic("navigation");
-      const nextPage = page + newDirection;
-      if (nextPage >= 0 && nextPage < filteredCerts.length) {
-        setPage([nextPage, newDirection]);
-      } else if (nextPage < 0) {
-        setPage([filteredCerts.length - 1, newDirection]);
-      } else {
-        setPage([0, newDirection]);
-      }
+      setPage((prev) => {
+        const [currentPage] = prev;
+        const nextPage = currentPage + newDirection;
+        if (nextPage >= 0 && nextPage < filteredCerts.length) {
+          return [nextPage, newDirection];
+        } else if (nextPage < 0) {
+          return [filteredCerts.length - 1, newDirection];
+        } else {
+          return [0, newDirection];
+        }
+      });
     },
-    [page, filteredCerts.length, triggerHaptic]
+    [filteredCerts.length, triggerHaptic]
   );
 
   const goToPage = useCallback((index: number) => {
@@ -95,7 +98,9 @@ export function CertificationCarousel() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goNext, goPrev]);
 
-  const currentCert = filteredCerts[page];
+  // Clamp page to valid range to prevent undefined access during filter transitions
+  const safePageIndex = Math.max(0, Math.min(page, filteredCerts.length - 1));
+  const currentCert = filteredCerts[safePageIndex];
   const filterOptions =
     filterMode === "domain" ? domains : uniqueAuthorities;
 
@@ -233,7 +238,7 @@ export function CertificationCarousel() {
           <AnimatePresence initial={false} custom={direction} mode="wait">
             {currentCert && (
               <motion.div
-                key={`${filter}-${page}`}
+                key={currentCert.id}
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
@@ -255,7 +260,7 @@ export function CertificationCarousel() {
       {filteredCerts.length <= 15 && (
         <CarouselDots
           total={filteredCerts.length}
-          current={page}
+          current={safePageIndex}
           onSelect={goToPage}
           labels={filteredCerts.map((c) => c.name)}
         />
@@ -264,7 +269,7 @@ export function CertificationCarousel() {
       {/* Counter for large lists */}
       {filteredCerts.length > 15 && (
         <div className="text-center text-sm text-zinc-500 py-4">
-          {page + 1} of {filteredCerts.length}
+          {safePageIndex + 1} of {filteredCerts.length}
         </div>
       )}
 
