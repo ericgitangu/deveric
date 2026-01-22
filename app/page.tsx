@@ -139,7 +139,7 @@ export default function Home() {
         </div>
 
         {/* Scroll Hint */}
-        <div className="mt-8">
+        <div className="mt-8 flex justify-center">
           <ScrollHint onClick={scrollToAbout} />
         </div>
       </section>
