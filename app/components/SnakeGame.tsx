@@ -1,23 +1,11 @@
 // /components/SnakeGame.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { Button, Tooltip } from "@mui/material";
-import { useSnackbar } from "@/context/SnakebarContext";
 import { useSwipeable } from "react-swipeable";
-import {
-	ArrowUpward,
-	ArrowDownward,
-	ArrowBack,
-	ArrowForward,
-} from "@mui/icons-material";
-
-interface LeaderboardEntry {
-	id: number;
-	name: string;
-	score: number;
-	timestamp: string;
-}
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
+import { GameOverModal } from "./GameOverModal";
+import { useHapticSnackbar } from "@/context/HapticSnackbarContext";
+import { HapticButton } from "./HapticButton";
 
 const SnakeGame: React.FC = () => {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,13 +17,14 @@ const SnakeGame: React.FC = () => {
 	);
 	const [food, setFood] = useState<{ x: number; y: number }>({ x: 15, y: 15 });
 	const [score, setScore] = useState(0);
-	const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 	const [isGameRunning, setIsGameRunning] = useState(false);
 	const [isPaused, setIsPaused] = useState(false);
 	const [speed, setSpeed] = useState(200); // milliseconds
 	const [dynamicCanvasSize, setDynamicCanvasSize] = useState(300); // Initial canvas size for mobile
+	const [showGameOverModal, setShowGameOverModal] = useState(false);
+	const [finalScore, setFinalScore] = useState(0);
 
-	const { showSnackbar } = useSnackbar();
+	const { showSnackbar, triggerHaptic } = useHapticSnackbar();
 
 	const gridSize = 20;
 
@@ -50,19 +39,6 @@ const SnakeGame: React.FC = () => {
 	useEffect(() => {
 		snakeRef.current = snake;
 	}, [snake]);
-
-	// Load leaderboard from localStorage on mount
-	useEffect(() => {
-		const storedLeaderboard = localStorage.getItem("leaderboard");
-		if (storedLeaderboard) {
-			setLeaderboard(JSON.parse(storedLeaderboard));
-		}
-	}, []);
-
-	// Save leaderboard to localStorage whenever it changes
-	useEffect(() => {
-		localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
-	}, [leaderboard]);
 
 	// Adjust canvas size based on window width to ensure responsiveness
 	useEffect(() => {
@@ -202,20 +178,40 @@ const SnakeGame: React.FC = () => {
 	};
 
 	const endGame = () => {
-		const playerName = prompt("Game Over! Enter your name:");
-		if (playerName) {
-			const newEntry: LeaderboardEntry = {
-				id: Date.now(),
-				name: playerName,
-				score: score,
-				timestamp: new Date().toLocaleString(),
-			};
-			setLeaderboard((prev) =>
-				[...prev, newEntry].sort((a, b) => b.score - a.score).slice(0, 10),
-			);
-			showSnackbar("Game Over! Your score has been recorded.", "warning");
+		setFinalScore(score);
+		setIsGameRunning(false);
+		setIsPaused(false);
+		triggerHaptic("warning");
+		setShowGameOverModal(true);
+	};
+
+	const handleScoreSubmit = async (data: {
+		firstName: string;
+		lastName: string;
+		feedback: string;
+		rating: number;
+	}) => {
+		try {
+			const response = await fetch("/api/leaderboard", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					...data,
+					score: finalScore,
+				}),
+			});
+
+			if (!response.ok) {
+				throw new Error("Failed to submit score");
+			}
+		} catch (error) {
+			console.error("Error submitting score:", error);
+			throw error;
 		}
-		// Reset game
+	};
+
+	const handleModalClose = () => {
+		setShowGameOverModal(false);
 		resetGame();
 	};
 
@@ -283,63 +279,35 @@ const SnakeGame: React.FC = () => {
 		trackMouse: false,
 	});
 
-	// Define columns for DataGrid
-	const columns: GridColDef[] = [
-		{
-			field: "name",
-			headerName: "Name",
-			width: 120,
-			headerClassName: "text-black",
-		},
-		{
-			field: "score",
-			headerName: "Score",
-			width: 120,
-			type: "number",
-			headerClassName: "text-black",
-		},
-		{
-			field: "timestamp",
-			headerName: "Timestamp",
-			width: 180,
-			headerClassName: "text-black",
-		},
-	];
-
 	return (
 		<div className="relative flex flex-col items-center space-y-4 w-full mt-12 px-4">
-			{/* Start Game Button with Tooltip */}
-			{!isGameRunning && (
-				<Tooltip title="Use Arrow Keys (Desktop) or Swipe Gestures (Mobile) to Control the Snake">
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={() => setIsGameRunning(true)}
-						className="mt-4"
-						sx={{
-							paddingX: 4,
-							paddingY: 1.5,
-							fontWeight: "bold",
-							borderRadius: "8px",
-							textTransform: "uppercase",
-							backgroundColor: "#3b82f6",
-							"&:hover": {
-								backgroundColor: "#2563eb",
-							},
-							transition: "transform 0.2s, background-color 0.3s",
+			{/* Start Game Button */}
+			{!isGameRunning && !showGameOverModal && (
+				<div className="text-center space-y-4">
+					<p className="text-zinc-400 text-sm max-w-xs">
+						Use Arrow Keys (Desktop) or Swipe Gestures (Mobile) to Control the Snake
+					</p>
+					<HapticButton
+						onClick={() => {
+							triggerHaptic("success");
+							setIsGameRunning(true);
 						}}
-						aria-label="Start Game"
+						variant="primary"
+						hapticType="success"
+						ariaLabel="Start Game"
+						className="flex items-center gap-2"
 					>
+						<Play className="w-5 h-5" />
 						Start Game
-					</Button>
-				</Tooltip>
+					</HapticButton>
+				</div>
 			)}
 
 			{/* Pause/Resume Button */}
 			{isGameRunning && (
-				<Button
-					variant="outlined"
-					color="secondary"
+				<HapticButton
+					variant="secondary"
+					hapticType="click"
 					onClick={() => {
 						if (isPaused) {
 							setIsPaused(false);
@@ -349,18 +317,21 @@ const SnakeGame: React.FC = () => {
 							showSnackbar("Game Paused", "info");
 						}
 					}}
-					className="mt-2"
-					sx={{
-						paddingX: 3,
-						paddingY: 1,
-						fontWeight: "bold",
-						borderRadius: "8px",
-						textTransform: "uppercase",
-					}}
-					aria-label={isPaused ? "Resume Game" : "Pause Game"}
+					ariaLabel={isPaused ? "Resume Game" : "Pause Game"}
+					className="flex items-center gap-2"
 				>
-					{isPaused ? "Resume Game" : "Pause Game"}
-				</Button>
+					{isPaused ? (
+						<>
+							<Play className="w-4 h-4" />
+							Resume Game
+						</>
+					) : (
+						<>
+							<Pause className="w-4 h-4" />
+							Pause Game
+						</>
+					)}
+				</HapticButton>
 			)}
 
 			{/* Swipeable Game Canvas */}
@@ -373,18 +344,18 @@ const SnakeGame: React.FC = () => {
 						ref={canvasRef}
 						width={dynamicCanvasSize}
 						height={dynamicCanvasSize}
-						className="border-2 border-white touch-none"
+						className="border-2 border-zinc-600 rounded-lg touch-none"
 						aria-label="Snake Game Canvas"
 						role="img"
 					/>
 					{/* Visual Indicators for Swipe Controls */}
-					<div className="absolute bottom-4 flex space-x-2">
-						<span className="text-white">Swipe:</span>
-						<span className="text-white flex items-center gap-1">
-							<ArrowUpward fontSize="small" />
-							<ArrowDownward fontSize="small" />
-							<ArrowBack fontSize="small" />
-							<ArrowForward fontSize="small" />
+					<div className="absolute bottom-4 flex items-center space-x-2 bg-zinc-900/80 px-3 py-1 rounded-full">
+						<span className="text-zinc-400 text-xs">Swipe:</span>
+						<span className="text-zinc-300 flex items-center gap-0.5">
+							<ChevronUp className="w-4 h-4" />
+							<ChevronDown className="w-4 h-4" />
+							<ChevronLeft className="w-4 h-4" />
+							<ChevronRight className="w-4 h-4" />
 						</span>
 					</div>
 				</div>
@@ -392,49 +363,19 @@ const SnakeGame: React.FC = () => {
 
 			{/* Score Display */}
 			{isGameRunning && (
-				<div className="text-white text-lg">Score: {score}</div>
+				<div className="flex items-center gap-2 bg-zinc-900/80 px-4 py-2 rounded-xl">
+					<span className="text-zinc-400">Score:</span>
+					<span className="text-2xl font-bold text-lime-400">{score}</span>
+				</div>
 			)}
 
-			{/* Leaderboard */}
-			<div className="w-full max-w-2xl px-4 sm:px-6 mx-auto">
-				<h2 className="text-white text-xl mb-2 text-center sm:text-center">
-					Scoreboard
-				</h2>
-				<div className="h-60 overflow-x-auto">
-					<DataGrid
-						rows={leaderboard}
-						columns={columns}
-						paginationModel={{ page: 0, pageSize: 5 }}
-						pageSizeOptions={[5]}
-						disableRowSelectionOnClick
-						autoHeight
-						hideFooter
-						sx={{
-							backgroundColor: "#1f2937",
-							color: "#d1d5db",
-							width: "100%",
-							minWidth: "300px",
-							"& .MuiDataGrid-main": {
-								overflow: "auto",
-							},
-							"& .MuiDataGrid-columnHeaders": {
-								backgroundColor: "#374151",
-								color: "#d1d5db",
-							},
-							"& .MuiDataGrid-row:nth-of-type(odd)": {
-								backgroundColor: "#1f2937",
-							},
-							"& .MuiDataGrid-row:nth-of-type(even)": {
-								backgroundColor: "#111827",
-							},
-							"& .MuiDataGrid-cell": {
-								whiteSpace: "normal",
-								wordWrap: "break-word",
-							},
-						}}
-					/>
-				</div>
-			</div>
+			{/* Game Over Modal */}
+			<GameOverModal
+				isOpen={showGameOverModal}
+				score={finalScore}
+				onClose={handleModalClose}
+				onSubmit={handleScoreSubmit}
+			/>
 		</div>
 	);
 };
