@@ -13,5 +13,38 @@
     text-color: #94a3b8;
     text-size: 1.2rem;
   }
+}
+
+/* Shining star animation for navigation hints */
+@keyframes shine {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+    text-shadow: 0 0 4px rgba(250, 204, 21, 0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    text-shadow: 0 0 12px rgba(250, 204, 21, 0.9), 0 0 20px rgba(250, 204, 21, 0.6);
+  }
+}
+
+@keyframes text-shine {
+  0%, 100% {
+    opacity: 0.6;
+    text-shadow: 0 0 4px rgba(250, 204, 21, 0.2), 0 0 8px rgba(161, 161, 170, 0.3);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(250, 204, 21, 0.6), 0 0 20px rgba(250, 204, 21, 0.4), 0 0 30px rgba(161, 161, 170, 0.3);
+  }
+}
+
+.animate-shine {
+  animation: shine 1.5s ease-in-out infinite;
+}
+
+.animate-text-shine {
+  animation: text-shine 2s ease-in-out infinite;
 } 
 
