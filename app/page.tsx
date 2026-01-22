@@ -26,27 +26,27 @@ export default function Home() {
   const { showSnackbar, triggerHaptic } = useHapticSnackbar();
 
   // Smooth scroll with custom duration (slower scroll)
-  const smoothScrollTo = (element: HTMLElement | null, duration: number = 2000) => {
+  const smoothScrollTo = (element: HTMLElement | null, duration: number = 3000) => {
     if (!element) return;
 
-    const targetPosition = element.getBoundingClientRect().top + window.pageYOffset - 100;
-    const startPosition = window.pageYOffset;
+    const targetPosition = element.getBoundingClientRect().top + window.scrollY - 100;
+    const startPosition = window.scrollY;
     const distance = targetPosition - startPosition;
     let startTime: number | null = null;
 
-    const easeInOutCubic = (t: number): number => {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const easeOutQuart = (t: number): number => {
+      return 1 - Math.pow(1 - t, 4);
     };
 
     const animation = (currentTime: number) => {
       if (startTime === null) startTime = currentTime;
       const timeElapsed = currentTime - startTime;
       const progress = Math.min(timeElapsed / duration, 1);
-      const ease = easeInOutCubic(progress);
+      const ease = easeOutQuart(progress);
 
       window.scrollTo(0, startPosition + distance * ease);
 
-      if (timeElapsed < duration) {
+      if (progress < 1) {
         requestAnimationFrame(animation);
       }
     };
@@ -62,12 +62,12 @@ export default function Home() {
 
   const scrollToResume = () => {
     triggerHaptic("navigation");
-    smoothScrollTo(resumeButtonRef.current, 2500); // 2.5 seconds for slower scroll
+    smoothScrollTo(resumeButtonRef.current, 4000); // 4 seconds for noticeably slower scroll
   };
 
   const scrollToAbout = () => {
     triggerHaptic("navigation");
-    smoothScrollTo(aboutSectionRef.current, 2000); // 2 seconds
+    smoothScrollTo(aboutSectionRef.current, 3500); // 3.5 seconds
   };
 
   return (

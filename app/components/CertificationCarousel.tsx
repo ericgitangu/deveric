@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
 import { ChevronLeft, ChevronRight, Filter, ExternalLink } from "lucide-react";
@@ -40,7 +40,8 @@ export function CertificationCarousel() {
   const [[page, direction], setPage] = useState([0, 0]);
   const [filter, setFilter] = useState<FilterType>("featured");
   const [filterMode, setFilterMode] = useState<"domain" | "authority">("domain");
-  const [isPaused, setIsPaused] = useState(false);
+  const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
+  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { triggerHaptic } = useHapticSnackbar();
 
   const filteredCerts = useMemo(() => {
@@ -57,12 +58,21 @@ export function CertificationCarousel() {
     setPage([0, 0]);
   }, [filter]);
 
+  const pauseAutoScroll = useCallback(() => {
+    setIsAutoScrollPaused(true);
+    if (pauseTimeoutRef.current) {
+      clearTimeout(pauseTimeoutRef.current);
+    }
+    pauseTimeoutRef.current = setTimeout(() => {
+      setIsAutoScrollPaused(false);
+    }, 10000); // Resume after 10s
+  }, []);
+
   const paginate = useCallback(
     (newDirection: number, isUserAction: boolean = true) => {
       if (isUserAction) {
         triggerHaptic("navigation");
-        setIsPaused(true);
-        setTimeout(() => setIsPaused(false), 10000); // Resume after 10s
+        pauseAutoScroll();
       }
       setPage((prev) => {
         const [currentPage] = prev;
@@ -76,15 +86,14 @@ export function CertificationCarousel() {
         }
       });
     },
-    [filteredCerts.length, triggerHaptic]
+    [filteredCerts.length, triggerHaptic, pauseAutoScroll]
   );
 
   const goToPage = useCallback((index: number) => {
     triggerHaptic("click");
-    setIsPaused(true);
-    setTimeout(() => setIsPaused(false), 10000); // Resume after 10s
+    pauseAutoScroll();
     setPage((prev) => [index, index > prev[0] ? 1 : -1]);
-  }, [triggerHaptic]);
+  }, [triggerHaptic, pauseAutoScroll]);
 
   const goNext = useCallback(() => paginate(1), [paginate]);
   const goPrev = useCallback(() => paginate(-1), [paginate]);
@@ -107,9 +116,9 @@ export function CertificationCarousel() {
 
   // Auto-scroll every 5 seconds (silent, no haptic)
   useEffect(() => {
-    if (isPaused || filteredCerts.length <= 1) return;
+    if (isAutoScrollPaused || filteredCerts.length <= 1) return;
 
-    const autoScroll = setInterval(() => {
+    const autoScrollInterval = setInterval(() => {
       setPage((prev) => {
         const [currentPage] = prev;
         const nextPage = currentPage + 1;
@@ -120,8 +129,17 @@ export function CertificationCarousel() {
       });
     }, 5000);
 
-    return () => clearInterval(autoScroll);
-  }, [isPaused, filteredCerts.length]);
+    return () => clearInterval(autoScrollInterval);
+  }, [isAutoScrollPaused, filteredCerts.length]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Clamp page to valid range to prevent undefined access during filter transitions
   const safePageIndex = Math.max(0, Math.min(page, filteredCerts.length - 1));
