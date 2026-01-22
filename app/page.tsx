@@ -3,11 +3,11 @@
 import React, { useRef } from "react";
 import Particles from "./components/particles";
 import Image from "next/image";
+import { ChevronDown } from "lucide-react";
 import { ScrollHint } from "./components/ScrollHint";
 import { BioSection } from "./components/BioSection";
 import { SkillCarousel } from "./components/SkillCarousel";
 import { HapticLink } from "./components/HapticLink";
-import { HapticButton } from "./components/HapticButton";
 import { GlowButton } from "./components/GlowButton";
 import { useHapticSnackbar } from "@/context/HapticSnackbarContext";
 
@@ -22,12 +22,18 @@ const navigation = [
 
 export default function Home() {
   const aboutSectionRef = useRef<HTMLDivElement>(null);
+  const resumeButtonRef = useRef<HTMLDivElement>(null);
   const { showSnackbar, triggerHaptic } = useHapticSnackbar();
 
-  const handleButtonClick = () => {
+  const handleResumeClick = () => {
     const resumeLink = "https://resume.ericgitangu.com";
     window.open(resumeLink, "_blank", "noopener,noreferrer");
     showSnackbar("Opening interactive resume with AI chatbot!", "success");
+  };
+
+  const scrollToResume = () => {
+    triggerHaptic("navigation");
+    resumeButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   const scrollToAbout = () => {
@@ -92,13 +98,14 @@ export default function Home() {
           </h2>
         </div>
 
-        {/* Interactive Resume Button - Prominent */}
+        {/* Explore Button - Scrolls to Resume CTA */}
         <div className="animate-fade-in">
           <GlowButton
-            onClick={handleButtonClick}
-            ariaLabel="View my Interactive Resume"
+            onClick={scrollToResume}
+            ariaLabel="Explore my journey and skills"
           >
-            View Interactive Resume
+            Explore My Journey
+            <ChevronDown className="w-5 h-5 animate-bounce" />
           </GlowButton>
         </div>
 
@@ -134,16 +141,14 @@ export default function Home() {
           <SkillCarousel />
         </div>
 
-        {/* Secondary CTA */}
-        <div className="mt-16 animate-fade-in">
-          <HapticButton
-            onClick={handleButtonClick}
-            variant="outline"
-            hapticType="success"
-            ariaLabel="View my Interactive Resume"
+        {/* Primary Resume CTA */}
+        <div ref={resumeButtonRef} className="mt-16 animate-fade-in">
+          <GlowButton
+            onClick={handleResumeClick}
+            ariaLabel="View my Interactive Resume with AI Chatbot"
           >
-            Explore My Full Resume
-          </HapticButton>
+            View Interactive Resume
+          </GlowButton>
         </div>
       </section>
     </div>
