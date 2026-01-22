@@ -4,6 +4,9 @@ import LocalFont from "@next/font/local";
 import { Metadata } from "next";
 import { Analytics } from "./components/analytics";
 import { SnackbarProvider } from "@/context/SnakebarContext";
+import { HapticSnackbarProvider } from "@/context/HapticSnackbarContext";
+import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import Script from "next/script";
 
 export const metadata: Metadata = {
 	title: {
@@ -11,12 +14,19 @@ export const metadata: Metadata = {
 		template: "%s | deveric.io",
 	},
 	description:
-		"Developer, Engineer %26 code-blooded tinkerer - Director of Engineering at Vishnu Systems, Inc.",
+		"Software Engineer Architect with 10+ years in Full Stack, ML/AI, DevOps, and Cloud Architecture.",
+	manifest: "/manifest.json",
+	themeColor: "#3b82f6",
+	appleWebApp: {
+		capable: true,
+		statusBarStyle: "black-translucent",
+		title: "Deveric",
+	},
 	openGraph: {
 		title: "Eric Gitangu - Deveric.",
 		description:
-			"Eric Gitangu, Director of Engineering / Co-Founder at Vishnu Systems, Inc. Primally, a code-blooded software engineer.",
-		url: "https://developer.ericgitangu.com/",
+			"Software Engineer Architect / Lead with expertise in Full Stack, ML/AI, DevOps, and Cloud Architecture.",
+		url: "https://deveric.io/",
 		siteName: "Eric Gitangu - deveric.io",
 		images: [
 			{
@@ -45,8 +55,10 @@ export const metadata: Metadata = {
 	},
 	icons: {
 		shortcut: "/favicon.png",
+		apple: "/favicon.png",
 	},
 };
+
 const inter = Inter({
 	subsets: ["latin"],
 	variable: "--font-inter",
@@ -64,15 +76,38 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en" className={[inter.variable, calSans.variable].join(" ")}>
+			<head>
+				<meta name="apple-mobile-web-app-capable" content="yes" />
+				<meta name="mobile-web-app-capable" content="yes" />
+				<link rel="apple-touch-icon" href="/favicon.png" />
+			</head>
 			<SnackbarProvider>
-				<body
-					className={`bg-black ${
-						process.env.NODE_ENV === "development" ? "debug-screens" : undefined
-					}`}
-				>
-					<Analytics />
-					{children}
-				</body>
+				<HapticSnackbarProvider>
+					<body
+						className={`bg-black ${
+							process.env.NODE_ENV === "development" ? "debug-screens" : undefined
+						}`}
+					>
+						<Analytics />
+						{children}
+						<PWAInstallPrompt />
+						<Script id="sw-register" strategy="afterInteractive">
+							{`
+								if ('serviceWorker' in navigator) {
+									window.addEventListener('load', () => {
+										navigator.serviceWorker.register('/sw.js')
+											.then((registration) => {
+												console.log('SW registered:', registration.scope);
+											})
+											.catch((error) => {
+												console.log('SW registration failed:', error);
+											});
+									});
+								}
+							`}
+						</Script>
+					</body>
+				</HapticSnackbarProvider>
 			</SnackbarProvider>
 		</html>
 	);

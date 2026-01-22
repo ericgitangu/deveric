@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { bioData } from "@/about/data";
+import { RoleScroller } from "./RoleScroller";
 
 export function BioSection() {
   return (
@@ -11,20 +11,11 @@ export function BioSection() {
         <h2 className="text-2xl md:text-3xl font-display text-zinc-100 mb-1">
           {bioData.name}
         </h2>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-zinc-400 mb-3">
           aka <span className="font-medium text-zinc-300">{bioData.alias}</span>
         </p>
-        <p className="mt-2 text-zinc-400">
-          {bioData.title} at{" "}
-          <Link
-            href={bioData.company.url}
-            className="text-blue-400 hover:text-blue-300 transition-colors"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {bioData.company.name}
-          </Link>
-        </p>
+        {/* Animated Role Scroller */}
+        <RoleScroller />
       </div>
 
       {/* Summary */}

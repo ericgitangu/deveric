@@ -1,13 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import React, { useState, useRef } from "react";
+import React, { useRef } from "react";
 import Particles from "./components/particles";
 import Image from "next/image";
-import { Button, Tooltip, Snackbar, Alert } from "@mui/material";
 import { ScrollHint } from "./components/ScrollHint";
 import { BioSection } from "./components/BioSection";
 import { SkillCarousel } from "./components/SkillCarousel";
+import { HapticLink } from "./components/HapticLink";
+import { HapticButton } from "./components/HapticButton";
+import { useHapticSnackbar } from "@/context/HapticSnackbarContext";
 
 const navigation = [
   { name: "Projects", href: "/projects" },
@@ -19,32 +20,17 @@ const navigation = [
 ];
 
 export default function Home() {
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<
-    "success" | "error" | "warning" | "info"
-  >("info");
   const aboutSectionRef = useRef<HTMLDivElement>(null);
+  const { showSnackbar, triggerHaptic } = useHapticSnackbar();
 
   const handleButtonClick = () => {
     const resumeLink = "https://resume.ericgitangu.com";
     window.open(resumeLink, "_blank", "noopener,noreferrer");
-    setSnackbarMessage("Opening interactive resume with AI chatbot!");
-    setSnackbarSeverity("success");
-    setSnackbarOpen(true);
-  };
-
-  const handleSnackbarClose = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
+    showSnackbar("Opening interactive resume with AI chatbot!", "success");
   };
 
   const scrollToAbout = () => {
+    triggerHaptic("navigation");
     aboutSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -64,13 +50,13 @@ export default function Home() {
         <nav className="absolute top-0 left-0 right-0 py-8 animate-fade-in">
           <ul className="flex items-center justify-center gap-4 flex-wrap">
             {navigation.map((item) => (
-              <Link
+              <HapticLink
                 key={item.href}
                 href={item.href}
                 className="text-sm duration-500 text-slate-400 hover:text-zinc-300"
               >
                 {item.name}
-              </Link>
+              </HapticLink>
             ))}
           </ul>
         </nav>
@@ -107,35 +93,14 @@ export default function Home() {
 
         {/* Interactive Resume Button - Prominent */}
         <div className="animate-fade-in">
-          <Tooltip title="View my interactive resume with AI chatbot">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleButtonClick}
-              sx={{
-                paddingX: 5,
-                paddingY: 2,
-                fontSize: "1rem",
-                fontWeight: "bold",
-                borderRadius: "12px",
-                textTransform: "none",
-                backgroundColor: "#3b82f6",
-                border: "2px solid #3b82f6",
-                boxShadow: "0 0 20px rgba(59, 130, 246, 0.3)",
-                "&:hover": {
-                  backgroundColor: "transparent",
-                  color: "#3b82f6",
-                  borderColor: "#3b82f6",
-                  transform: "scale(1.05)",
-                  boxShadow: "0 0 30px rgba(59, 130, 246, 0.5)",
-                },
-                transition: "all 0.3s ease",
-              }}
-              aria-label="View my Interactive Resume"
-            >
-              View Interactive Resume
-            </Button>
-          </Tooltip>
+          <HapticButton
+            onClick={handleButtonClick}
+            variant="primary"
+            hapticType="success"
+            ariaLabel="View my Interactive Resume"
+          >
+            View Interactive Resume
+          </HapticButton>
         </div>
 
         {/* Scroll Hint */}
@@ -147,7 +112,7 @@ export default function Home() {
       {/* About Section */}
       <section
         ref={aboutSectionRef}
-        className="relative min-h-screen flex flex-col items-center justify-center px-4 py-16"
+        className="relative flex flex-col items-center px-4 py-12"
       >
         {/* Section Title */}
         <h2 className="text-3xl md:text-5xl text-transparent bg-white text-edge-outline font-display bg-clip-text mb-8 animate-fade-in">
@@ -172,48 +137,16 @@ export default function Home() {
 
         {/* Secondary CTA */}
         <div className="mt-16 animate-fade-in">
-          <Tooltip title="View my interactive resume with AI chatbot">
-            <Button
-              variant="outlined"
-              onClick={handleButtonClick}
-              sx={{
-                paddingX: 4,
-                paddingY: 1.5,
-                fontWeight: "bold",
-                borderRadius: "8px",
-                textTransform: "none",
-                color: "#3b82f6",
-                borderColor: "#3b82f6",
-                "&:hover": {
-                  backgroundColor: "#3b82f6",
-                  color: "white",
-                  borderColor: "#3b82f6",
-                },
-                transition: "all 0.3s ease",
-              }}
-              aria-label="View my Interactive Resume"
-            >
-              Explore My Full Resume
-            </Button>
-          </Tooltip>
+          <HapticButton
+            onClick={handleButtonClick}
+            variant="outline"
+            hapticType="success"
+            ariaLabel="View my Interactive Resume"
+          >
+            Explore My Full Resume
+          </HapticButton>
         </div>
       </section>
-
-      {/* Snackbar for Notifications */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </div>
   );
 }
