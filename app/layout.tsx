@@ -6,6 +6,7 @@ import { Analytics } from "./components/analytics";
 import { SnackbarProvider } from "@/context/SnakebarContext";
 import { HapticSnackbarProvider } from "@/context/HapticSnackbarContext";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import { BusinessCardPanel } from "./components/BusinessCardPanel";
 import Script from "next/script";
 
 export const metadata: Metadata = {
@@ -90,6 +91,7 @@ export default function RootLayout({
 					>
 						<Analytics />
 						{children}
+						<BusinessCardPanel />
 						<PWAInstallPrompt />
 						<Script id="sw-register" strategy="afterInteractive">
 							{`
