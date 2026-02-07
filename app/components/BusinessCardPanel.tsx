@@ -15,6 +15,7 @@ import {
   Download,
   ChevronRight,
   Smartphone,
+  Contact,
 } from "lucide-react";
 
 const VCARD_URL = "https://developer.ericgitangu.com/eric-gitangu.vcf";
@@ -76,21 +77,49 @@ export function BusinessCardPanel() {
 
   return (
     <>
-      {/* Tab trigger - fixed on left edge */}
-      <Tooltip text="Virtual Business Card">
-        <button
-          onClick={() => setIsOpen(true)}
-          aria-label="Open virtual business card"
-          className={`fixed left-0 top-1/2 -translate-y-1/2 z-[60] flex items-center gap-1 px-1.5 py-3 rounded-r-lg bg-gradient-to-b from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:px-2.5 transition-all duration-300 group/tab ${
-            isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
-          }`}
+      {/* === DESKTOP: Vertical edge tab with rotated text === */}
+      <button
+        onClick={() => setIsOpen(true)}
+        aria-label="Open virtual business card"
+        className={`hidden md:flex fixed left-0 top-1/2 z-[60] flex-col items-center gap-2 px-2 py-4 rounded-r-xl bg-gradient-to-b from-blue-600 via-blue-500 to-purple-600 text-white shadow-xl shadow-blue-500/40 hover:shadow-blue-400/60 hover:px-3 transition-all duration-300 group/tab border border-blue-400/30 vcard-entrance ${
+          isOpen ? "opacity-0 pointer-events-none" : ""
+        }`}
+      >
+        {/* Icon */}
+        <Contact className="w-5 h-5 shrink-0" />
+        {/* Vertical text label */}
+        <span
+          className="text-[11px] font-semibold tracking-[0.2em] uppercase"
+          style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
         >
-          <CreditCard className="w-4 h-4 md:w-5 md:h-5" />
-          <ChevronRight className="w-3 h-3 opacity-60 group-hover/tab:opacity-100 transition-opacity" />
-          {/* Pulsing dot hint */}
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50" />
-        </button>
-      </Tooltip>
+          vCard
+        </span>
+        {/* Chevron hint */}
+        <ChevronRight className="w-3.5 h-3.5 opacity-70 group-hover/tab:opacity-100 group-hover/tab:translate-x-0.5 transition-all" />
+        {/* Pulsing attention dot */}
+        <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse shadow-md shadow-emerald-400/60" />
+        {/* Tooltip */}
+        <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-zinc-800 text-xs text-zinc-200 whitespace-nowrap opacity-0 group-hover/tab:opacity-100 transition-opacity duration-200 border border-zinc-700 shadow-xl">
+          Tap to view my virtual business card
+          <span className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-b-[6px] border-r-[6px] border-t-transparent border-b-transparent border-r-zinc-800" />
+        </span>
+      </button>
+
+      {/* === MOBILE: Floating pill FAB at bottom-left === */}
+      <button
+        onClick={() => setIsOpen(true)}
+        aria-label="Open virtual business card"
+        className={`md:hidden fixed bottom-6 left-4 z-[60] flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/40 active:scale-95 transition-all duration-200 border border-blue-400/30 vcard-entrance ${
+          isOpen ? "opacity-0 pointer-events-none scale-90" : ""
+        }`}
+      >
+        <Contact className="w-5 h-5 shrink-0" />
+        <span className="text-xs font-semibold tracking-wide uppercase">
+          vCard
+        </span>
+        {/* Pulsing attention dot */}
+        <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse shadow-md shadow-emerald-400/60" />
+      </button>
 
       {/* Backdrop */}
       {isOpen && (
