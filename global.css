@@ -31,5 +31,26 @@
 
 .animate-text-shine {
   animation: text-shine 1.5s ease-in-out infinite;
-} 
+}
+
+/* vCard tab entrance nudge - draws attention then settles */
+@keyframes vcard-nudge {
+  0% { transform: translateX(-100%) translateY(-50%); opacity: 0; }
+  40% { transform: translateX(8px) translateY(-50%); opacity: 1; }
+  60% { transform: translateX(8px) translateY(-50%); }
+  100% { transform: translateX(0) translateY(-50%); opacity: 1; }
+}
+@keyframes vcard-nudge-mobile {
+  0% { transform: translateY(80px) scale(0.8); opacity: 0; }
+  40% { transform: translateY(-6px) scale(1.05); opacity: 1; }
+  60% { transform: translateY(-6px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@media (min-width: 768px) {
+  .vcard-entrance { animation: vcard-nudge 1.2s ease-out 2s both; }
+}
+@media (max-width: 767px) {
+  .vcard-entrance { animation: vcard-nudge-mobile 1s ease-out 2s both; }
+}
 
