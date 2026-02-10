@@ -1,0 +1,90 @@
+---
+title: Secure Messenger Desktop
+description: An Electron + React + TypeScript secure messenger client with real-time WebSocket sync, virtualized lists, AES-256-GCM encryption, SQLite storage, and built-in Prometheus/Grafana observability
+repository: ericgitangu/secure-messenger-desktop
+url: https://secure-messenger-desktop.fly.dev/
+date: 2026-02-10
+published: true
+---
+
+A production-grade secure messenger desktop application built as a technical assessment, featuring an Electron + React + TypeScript stack with real-time sync, virtualized lists, and AES-256-GCM encryption. Time-boxed to approximately 4 hours.
+
+## Built With
+
+- **Runtime**: Electron 40, React 19, TypeScript 5.7
+- **State Management**: Redux Toolkit 2.11
+- **Database**: SQLite (better-sqlite3, WAL mode)
+- **Encryption**: AES-256-GCM (Node.js crypto — 256-bit key, 96-bit IV, 128-bit auth tag)
+- **UI**: Material-UI v7, react-window, react-virtuoso, Recharts, Lucide icons
+- **Backend**: Express 5, WebSocket (ws)
+- **Bundler**: Vite 5.4
+- **Observability**: Prometheus (prom-client), Grafana dashboards
+- **Testing**: Vitest, React Testing Library, Pact contract testing
+- **Package Manager**: pnpm 10.27
+- **Deployment**: Fly.io (Frankfurt region), Docker Compose
+
+## Key Features
+
+### SQLite Local Storage
+- 2-table schema (chats + messages) in 3NF
+- Seeded with 200 chats and 20K messages
+- Cursor-based pagination for messages
+- 3 targeted indexes for performance optimization
+
+### Real-Time WebSocket Sync
+- Messages stream every 1–3 seconds
+- AES-256-GCM encryption on all message bodies
+- Single-port WebSocket server (`/ws`)
+
+### Connection Health Management
+- 3-state connection machine (Connected, Reconnecting, Offline)
+- Heartbeat ping every 5s with exponential backoff (1s → 30s max)
+- Manual disconnect simulation for testing
+
+### UI Performance
+- Chat list virtualization with react-window FixedSizeList (~8–10 visible of 200)
+- Message list virtualization with react-virtuoso (variable height, bi-directional)
+- Minimal re-renders via React.memo and useCallback
+- Unread count tracking
+
+### User Actions
+- Create new chats, send messages
+- Debounced search (300ms, 3+ chars)
+- Voice search via Web Speech API
+
+### Security
+- AES-256-GCM encryption with tamper detection via authentication tag
+- Process isolation (contextIsolation: true, nodeIntegration: false)
+- No plaintext leaks enforced via ESLint rule
+
+### Observability
+- Built-in Grafana-style system health dashboard
+- Real-time client metrics (latency, throughput)
+- Live Prometheus metrics polling via `/metrics` endpoint
+- Docker Compose with full Prometheus + Grafana stack
+
+## Dual-Mode Architecture
+
+| Feature | Electron Mode | Browser Mode |
+|---------|---------------|--------------|
+| Data Fetching | ipcRenderer.invoke() | fetch() REST API |
+| WebSocket | Direct ws://localhost:9876 | wss://host/ws |
+| DB Access | Main process (direct) | Express API (HTTP) |
+| Encryption | Main process | Server-side |
+
+## Testing
+
+- **81 total tests**: 63 unit, 4 integration, 14 contract (Pact)
+- GitHub Actions CI/CD: Lint → Test (JUnit XML + coverage) → Build (macOS/Windows/Linux)
+- Git hooks: pre-commit (lint-staged + gitleaks + tsc), commit-msg (conventional), post-commit (fast tests), pre-push (auto-rebuild)
+
+## Live Demo
+
+Experience it at [secure-messenger-desktop.fly.dev](https://secure-messenger-desktop.fly.dev/)
+
+## Connect
+
+- **Portfolio**: [developer.ericgitangu.com](https://developer.ericgitangu.com)
+- **GitHub**: [ericgitangu](https://github.com/ericgitangu)
+- **LinkedIn**: [Eric Gitangu](https://linkedin.com/in/ericgitangu)
+- **Email**: [developer.ericgitangu@gmail.com](mailto:developer.ericgitangu@gmail.com)
