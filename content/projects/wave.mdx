@@ -1,0 +1,32 @@
+---
+title: Wave Application — Senior ML Engineer (LLM & Voice)
+description: Full-stack polyglot submission for Wave's Senior ML Engineer role. Next.js 16 PWA dashboard + Rust/PyO3 backend + AWS CDK infrastructure with Bedrock, SageMaker, and persistent Upstash Redis submissions.
+date: "2026-02-24"
+url: https://wave-apply.ericgitangu.com
+repository: ericgitangu/wave
+published: true
+---
+
+An end-to-end application submission for Wave's Senior ML Engineer (LLM & Voice) position, demonstrating production-grade ML infrastructure across Rust, Python, and TypeScript.
+
+## Architecture
+
+The system follows a serverless event-driven design: a **Next.js 16 PWA** dashboard calls API Gateway, which routes to **Rust + PyO3 Lambda** functions. These invoke **Amazon Bedrock** (Claude 3 Haiku for sentiment analysis, Titan for embeddings) and a **SageMaker** endpoint running XLM-RoBERTa for 20-language detection. An **EventBridge** fan-out from the voice API triggers the full ML pipeline asynchronously.
+
+## Infrastructure
+
+Four **AWS CDK** stacks manage the backend: Submission, Voice, Bedrock, and SageMaker. Data flows through DynamoDB, S3, and SNS. SageMaker endpoints auto-stop after 59 minutes to keep costs near zero.
+
+## Dashboard
+
+The PWA dashboard features a submissions page with manual trigger to Wave's API, persistent history via **Upstash Redis**, real-time health probes against every backend service, dynamic OG image generation, and offline-first caching.
+
+## CI/CD
+
+**GitHub Actions** deploys the dashboard to **Fly.io** and the backend via CDK, then auto-submits the resume to Wave's careers API as the final pipeline step.
+
+## Tech Stack
+
+- **Backend**: Rust, Python 3.12, PyO3, AWS CDK, Bedrock, SageMaker
+- **Frontend**: React 19, Next.js 16, TypeScript, Tailwind v4, shadcn/ui, Framer Motion
+- **Infra**: DynamoDB, S3, SNS, EventBridge, API Gateway, Upstash Redis, Fly.io
