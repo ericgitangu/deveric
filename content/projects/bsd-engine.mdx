@@ -1,0 +1,112 @@
+---
+title: BSD Engine — Business Services Diagnostic Platform
+description: Full-stack business diagnostics platform with Rust scoring engine, Next.js 16 dashboard, and AI-powered narrative generation via AWS Bedrock
+date: "2026-03-05"
+url: https://bsd-engine-web.fly.dev
+repository: ericgitangu/bsd-engine
+published: true
+---
+
+# Preview
+
+BSD Engine is a comprehensive business services diagnostic platform that assesses operational execution maturity across 7 weighted indicators using a 23-question Likert-scale assessment. It generates rich visual reports with radar charts, bar charts, maturity projections, and gap analysis — plus AI-powered executive narratives via AWS Bedrock (Claude Haiku).
+
+**Live Demo:** [bsd-engine-web.fly.dev](https://bsd-engine-web.fly.dev)
+
+# Architecture
+
+## System Overview
+
+The platform follows a Rust-first architecture with a Next.js frontend:
+
+```
+bsd_engine/
+├── crates/
+│   ├── bsd-core/          # Models, traits, severity classification
+│   ├── bsd-scoring/       # Weighted scoring engine, 7 indicators
+│   └── bsd-api/           # Axum REST API, Bedrock integration
+├── apps/
+│   └── web/               # Next.js 16 frontend (shadcn, Recharts)
+├── infrastructure/        # AWS CDK stack
+├── infra/
+│   ├── docker/            # Dockerfile.api, Dockerfile.web, Dockerfile.lambda
+│   └── fly/               # Fly.io deployment configs
+├── prompts/               # Bedrock prompt templates
+└── tests/e2e/             # Playwright end-to-end tests
+```
+
+## Scoring Engine
+
+- **7 Indicators:** Process Standardization, Goal Cascade & Rhythm, Delivery Reliability, Resource Utilization, Cross-functional Coordination, Bottleneck Identification, Continuous Improvement
+- **23 Questions:** Likert scale (1-5), mapped to indicator weights
+- **Severity Classification:** Critical (0-39), Warning (40-59), Developing (60-79), Healthy (80-100)
+- **Alignment Variance:** Measures score spread across indicators
+
+# Key Features
+
+## Diagnostic Assessment
+
+- Interactive Likert-scale questionnaire with progress tracking
+- Real-time scoring via Rust backend
+- Weighted average calculation across 7 operational indicators
+
+## Visual Report Dashboard
+
+- **Score Gauge** — Animated circular gauge with severity coloring
+- **Capability Radar** — Spider chart across all indicators
+- **Indicator Bar Chart** — Horizontal bars with average reference line
+- **12-Month Maturity Projection** — Area chart showing growth trajectory
+- **Gap to Healthy Analysis** — Points needed to reach healthy threshold
+- **Severity Distribution** — Donut chart by severity classification
+- **Indicator Breakdown Table** — Detailed scores, weights, and status
+
+## AI-Powered Narratives
+
+- Executive summary generation via AWS Bedrock (Claude Haiku)
+- Strengths and gaps identification
+- Prioritized recommendations with timeframes
+- WebSocket delivery via EventBridge → Lambda → API Gateway
+
+## Shareable Reports
+
+- Base64-encoded report URLs with full assessment data
+- Dynamic Open Graph images for social sharing
+- Print/PDF export with dark premium theme and BSD branding
+
+# Technology Stack
+
+## Backend (Rust)
+
+- Rust 1.92 with Axum web framework
+- Weighted scoring engine with 12 unit tests
+- AWS Bedrock integration for narrative generation
+- cargo-lambda for ARM64 Lambda deployment
+
+## Frontend (Next.js)
+
+- Next.js 16 with App Router and Turbopack
+- TypeScript, Tailwind CSS v4, shadcn/ui
+- Recharts for all data visualizations
+- Framer Motion animations
+- next-themes (dark/light, defaults to dark)
+
+## Infrastructure
+
+- AWS CDK — Cognito, EventBridge, HTTP API Gateway, WebSocket API, Lambda ARM64
+- Docker — Multi-stage builds for API, web, and Lambda
+- Fly.io — Frontend and API deployment
+- GitHub Actions CI/CD
+
+# Deployment
+
+```bash
+# Frontend
+cd apps/web && fly deploy
+
+# API
+cd crates/bsd-api && fly deploy
+
+# Lambda (ARM64)
+./scripts/build-lambda.sh
+cd infrastructure && cdk deploy
+```
