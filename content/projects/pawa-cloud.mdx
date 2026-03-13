@@ -1,0 +1,136 @@
+---
+title: PawaCloud Assistant — AI Cloud Advisor
+description: AI-powered chatbot with Google Gemini 2.5 Flash, Rust+PyO3 text processing, Next.js 16 PWA frontend, PostgreSQL persistence, and GCP Cloud Run deployment
+date: "2026-03-13"
+url: https://pawacloud-web.fly.dev
+repository: ericgitangu/pawa-cloud
+published: true
+---
+
+# Preview
+
+PawaCloud Assistant is an AI-powered advisory chatbot that answers questions about cloud infrastructure, travel documents, news, and code reviews — streaming responses in real time via Server-Sent Events. Supports English, Swahili, and 100+ languages through Gemini's multilingual capabilities.
+
+**Live Demo:** [pawacloud-web.fly.dev](https://pawacloud-web.fly.dev) | **API Docs:** [Swagger](https://pawacloud-api-904401126919.africa-south1.run.app/docs) | **Status:** [Dashboard](https://pawacloud-web.fly.dev/status)
+
+# Architecture
+
+## System Overview
+
+Split-deploy architecture with backend on GCP Cloud Run and frontend on Fly.io, both targeting Africa regions for lowest latency:
+
+```
+pawait-assessment/
+├── backend/               Python 3.12 + FastAPI
+│   ├── app/
+│   │   ├── core/          config, decorators, middleware, database
+│   │   ├── models/        Pydantic v2 schemas
+│   │   ├── routers/       chat, auth, health
+│   │   └── services/      llm, history, text processing
+│   └── tests/             pytest (27 tests)
+├── rust-core/             PyO3 text processing (7 exported functions)
+├── frontend/              Next.js 16 + TailwindCSS v4
+│   ├── app/               pages (chat, status, login, signup)
+│   ├── components/        12 components
+│   ├── providers/         AuthProvider, ThemeProvider
+│   └── lib/               api.ts (fetch + SSE + Bearer auth)
+├── infra/                 Terraform (Cloud Run, Artifact Registry, IAM)
+├── docs/                  ARCHITECTURE.md, PROMPTS.md, EVALUATION.md
+└── docker-compose.yml     Full stack (Postgres + Redis + backend + frontend)
+```
+
+## Request Flow
+
+```
+User -> Next.js (Fly.io JNB) -> FastAPI (Cloud Run africa-south1)
+     -> Rust/PyO3 sanitise -> Gemini 2.5 Flash -> SSE stream back
+     -> PostgreSQL (Neon eu-west-2) persist conversation
+```
+
+## Auth Flow
+
+Cross-origin OAuth without cookies — modern browsers block third-party cookies on cross-domain deploys. Solved with HMAC-signed Bearer tokens:
+
+```
+Google OAuth consent -> backend callback -> signed token in redirect URL
+-> frontend exchanges for long-lived Bearer token -> localStorage
+-> Authorization header on every API call
+```
+
+# Key Features
+
+## Streaming Chat
+
+- Real-time SSE streaming with JSON-encoded chunks
+- Markdown rendering with syntax highlighting
+- Input sanitisation via Rust PyO3 (sub-microsecond)
+- Chat history persists across devices via PostgreSQL
+
+## Authentication
+
+- Google OAuth (OpenID Connect)
+- Email/password (bcrypt + PostgreSQL)
+- Domain guest pass for @pawait.co.ke reviewers
+- HMAC-signed Bearer tokens — zero cookie dependency
+
+## Live Status Dashboard
+
+- Real-time API latency time-series charts
+- PyO3 benchmark visualisations (1000-iteration micro-benchmarks)
+- Cloud Run infrastructure metadata
+- Neon PostgreSQL metrics (pool size, conversations, DB size)
+- Gemini connectivity test
+
+## Rust+PyO3 Text Processing
+
+Same pattern as BSD Engine and Wave — compile Rust to a Python-importable .so with automatic pure Python fallback:
+
+| Function | Rust | Python | Speedup |
+|----------|------|--------|---------|
+| `sanitize_input` (1KB) | ~3.5us | ~45us | ~13x |
+| `estimate_tokens` (4KB) | ~6.5us | ~120us | ~18x |
+| `validate_markdown` (8KB) | ~0.2us | ~80us | ~400x |
+
+# Technology Stack
+
+## Backend
+
+- Python 3.12, FastAPI, Pydantic v2
+- Google Gemini 2.5 Flash (streaming + non-streaming)
+- Rust + PyO3 + maturin for text processing
+- PostgreSQL (Neon) via asyncpg for users + conversations
+- Redis (Upstash) for session caching
+- HMAC token signing for cross-origin auth
+
+## Frontend
+
+- Next.js 16 with App Router
+- TailwindCSS v4 with custom @theme tokens
+- lucide-react icons, react-markdown, DM Sans + DM Mono fonts
+- PWA with offline shell, custom favicon, OG metadata
+- Bearer token auth via localStorage
+
+## Infrastructure
+
+- GCP Cloud Run (africa-south1) for backend
+- Fly.io (JNB) for frontend
+- Terraform IaC (Cloud Run service, Artifact Registry, IAM, service accounts)
+- Docker multi-stage builds
+- Neon PostgreSQL (eu-west-2)
+- Makefile for local dev orchestration
+
+# Deployment
+
+```bash
+# backend -> Cloud Run
+bash scripts/deploy-backend.sh
+
+# frontend -> Fly.io
+bash scripts/deploy-frontend.sh
+
+# or Terraform
+cd infra && terraform init && terraform apply
+
+# local dev
+make dev  # starts Postgres, Redis, backend, frontend
+```
