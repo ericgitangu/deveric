@@ -1,0 +1,32 @@
+---
+title: "LendStream — Polyglot Micro-Lending Platform"
+description: "Event-driven micro-lending platform built with Java 21, Clojure, React/TypeScript, Kafka, and CQRS. Runs on Docker Compose locally (15 containers with full observability) or GCP Cloud Run at $0-3/month."
+date: "2026-04-12"
+url: "https://nanolend-app.vercel.app"
+repository: "ericgitangu/lendstream"
+published: true
+---
+
+# Architecture
+
+Polyglot microservices with CQRS and event-driven architecture. Java 21 + Spring Boot handles loan lifecycle, Clojure handles credit scoring through pure functional pipelines, React/TypeScript provides analytics dashboards.
+
+| Service | Stack | Purpose |
+|---------|-------|---------|
+| loan-service | Java 21, Spring Boot, JPA | Loan lifecycle, SOAP/CBS integration, transactional outbox |
+| scoring-engine | Clojure, Ring, Reitit | Behavioral credit scoring — pure functional pipeline |
+| event-processor | Java, Spring Kafka | Kafka/QStash consumer, audit trail, DLQ |
+| read-model-builder | Java, Spring Kafka | CQRS projections — denormalized views |
+| api-gateway | Spring Cloud Gateway | Routing, Redis rate limiting, correlation IDs |
+| dashboard | React 18, TypeScript, Vite | Portfolio analytics and customer 360 views |
+
+# Key Decisions
+
+- **Kafka ↔ QStash switching** — same handler logic, different transport. Kafka polls locally, QStash pushes in cloud. `@ConditionalOnProperty` controls which beans activate.
+- **CQRS** — write path optimizes for consistency (loan_db), read path optimizes for query speed (analytics_db with materialized views).
+- **Transactional outbox** — loan state + events in a single ACID transaction. No dual-write problem.
+- **Cloud cost optimization** — Neon over Cloud SQL, QStash over managed Kafka, scale-to-zero everything. $64/mo → $0-3/mo.
+
+# Technology
+
+Java 21, Spring Boot 3.3, Clojure 1.11, React 18, TypeScript, Kafka (KRaft), QStash, PostgreSQL 16, Redis 7, Docker Compose, Terraform, GCP Cloud Run, Vercel, Prometheus, Grafana, ELK Stack, Resilience4j
