@@ -16,18 +16,18 @@ import {
 } from "./lib/structured-data";
 
 export const metadata: Metadata = {
-	metadataBase: new URL("https://deveric.io"),
+	metadataBase: new URL("https://developer.ericgitangu.com"),
 	title: {
-		default: "Eric Gitangu — deveric.io",
+		default: "Eric Gitangu — developer.ericgitangu.com",
 		template: "%s · Eric Gitangu",
 	},
 	description:
 		"Software Engineer Architect with 10+ years in Full Stack, ML/AI, DevOps, and Cloud Architecture. Projects, blog, journal, and certifications by Eric Gitangu.",
-	alternates: { canonical: "https://deveric.io" },
-	authors: [{ name: "Eric Gitangu", url: "https://deveric.io" }],
+	alternates: { canonical: "https://developer.ericgitangu.com" },
+	authors: [{ name: "Eric Gitangu", url: "https://developer.ericgitangu.com" }],
 	creator: "Eric Gitangu",
 	publisher: "Eric Gitangu",
-	applicationName: "deveric.io",
+	applicationName: "Eric Gitangu — Portfolio",
 	manifest: "/manifest.json",
 	themeColor: "#3b82f6",
 	appleWebApp: {
@@ -39,8 +39,8 @@ export const metadata: Metadata = {
 		title: "Eric Gitangu - Deveric.",
 		description:
 			"Software Engineer Architect / Lead with expertise in Full Stack, ML/AI, DevOps, and Cloud Architecture.",
-		url: "https://deveric.io/",
-		siteName: "Eric Gitangu - deveric.io",
+		url: "https://developer.ericgitangu.com/",
+		siteName: "Eric Gitangu — developer.ericgitangu.com",
 		images: [
 			{
 				url: "https://media.licdn.com/dms/image/D4D03AQGrFBDkYWUNqA/profile-displayphoto-shrink_800_800/0/1664606973025?e=2147483647&v=beta&t=k0kebZyN6d08jZJ9rQGx33XFWr2xlep8JlAWl6Z47aY",

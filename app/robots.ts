@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default function robots(): MetadataRoute.Robots {
 	const h = headers();
-	const host = h.get("x-forwarded-host") ?? h.get("host") ?? "deveric.io";
+	const host = h.get("x-forwarded-host") ?? h.get("host") ?? "developer.ericgitangu.com";
 	const proto = h.get("x-forwarded-proto") ?? "https";
 	const base = `${proto}://${host}`;
 

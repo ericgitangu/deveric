@@ -3,9 +3,9 @@ import { headers } from "next/headers";
 import fs from "node:fs";
 import path from "node:path";
 
-// Render at request time so URLs match whichever host served the sitemap
-// (deveric.io and developer.ericgitangu.com both point at this app — Google
-// rejects sitemap entries on a different host than the sitemap file).
+// Render at request time so URLs match whichever host served the sitemap —
+// the canonical is developer.ericgitangu.com but the host header is whatever
+// Vercel routes through. Cross-host sitemap entries get rejected by Google.
 export const dynamic = "force-dynamic";
 
 type StaticEntry = {
@@ -27,7 +27,7 @@ const staticPages: StaticEntry[] = [
 
 function resolveBase(): string {
 	const h = headers();
-	const host = h.get("x-forwarded-host") ?? h.get("host") ?? "deveric.io";
+	const host = h.get("x-forwarded-host") ?? h.get("host") ?? "developer.ericgitangu.com";
 	const proto = h.get("x-forwarded-proto") ?? "https";
 	return `${proto}://${host}`;
 }
