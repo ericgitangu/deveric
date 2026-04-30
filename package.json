@@ -14,7 +14,6 @@
     "@mui/icons-material": "^6.3.0",
     "@mui/material": "^6.3.0",
     "@mui/x-data-grid": "^7.23.5",
-    "@next/font": "^13.4.7",
     "@next/mdx": "^13.5.11",
     "@types/node": "18.15.10",
     "@types/react": "18.0.29",
