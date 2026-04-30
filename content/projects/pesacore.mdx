@@ -1,0 +1,39 @@
+---
+title: PesaCore API — .NET 10 Fintech Platform
+description: ASP.NET Core 10 / Clean Architecture fintech API exploring modern .NET idioms — CQRS via MediatR, Polly retry + circuit breaker, FluentValidation, EF Core, OpenTelemetry, Serilog, and an IIS / Windows Server hosting profile.
+date: "2026-04-30"
+url: https://github.com/ericgitangu/pesacore-api
+repository: ericgitangu/pesacore-api
+published: true
+---
+
+# Preview
+
+PesaCore is a lightweight ASP.NET Core 10 / C# fintech API built as a hands-on .NET fluency signal pinned on the GitHub profile. It demonstrates production-shape modern-.NET idioms in a small, reviewable codebase — bridging the .NET 4.5 / Windows Server era at Veracode (Visual Studio plugin platform team, 2015–2018) to the current .NET LTS ecosystem.
+
+**Source:** [github.com/ericgitangu/pesacore-api](https://github.com/ericgitangu/pesacore-api)
+
+# What's in the repo
+
+A single ASP.NET Core 10 minimal-host project plus a sibling xUnit test project, intentionally small enough to read end-to-end in one sitting. The interesting parts:
+
+- **Modern .NET surface** — nullable reference types, file-scoped namespaces, records and `required` modifiers, pattern-matching switch expressions on exceptions
+- **CQRS via MediatR** — request/response handlers with an idempotency pipeline behavior keyed on the `Idempotency-Key` header so retried POSTs don't double-debit
+- **Resilience via Polly** — retry policy with exponential jitter, plus a circuit breaker around outbound HTTP and database calls
+- **Validation** — FluentValidation at the request boundary, separate from domain invariants in the handlers
+- **Persistence** — Entity Framework Core with a SQLite default for local dev and an Azure SQL connection profile (`appsettings.Production.json`) for managed-identity auth
+- **Observability** — OpenTelemetry instrumentation (ASP.NET Core, HttpClient, EF Core, runtime, process) exporting via OTLP, plus Serilog with correlation-id middleware so every log line ties back to one request
+- **Docs** — Scalar OpenAPI for interactive API documentation
+- **Hosting flexibility** — ships an IIS hosting profile (`web.config`, `IISProfile.pubxml`, `appsettings.IIS.json`) so the same binary runs on predominantly-on-prem Windows Server environments without a code change
+
+# Why it exists
+
+I wrote PesaCore (originally `EquityPrepApi` during a focused .NET re-immersion sprint) to maintain and deepen fluency in modern .NET while interviewing for platform-engineering roles where .NET is the primary stack. The .NET 4.5 / Visual Studio plugin work I owned at Veracode is the most direct on-prem-Windows-Server precedent on my resume; PesaCore is the modern-.NET-LTS counterpart that lets a reviewer screen-share with me without that work being a 7-year-old anchor.
+
+# Stack
+
+C# · .NET 10 · ASP.NET Core · MediatR (CQRS) · Polly · FluentValidation · Entity Framework Core · AutoMapper · Dapper · Serilog · OpenTelemetry · Scalar OpenAPI · xUnit · FluentAssertions · Moq · WebApplicationFactory · IIS / Windows Server hosting profile · Azure SQL · Managed Identity
+
+# Notes
+
+The repo is paired with a private `equity_assessment/` notes directory containing the `.NET fundamentals` cross-walk from Java (my previous primary backend stack), behavioural-question prep, and a Cigna-IOH-tailored gap audit — none of which is committed publicly. The public surface is the API itself.
