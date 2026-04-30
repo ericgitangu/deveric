@@ -8,14 +8,26 @@ import { HapticSnackbarProvider } from "@/context/HapticSnackbarContext";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import { BusinessCardPanel } from "./components/BusinessCardPanel";
 import Script from "next/script";
+import {
+	personSchema,
+	websiteSchema,
+	profilePageSchema,
+	jsonLdScript,
+} from "./lib/structured-data";
 
 export const metadata: Metadata = {
+	metadataBase: new URL("https://deveric.io"),
 	title: {
-		default: "Eric Gitangu - https://deveric.io",
-		template: "%s | deveric.io",
+		default: "Eric Gitangu — deveric.io",
+		template: "%s · Eric Gitangu",
 	},
 	description:
-		"Software Engineer Architect with 10+ years in Full Stack, ML/AI, DevOps, and Cloud Architecture.",
+		"Software Engineer Architect with 10+ years in Full Stack, ML/AI, DevOps, and Cloud Architecture. Projects, blog, journal, and certifications by Eric Gitangu.",
+	alternates: { canonical: "https://deveric.io" },
+	authors: [{ name: "Eric Gitangu", url: "https://deveric.io" }],
+	creator: "Eric Gitangu",
+	publisher: "Eric Gitangu",
+	applicationName: "deveric.io",
 	manifest: "/manifest.json",
 	themeColor: "#3b82f6",
 	appleWebApp: {
@@ -81,6 +93,19 @@ export default function RootLayout({
 				<meta name="apple-mobile-web-app-capable" content="yes" />
 				<meta name="mobile-web-app-capable" content="yes" />
 				<link rel="apple-touch-icon" href="/favicon.png" />
+				{/* JSON-LD: Person + WebSite + ProfilePage so Google emits the
+				    knowledge-panel-style person card + sitelinks search box for
+				    "Eric Gitangu" queries. */}
+				<script
+					type="application/ld+json"
+					dangerouslySetInnerHTML={{
+						__html: jsonLdScript([
+							personSchema(),
+							websiteSchema(),
+							profilePageSchema(),
+						]),
+					}}
+				/>
 			</head>
 			<SnackbarProvider>
 				<HapticSnackbarProvider>
