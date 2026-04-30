@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 		template: "%s · Eric Gitangu",
 	},
 	description:
-		"Software Engineer Architect with 10+ years in Full Stack, ML/AI, DevOps, and Cloud Architecture. Projects, blog, journal, and certifications by Eric Gitangu.",
+		"Experienced engineering leader skilled in architecting scalable systems, driving technical strategy, and building high-performing teams and platforms. 10+ years in Full Stack, ML/AI, DevOps, and Cloud Architecture. Projects, blog, journal, and certifications by Eric Gitangu.",
 	alternates: { canonical: "https://developer.ericgitangu.com" },
 	authors: [{ name: "Eric Gitangu", url: "https://developer.ericgitangu.com" }],
 	creator: "Eric Gitangu",
