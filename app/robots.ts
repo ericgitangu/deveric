@@ -1,8 +1,16 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 
-// Next App Router conventional robots.txt — served at /robots.txt.
-// Replaces the static public/robots.txt now that we're on 13.5.
+// Mirror the host that's serving the file so the Sitemap directive matches —
+// Google won't accept a cross-host sitemap reference.
+export const dynamic = "force-dynamic";
+
 export default function robots(): MetadataRoute.Robots {
+	const h = headers();
+	const host = h.get("x-forwarded-host") ?? h.get("host") ?? "deveric.io";
+	const proto = h.get("x-forwarded-proto") ?? "https";
+	const base = `${proto}://${host}`;
+
 	return {
 		rules: [
 			{ userAgent: "*", allow: "/", disallow: ["/api/"] },
@@ -12,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
 			{ userAgent: "DuckDuckBot", allow: "/" },
 			{ userAgent: "LinkedInBot", allow: "/" },
 		],
-		sitemap: "https://deveric.io/sitemap.xml",
-		host: "https://deveric.io",
+		sitemap: `${base}/sitemap.xml`,
+		host: base,
 	};
 }
