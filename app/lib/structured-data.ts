@@ -31,9 +31,9 @@ const PERSON = {
     name: "University of Massachusetts Lowell",
     sameAs: "https://www.uml.edu",
   },
-  worksFor: {
-    "@type": "Organization",
-    name: "Ignite Energy Access (formerly ENGIE Energy Access)",
+  hasOccupation: {
+    "@type": "Occupation",
+    name: "Software Engineering Lead / Architect",
   },
 } as const;
 
