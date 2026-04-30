@@ -23,9 +23,6 @@ importers:
       '@mui/x-data-grid':
         specifier: ^7.23.5
         version: 7.23.5(@emotion/react@11.14.0(@types/react@18.0.29)(react@18.2.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.0.29)(react@18.2.0))(@types/react@18.0.29)(react@18.2.0))(@mui/material@6.3.0(@emotion/react@11.14.0(@types/react@18.0.29)(react@18.2.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.0.29)(react@18.2.0))(@types/react@18.0.29)(react@18.2.0))(@types/react@18.0.29)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@mui/system@6.3.0(@emotion/react@11.14.0(@types/react@18.0.29)(react@18.2.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.0.29)(react@18.2.0))(@types/react@18.0.29)(react@18.2.0))(@types/react@18.0.29)(react@18.2.0))(@types/react@18.0.29)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@next/font':
-        specifier: ^13.4.7
-        version: 13.4.7
       '@next/mdx':
         specifier: ^13.5.11
         version: 13.5.11
@@ -633,9 +630,6 @@ packages:
 
   '@next/env@13.5.11':
     resolution: {integrity: sha512-fbb2C7HChgM7CemdCY+y3N1n8pcTKdqtQLbC7/EQtPdLvlMUT9JX/dBYl8MMZAtYG4uVMyPFHXckb68q/NRwqg==}
-
-  '@next/font@13.4.7':
-    resolution: {integrity: sha512-l28ifb3pjKznQeXmiCD5VXkmqdpMrcUQMr4ZChAgTKrjckl/aGyRLOIlL/ABhTHmzMujdt/TTWUsdABArNK5gA==}
 
   '@next/mdx@13.5.11':
     resolution: {integrity: sha512-PB2dhmGGlOno0eKRM1WY33PSGlCpZN9MvH6MN7DlMilsB20f1nTYZJgJNSiOyxmrdbWYzN944Z0VgA8Lre1ZZw==}
@@ -2997,8 +2991,6 @@ snapshots:
       - '@types/react'
 
   '@next/env@13.5.11': {}
-
-  '@next/font@13.4.7': {}
 
   '@next/mdx@13.5.11':
     dependencies:
