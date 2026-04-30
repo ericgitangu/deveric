@@ -1,4 +1,4 @@
-// JSON-LD helpers for deveric.io — Person, ProfilePage, WebSite, Breadcrumb,
+// JSON-LD helpers for developer.ericgitangu.com — Person, ProfilePage, WebSite, Breadcrumb,
 // CreativeWork. Each page injects the schemas relevant to its content type so
 // Google can render rich-result entries (sitelinks, breadcrumbs, person card).
 
@@ -10,8 +10,8 @@ const PERSON = {
   jobTitle: "Software Engineer Architect",
   description:
     "Software Engineer Architect with 10+ years across Full Stack, ML/AI, DevOps, and Cloud Architecture. Polyglot — Python, Java, Rust, TypeScript, Go, C# — with production experience across fintech, healthcare, energy access, and government-scale infrastructure.",
-  url: "https://deveric.io",
-  image: "https://deveric.io/favicon.png",
+  url: "https://developer.ericgitangu.com",
+  image: "https://developer.ericgitangu.com/favicon.png",
   email: "deveric@unicorns.run",
   address: {
     "@type": "PostalAddress",
@@ -45,16 +45,16 @@ export function websiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "deveric.io — Eric Gitangu",
+    name: "Eric Gitangu — developer.ericgitangu.com",
     alternateName: "Eric Gitangu Portfolio",
-    url: "https://deveric.io",
+    url: "https://developer.ericgitangu.com",
     description:
       "Personal site of Eric Gitangu — projects, blog, journal, certifications.",
     inLanguage: "en-US",
     author: PERSON,
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://deveric.io/blog?q={search_term_string}",
+      target: "https://developer.ericgitangu.com/blog?q={search_term_string}",
       "query-input": "required name=search_term_string",
     },
   };
@@ -80,7 +80,7 @@ export function breadcrumbSchema(
       "@type": "ListItem",
       position: i + 1,
       name: t.name,
-      item: `https://deveric.io${t.href}`,
+      item: `https://developer.ericgitangu.com${t.href}`,
     })),
   };
 }
@@ -92,7 +92,7 @@ export function projectListSchema(
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: "Projects — Eric Gitangu",
-    url: "https://deveric.io/projects",
+    url: "https://developer.ericgitangu.com/projects",
     description:
       "Production-ready public projects across Rust, Go, TypeScript, Python, .NET, and Java — fintech, AI/ML, distributed systems, and developer tooling.",
     author: PERSON,
@@ -102,7 +102,7 @@ export function projectListSchema(
       itemListElement: projects.map((p, i) => ({
         "@type": "ListItem",
         position: i + 1,
-        url: `https://deveric.io/projects/${p.slug}`,
+        url: `https://developer.ericgitangu.com/projects/${p.slug}`,
         name: p.title,
         description: p.description,
       })),
@@ -124,7 +124,7 @@ export function projectSchema(p: {
     "@type": "SoftwareSourceCode",
     name: p.title,
     description: p.description,
-    url: `https://deveric.io/projects/${p.slug}`,
+    url: `https://developer.ericgitangu.com/projects/${p.slug}`,
     codeRepository: p.repository,
     sameAs: p.demo,
     author: PERSON,
@@ -133,8 +133,8 @@ export function projectSchema(p: {
     programmingLanguage: p.technologies,
     isPartOf: {
       "@type": "WebSite",
-      name: "deveric.io",
-      url: "https://deveric.io",
+      name: "Eric Gitangu — developer.ericgitangu.com",
+      url: "https://developer.ericgitangu.com",
     },
   };
 }
@@ -144,7 +144,7 @@ export function aboutPageSchema() {
     "@context": "https://schema.org",
     "@type": "AboutPage",
     name: "About Eric Gitangu",
-    url: "https://deveric.io/about",
+    url: "https://developer.ericgitangu.com/about",
     mainEntity: PERSON,
   };
 }
@@ -154,7 +154,7 @@ export function contactPageSchema() {
     "@context": "https://schema.org",
     "@type": "ContactPage",
     name: "Contact Eric Gitangu",
-    url: "https://deveric.io/contact",
+    url: "https://developer.ericgitangu.com/contact",
     mainEntity: PERSON,
   };
 }
