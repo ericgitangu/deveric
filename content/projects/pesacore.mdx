@@ -28,12 +28,8 @@ A single ASP.NET Core 10 minimal-host project plus a sibling xUnit test project,
 
 # Why it exists
 
-I wrote PesaCore (originally `EquityPrepApi` during a focused .NET re-immersion sprint) to maintain and deepen fluency in modern .NET while interviewing for platform-engineering roles where .NET is the primary stack. The .NET 4.5 / Visual Studio plugin work I owned at Veracode is the most direct on-prem-Windows-Server precedent on my resume; PesaCore is the modern-.NET-LTS counterpart that lets a reviewer screen-share with me without that work being a 7-year-old anchor.
+I wrote PesaCore as a focused modern-.NET fluency exercise. The .NET 4.5 / Visual Studio plugin work I owned at Veracode (2015–2018) is the most direct on-prem-Windows-Server precedent in my history; PesaCore is the modern-.NET-LTS counterpart — a reviewable codebase that demonstrates current-idiom familiarity (nullable reference types, records, pattern-matching, minimal hosting, OpenTelemetry, EF Core) without anchoring the conversation to seven-year-old work.
 
 # Stack
 
 C# · .NET 10 · ASP.NET Core · MediatR (CQRS) · Polly · FluentValidation · Entity Framework Core · AutoMapper · Dapper · Serilog · OpenTelemetry · Scalar OpenAPI · xUnit · FluentAssertions · Moq · WebApplicationFactory · IIS / Windows Server hosting profile · Azure SQL · Managed Identity
-
-# Notes
-
-The repo is paired with a private `equity_assessment/` notes directory containing the `.NET fundamentals` cross-walk from Java (my previous primary backend stack), behavioural-question prep, and a Cigna-IOH-tailored gap audit — none of which is committed publicly. The public surface is the API itself.
