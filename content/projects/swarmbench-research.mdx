@@ -1,0 +1,39 @@
+---
+title: SwarmBench Multi-Agent LLM Empirical Study
+description: A seven-trial empirical investigation of when multi-agent LLM decomposition outperforms single-agent execution on Kimi K2.5 — falsifying three pre-registered hypotheses and identifying the structural bottlenecks where the wedge collapses.
+date: "2026-05-01"
+url: https://developer.ericgitangu.com/pdf/research-paper.pdf
+repository: ericgitangu/swarmbench-submission
+published: true
+---
+
+# Preview
+
+[Read the full 15-page paper (PDF, 176 KB)](https://developer.ericgitangu.com/pdf/research-paper.pdf)
+
+A scholarly preprint documenting the empirical conditions under which multi-agent LLM systems beat single-agent LLMs on a benchmark suite — and where they do not. Seven attempts were executed against the Turing SwarmBench Code/SWE assessment, running Kimi K2.5 (served via Fireworks AI) inside the Harbor open-source evaluation harness, with task packages spanning Python OSS bug-fix milestones (Click, Werkzeug, Apache Airflow at 303K LOC across 16 disjoint subsystems) and per-item structured-extraction tasks (16 CVE GHSA-only audit). Three pre-registered hypotheses were tested using falsification logic; two were eliminated outright, the third produced a small but visible 0.05 multi-vs-single gap before the unified-authority pivot recovered the wedge mechanism.
+
+The headline finding: multi-agent decomposition is **rate-limited by which bottleneck dominates the task**. It cures context overflow on independent items; it does *not* cure capability ceilings, authority-disambiguation noise, or retrieval precision. All three published SwarmBench wedges (AGENTBENCHLANDSCAPE 0.53, MEDICALRESEARCH 0.46, VENDORCROSSREF 0.22) are LLM-judge tasks over many independent items — none from executable code-SWE. The implication: the swarm advantage is structurally narrower than commonly portrayed and is engineered, not stumbled upon.
+
+# Contributions
+
+- **Empirical falsification** (Popperian) of three pre-registered hypotheses linking codebase size, bug count, and per-item research load to multi-agent gap magnitude.
+- **A taxonomy of bottleneck types** — context-overflow, capability-ceiling, authority-disambiguation, retrieval-precision — and a mapping of which the multi-agent decomposition pattern actually relieves.
+- **A design-stage demonstration of the unified-authority pivot** (attempt 7) — collapsing multi-source disagreement noise to expose the underlying wedge mechanism — submitted under the assessment's oracle-only validation regime with reward = 1.0 confirmed via Harbor.
+
+# Method (in brief)
+
+Each trial produced a Harbor-compatible task package: instruction, decomposition, environment Dockerfile, verifier (executable AST-token assertions for attempts 1–5; LLM-as-judge over structured CVE extractions for attempts 6–7), and oracle solution. Trials executed at k=n=1 — single-trial counts, so the statistical claims are bounded; the paper's empirical contribution leans on falsification rather than effect-size estimation.
+
+# Technology
+
+- Harbor evaluation framework (open-source, `harbor-framework/harbor`)
+- Kimi K2.5 (Moonshot AI), served via Fireworks AI's OpenAI-compatible endpoint
+- Docker / Python 3.12-slim runtime images
+- pandoc + WeasyPrint for the print-ready PDF render
+- Source datasets: Click 8.3.3, Werkzeug 3.1.7, Apache Airflow 3.2.1, and 16 GitHub Security Advisories spanning Django, aiohttp, Tornado, Jinja2, requests, gunicorn, Starlette, sqlparse, Pillow, urllib3, transformers, twisted
+
+# Links
+
+- [Paper PDF (15 pages, 176 KB)](https://developer.ericgitangu.com/pdf/research-paper.pdf)
+- [Repository (private; future-public)](https://github.com/ericgitangu/swarmbench-submission)
