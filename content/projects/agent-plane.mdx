@@ -1,0 +1,44 @@
+---
+title: AgentPlane — AI-Powered JIRA Board
+description: Full-stack AI project management tool — describe an epic in natural language, and a LangGraph multi-agent pipeline (Decomposer → Estimator → Assigner) breaks it into estimated, assigned sub-issues streamed back via SSE; results land on a Plane-style Kanban board you can edit and export.
+date: "2026-05-11"
+url: https://agent-plane.ericgitangu.com
+repository: ericgitangu/agentplane
+published: true
+---
+
+# Preview
+
+AgentPlane is a Plane-style issue tracker with an agentic AI decomposition backend bolted on. Create an epic, click "Decompose with AI", and a three-agent LangGraph supervisor pipeline breaks it into 3–7 estimated, assigned sub-issues — results streamed back to the board in real time via SSE. Every run is logged to MongoDB for replay and history diffing; Redis enforces a sliding-window rate limit on the `/decompose` endpoint to keep Anthropic API spend bounded.
+
+**Source:** [github.com/ericgitangu/agentplane](https://github.com/ericgitangu/agentplane)  
+**Live:** [agent-plane.ericgitangu.com](https://agent-plane.ericgitangu.com)
+
+# What's in the repo
+
+Three-service monorepo — FastAPI CRUD backend, LangGraph agents service, Next.js 14 frontend — wired together via Docker Compose with a single `make up` entry point:
+
+- **DecomposerAgent** — reads the epic title, description, and project context; calls Anthropic with forced tool-use (`tool_choice: {type: "tool", name: "submit_subissues"}`); returns 3–7 structured `SubIssueProposal` objects. No free-form text parsing.
+- **EstimatorAgent** — assigns Fibonacci story points (1, 2, 3, 5, 8) per sub-issue in a single batch call; clamps any non-Fibonacci values returned by the model to the nearest valid point.
+- **AssignerAgent** — recommends owner from the project member roster (skills-tagged); validates returned `assignee_id` against actual member IDs — hallucinated IDs are silently set to `null` with a structured log warning rather than crashing.
+- **SSE streaming** — each worker fires an SSE event on completion via LangGraph's `astream_events`; the frontend updates progressively, not after the full pipeline.
+- **MongoDB run log** — full pipeline I/O (input prompt, proposed sub-issues, duration_ms) written to Atlas `agent_runs` collection after stream completes; indexed on `(workspace_id, epic_id)` for per-epic history and future RAG seeding.
+- **Redis rate limiter** — atomic Lua sliding-window script on `rl:decompose:{workspace_id}`; default 10 calls/min/workspace; fail-open if Upstash is unreachable.
+- **CockroachDB schema** — workspace → project → issue hierarchy with a self-referential `parent_id` on issues for the epic → sub-issue tree; UUID v4 PKs via `gen_random_uuid()` to avoid sequential write hot-spots.
+- **LangGraph checkpointing** — `AsyncPostgresSaver` backed by CockroachDB; if a worker fails mid-pipeline, the next retry resumes from the last successful checkpoint rather than re-running everything.
+- **Accept / reject flow** — proposed sub-issues enter `status=proposed`; user accepts (transitions to `backlog`) or rejects (soft-delete); accepted issues carry `agent_run_id` as an audit trail link.
+
+# Why it exists
+
+The combination of agentic AI + project management tooling comes up constantly in engineering lead conversations. I wanted to build something that goes past "call an LLM and parse the output" — forced tool-use for structured output, per-step streaming rather than a big batch response, rate limiting that actually protects cost, and a checkpoint layer so partial failures don't lose work. The Plane data model (workspace → project → epic → sub-issue) was the right surface to demonstrate it on because the self-referential issue hierarchy requires careful data modeling and the accept/reject flow gives you a real user decision loop, not just a demo output dump.
+
+# Stack
+
+Python 3.12 · FastAPI · SQLAlchemy 2.0 async · LangGraph 0.2 · LangChain · Anthropic (Claude) · Next.js 14 App Router · TypeScript · TanStack Query v5 · CockroachDB (distributed SQL) · MongoDB Atlas (Motor async) · Redis via Upstash · Alembic · Pydantic v2 · structlog · OpenTelemetry · Docker Compose · Makefile · Vercel
+
+# Notes
+
+- Auth is a stub — single demo user seeded, no real session management. Intentional scope decision; the interesting problems here are in the agent layer.
+- CockroachDB runs single-node locally; the distributed features (multi-region active-active, `REGIONAL BY ROW` workspace partitioning) are the production upgrade path, not exercised in the demo.
+- Upstash Redis and MongoDB Atlas both run on free tiers — zero idle cost. The rate limiter Lua script is backend-agnostic; same script runs on any Redis-compatible server.
+- TODO: seed decomposition history into the `agent_runs` collection as a RAG corpus for the Decomposer — similar past epics would meaningfully improve proposal quality without fine-tuning.
