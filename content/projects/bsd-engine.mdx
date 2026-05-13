@@ -94,17 +94,17 @@ bsd_engine/
 
 - AWS CDK — Cognito, EventBridge, HTTP API Gateway, WebSocket API, Lambda ARM64
 - Docker — Multi-stage builds for API, web, and Lambda
-- Fly.io — Frontend and API deployment
+- Vercel — Frontend deployment; GCP Cloud Run — API deployment
 - GitHub Actions CI/CD
 
 # Deployment
 
 ```bash
 # Frontend
-cd apps/web && fly deploy
+cd apps/web && vercel --prod
 
 # API
-cd crates/bsd-api && fly deploy
+cd crates/bsd-api && gcloud run deploy bsd-engine-api --region africa-south1 --source .
 
 # Lambda (ARM64)
 ./scripts/build-lambda.sh

@@ -11,7 +11,7 @@ published: true
 
 UniCorns is a comprehensive multi-tenant SaaS super-app designed for African small and medium businesses. It provides enterprise-grade features across multiple business verticals including healthcare clinics, pharmacies, retail stores, restaurants, and professional services.
 
-The platform features 5 Rust microservices on AWS Lambda, a Next.js 16 frontend deployed on Fly.io, native Android app with Jetpack Compose, and AI-powered features using Claude for product identification and healthcare summaries.
+The platform features 5 Rust microservices on AWS Lambda, a Next.js 16 frontend deployed on Vercel, native Android app with Jetpack Compose, and AI-powered features using Claude for product identification and healthcare summaries.
 
 **Live Demo:** [unicorns.ericgitangu.com](https://unicorns.ericgitangu.com)
 
@@ -114,7 +114,7 @@ UniCorns/
 
 - AWS CDK (TypeScript)
 - Docker for Lambda builds
-- Fly.io for frontend
+- Vercel for frontend
 - Firebase for Android distribution
 
 # API Documentation
@@ -168,11 +168,11 @@ Claude-powered clinical decision support:
 
 # Deployment
 
-## Frontend (Fly.io)
+## Frontend (Vercel)
 
 ```bash
 cd web
-fly deploy
+vercel --prod
 ```
 
 ## Backend (AWS)

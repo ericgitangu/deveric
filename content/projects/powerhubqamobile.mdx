@@ -16,7 +16,7 @@ A mobile-first Progressive Web App for QA engineers to monitor test execution, t
 - Tailwind CSS / shadcn/ui
 - Rust 1.92 (7 AWS Lambda microservices on ARM64/Graviton2)
 - AWS (DynamoDB, API Gateway, EventBridge, S3, Lambda)
-- Fly.io (PostgreSQL, Redis)
+- Vercel (frontend deployment)
 
 ## ARM64 Lambda Build System
 
@@ -55,7 +55,7 @@ Cross-compiled Rust microservices for AWS Lambda Graviton2:
 
 ## Architecture
 
-### Frontend (Fly.io - Frankfurt)
+### Frontend (Vercel)
 - Next.js 15 PWA with service workers
 - PostgreSQL for user data
 - Redis for session caching
