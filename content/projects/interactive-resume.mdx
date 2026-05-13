@@ -131,17 +131,14 @@ src/
 - **Error Handling**: Graceful fallbacks for API issues
 
 ### Deployment
-```toml
-# fly.toml
-app = "eric-gitangu-resume"
-primary_region = "iad"
-
-[build]
-  dockerfile = "Dockerfile"
-
-[http_service]
-  internal_port = 3000
-  force_https = true
+```json
+// vercel.json
+{
+  "framework": "nextjs",
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".next",
+  "regions": ["iad1"]
+}
 ```
 
 ## Design Philosophy
