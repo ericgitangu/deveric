@@ -1,80 +1,68 @@
 ---
-title: Personal Web App ( deveric.io )
-description: This site. A gateway to my other professional sites, happy browsing!
+title: developer.ericgitangu.com
+description: Personal portfolio and technical showcase — Next.js 13 App Router, Contentlayer MDX project pages, Upstash Redis view counting and Snake leaderboard, 79-certification carousel across 9 authorities, virtual vCard/ICS business card with QR code, PWA, Framer Motion, and a canvas Snake game with mobile swipe + haptic support.
 repository: ericgitangu/deveric
 url: https://developer.ericgitangu.com/
 date: 2023-05-11
 published: true
 ---
 
-# Description
+# What it is
 
-My personal website, built with [Next.js 13](https://nextjs.org/), [Tailwind CSS](https://tailwindcss.com/), [Upstash Redis](https://upstash.com?ref=deveric.io), [Contentlayer](https://www.contentlayer.dev/) and deployed to [Vercel](https://vercel.com/).
+Personal portfolio built to be a technical artifact, not just a landing page. Every feature uses the full stack: Redis for real-time counters and leaderboards, Contentlayer for type-safe MDX content, qrcode.react for a downloadable contact card, canvas + react-swipeable for a mobile-playable Snake game, and a 79-entry certification dataset across 9 authorities rendered in a navigable carousel.
 
-## Features
+**Live:** [developer.ericgitangu.com](https://developer.ericgitangu.com)  
+**Source:** [github.com/ericgitangu/deveric](https://github.com/ericgitangu/deveric)
 
-- ⚡️ Next.js 13 App Router
-- 🎨 Tailwind CSS for styling
-- 📈 Upstash Redis for view counting
-- 📝 MDX for content management via Contentlayer
-- 🎭 Framer Motion animations
-- 📊 Vercel Analytics integration
-- 🌓 Dark mode optimized
-- 📱 Responsive design
-- 🔍 SEO optimized with meta tags
-- 🔗 Social media integration
-- 📄 Blog support
-- 🖼️ Project showcase
-- 📊 Page view counter
-- 🎨 Custom animations
-- 🔒 TypeScript support
-- 📃 Resume request support
-- 🕺 Fun zone with an interactive snack games with stats
-- 💡 Development tips fetched async & randomly,with auto-update
+# Projects — Contentlayer + Redis view counting
 
-## Tech Stack
+Projects are MDX files processed by Contentlayer at build time into typed `Project` objects — no CMS, no database reads for content. Each project page increments a view counter in Upstash Redis using an atomic `INCR` on page load (server action), giving real-time counts without polling. The projects grid is statically generated; only the counter fetch is dynamic.
 
-- **Framework:** Next.js 13
-- **Styling:** Tailwind CSS
-- **Content:** MDX + Contentlayer
-- **Database:** Upstash Redis
-- **Analytics:** Vercel Analytics
-- **Deployment:** Vercel
-- **Animations:** Framer Motion
-- **Icons:** Lucide React
-- **Markdown:** Rehype + Remark plugins
-- **Code Formatting:** Rome
-- **Font:** Inter (Google Fonts) + CalSans
+# Certifications — 79 certs, 9 authorities, 10 domains
 
-## My spiel
+`app/certifications/data.ts` (803 lines) is the source of truth: 79 certifications with `id`, `name`, `url`, `authority`, `domain`, `date`, `licenseNumber`, and `featured` flag. Authorities: Meta (20), LinkedIn Learning (39), Coursera (12), Duke University (Rust specialization), DeepLearning.AI, HackerRank, Udemy, SoloLearn, HackerX. Domains span Backend, Frontend, Mobile, Data Science, Blockchain, Security, DevOps, Languages, AI/ML, and Fundamentals.
 
-I'm a seasoned software engineering leader with over 8 years of experience, currently serving as the Director of Engineering at [Vishnu Systems, Inc](https://vishnusystems.life). I specialize in architecting scalable systems, driving technical strategy, and building high-performing engineering teams.
+`CertificationCarousel` renders them in a swipeable carousel grouped by domain. `CertificationCard` links directly to the issuing authority. `CarouselDots` tracks position. All filtered client-side — no server round-trip for domain switching.
 
-### Professional Expertise
+# Virtual business card — vCard/ICS download + QR code
 
-- 🎯 Technical Leadership & Strategy
-- 🛡️ AI/ML Security Solutions
-- 🏗️ Scalable System Architecture
-- 👥 Team Building & Mentorship
-- 🚀 Product Development Lifecycle
+`BusinessCardPanel.tsx` (373 lines) is a full contact-card implementation:
 
-### Technical Proficiency
+- VCF file served at `/eric-gitangu.vcf` — standard vCard 3.0 format, importable by iOS Contacts, Android, Outlook, macOS Contacts
+- QR code generated client-side via `qrcode.react` pointing to the VCF URL — scan-to-import from any phone
+- WhatsApp deep-link QR for direct chat
+- Dual phone numbers: US (+1-978-710-9475) and Kenya (+254-708-078-997)
+- LinkedIn, GitHub, and portfolio links in a single panel
+- UI: fixed left-edge tab on desktop (vertical text), floating bottom-left pill on mobile — no layout shift
+- Panel reveals with Framer Motion spring animation
 
-- **Languages:** Python, Java, Golang, React, C++, JavaScript, Solidity, NextJS, Rust
-- **Cloud & Infrastructure:** AWS, Google Cloud, Azure
-- **Data & Analytics:** Big Data, Google BigQuery
-- **Blockchain:** Smart Contracts, DApps
-- **DevOps:** Kubernetes, CI/CD, Docker
+# Snake game — canvas, swipe, haptic feedback, Redis leaderboard
 
-### Notable Achievements
+`SnakeGame.tsx` (383 lines):
 
-- 🎓 Microsoft Scholarship Recipient (2012-2013)
-- 🏆 Google Scholarship Recipient (2011-2012)
-- 📚 Dean's List - University of Massachusetts Lowell
+- Canvas rendering with a 20px grid. Responsive canvas: 300px mobile / 350px tablet / 400px desktop, recalculated on resize via `ResizeObserver`
+- Keyboard (arrow keys) + `react-swipeable` for mobile swipe detection — same game, both input surfaces
+- Speed curve: starts at 200ms tick interval, decreases by 5ms per food eaten, floor at 50ms
+- Collision detection: wall bounds + self-intersection check on every move
+- `useHaptics` custom hook fires the Vibration API on food eat and game over — progressive enhancement, no-op on desktop
+- `GameOverModal` prompts for a display name, then writes `{ name, score, timestamp }` to Upstash Redis sorted set `snake:leaderboard` with `ZADD` (score as sort key)
+- Leaderboard fetched from Redis on game start — top 10 by score, displayed alongside the game
+- `HapticSnackbar` shows score milestones mid-game without interrupting play
 
-### Connect With Me
+# Fun zone
 
-- 📧 [Email](mailto:developer.ericgitangu@gmail.com)
-- 🔗 [LinkedIn](https://www.linkedin.com/in/ericgitangu)
-- 🌐 [Portfolio](https://developer.ericgitangu.com)
-- 📝 [Blog](https://deveric-blog.azurewebsites.net)
+`app/fun/page.tsx` composes: `SnakeGame` + `TipFetcher` + `Particles` background (canvas-based particle system, no library dependency).
+
+`TipFetcher` calls `app/api/tips/route.ts` — a Next.js route handler that returns a random development tip from a static array. Auto-refreshes every 30s client-side. The API route is edge-compatible.
+
+# PWA
+
+`PWAInstallPrompt.tsx` hooks the `beforeinstallprompt` browser event and surfaces a custom install prompt rather than relying on the browser default. `manifest.json` is generated at build time with the correct theme color and icon set. The site is fully installable on iOS (Add to Home Screen) and Android (PWA install).
+
+# SEO and structured data
+
+`app/lib/structured-data.ts` (166 lines) generates Schema.org JSON-LD for every page type: `Person`, `WebSite`, `ProfilePage`, `BreadcrumbList`, `ItemList` (projects), and `AboutPage`. Injected via `next/head` script tags — no third-party SEO library. `<meta>` og/twitter tags are per-page via Next.js 13 `generateMetadata`.
+
+# Stack
+
+Next.js 13 App Router · TypeScript · Tailwind CSS · Contentlayer · Upstash Redis · Framer Motion · qrcode.react · react-swipeable · @vercel/analytics · Vercel · Rome formatter · Rehype + Remark plugins · Inter + CalSans fonts
