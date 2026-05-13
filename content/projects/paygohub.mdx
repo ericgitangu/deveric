@@ -1,6 +1,6 @@
 ---
 title: PayGoHub - Solar Pay-As-You-Go Platform
-description: A full-stack ASP.NET Core MVC application for managing solar energy pay-as-you-go customers, payments, loans, and installations
+description: ASP.NET Core 10.0 MVC platform for solar home system management — payments, loans, installations, device monitoring — deployed to GCP Cloud Run (africa-south1) with Google OAuth and EF Core on Cloud SQL PostgreSQL.
 date: "2024-12-21"
 url: https://paygohub-904401126919.africa-south1.run.app
 repository: ericgitangu/PayGoHub
@@ -9,140 +9,148 @@ published: true
 
 # Preview
 
-PayGoHub is a comprehensive solar energy Pay-As-You-Go (PAYGO) management platform built with ASP.NET Core MVC following Clean Architecture principles. It enables solar energy companies to manage customers, track payments, handle loans, schedule installations, and monitor devices across multiple African markets.
+PayGoHub manages the full customer lifecycle for solar Pay-As-You-Go companies: onboarding, M-Pesa payments, loan tracking, installation scheduling, and device health — from a single ASP.NET Core MVC dashboard targeting African markets (Kenya, Tanzania, Uganda).
 
-The platform features a modern dashboard with real-time KPIs, Chart.js visualizations, and full CRUD operations for all entities. It's designed for the solar home systems industry, particularly targeting markets in Kenya, Tanzania, Uganda, and other African countries.
-
-**Live Demo:** [paygohub-904401126919.africa-south1.run.app](https://paygohub-904401126919.africa-south1.run.app)
-
+**Live:** [paygohub-904401126919.africa-south1.run.app](https://paygohub-904401126919.africa-south1.run.app)
+**API Docs:** [/api-docs](https://paygohub-904401126919.africa-south1.run.app/api-docs)
 **Source:** [github.com/ericgitangu/PayGoHub](https://github.com/ericgitangu/PayGoHub)
 
 # Architecture
 
-The application follows **Clean Architecture** with a multi-project solution structure:
+Clean Architecture — four projects with strict dependency inversion:
 
 ```
 PayGoHub/
 ├── src/
-│   ├── PayGoHub.Domain/           # Entities, Enums, Interfaces
-│   ├── PayGoHub.Application/      # Services, DTOs, Validators
-│   ├── PayGoHub.Infrastructure/   # EF Core, DbContext, Repositories
-│   └── PayGoHub.Web/              # MVC Controllers, Views, Assets
+│   ├── PayGoHub.Domain/           # Entities, Enums
+│   ├── PayGoHub.Application/      # Service interfaces, DTOs
+│   ├── PayGoHub.Infrastructure/   # EF Core, entity configs, service impls
+│   └── PayGoHub.Web/              # MVC controllers, Razor views, middleware
 ├── tests/
-│   ├── PayGoHub.Tests/            # Unit & Integration Tests (xUnit)
-│   └── PayGoHub.E2E/              # End-to-End Tests (Playwright .NET)
-├── docker-compose.yml
+│   ├── PayGoHub.Tests/            # xUnit unit + integration
+│   └── PayGoHub.E2E/              # Playwright E2E
 ├── cloudbuild.yaml
-└── Dockerfile
+└── Dockerfile                     # Multi-stage: SDK → runtime
 ```
 
 # Key Features
 
-- **Dashboard** - Real-time KPIs with revenue, customer growth, active loans, and installations
-- **Revenue Charts** - Interactive Chart.js visualizations with monthly trends
-- **Customer Management** - Full CRUD with region/district organization
-- **Payment Processing** - M-Pesa, MTN MoMo, Bank, and Cash payment tracking
-- **Loan Management** - Loan lifecycle from application to payoff
-- **Installation Scheduling** - Technician assignment and completion tracking
-- **Device Monitoring** - Solar home system device status and health
+- **Dashboard** — Real-time KPIs: revenue, customers, active loans, installations; Chart.js visualisations
+- **Customer Management** — Full CRUD with region/district organisation and M-Pesa integration
+- **Payment Processing** — M-Pesa, MTN MoMo, Bank, Cash tracking
+- **Loan Management** — Lifecycle from application through payoff with balance calculations
+- **Installations** — Technician scheduling, SHS system assignment, completion tracking
+- **Device Monitoring** — Serial numbers, battery health, sync status across 80W–200W systems
+- **Activity Feed** — Entity-level audit log with icon-tagged entries
+- **Google OAuth** — One-click sign-in; cookie-only fallback when credentials absent
 
 # Technology Stack
 
 ## Backend
-- ASP.NET Core 10.0 MVC
-- Entity Framework Core 10.0
-- PostgreSQL (Npgsql)
-- Clean Architecture Pattern
-- Dependency Injection
+- ASP.NET Core 10.0 MVC (.NET 10 preview)
+- EF Core 10.0 + Npgsql.EntityFrameworkCore.PostgreSQL 10.0
+- PostgreSQL 16 (GCP Cloud SQL, africa-south1)
+- ASP.NET Core Data Protection (EF Core key-ring persistence)
+- Google OAuth 2.0 (conditional registration — app boots without credentials)
+- Swagger / OpenAPI via Swashbuckle
 
 ## Frontend
-- Razor Views with Bootstrap 5
-- Chart.js for Data Visualization
-- Bootstrap Icons
-- Responsive Sidebar Navigation
-
-## Testing
-- xUnit for Unit Testing
-- Playwright .NET for E2E Testing
-- Coverlet for Code Coverage
-- ReportGenerator for HTML Reports
+- Razor Views · Bootstrap 5 · Chart.js · Bootstrap Icons
 
 ## DevOps
-- Docker & Docker Compose
-- GitHub Actions CI/CD
-- GCP Cloud Run (africa-south1)
-- PostgreSQL on Cloud SQL
-
-# CI/CD Pipeline
-
-The GitHub Actions pipeline includes:
-
-```yaml
-Jobs:
-  - Build & Test (Unit tests with coverage)
-  - Code Quality (Format checking)
-  - Security Scan (Vulnerability detection)
-  - Integration Tests (Docker Compose)
-  - Docker Build (Multi-stage Dockerfile)
-  - E2E Tests (Playwright with Chromium)
-```
-
-All test results are generated as HTML reports using:
-- **ReportGenerator** for coverage reports
-- **dotnet test --logger html** for test results
-- Screenshots on failure for E2E tests
+- **GCP Cloud Run** (africa-south1, scale-to-zero, free tier)
+- **Artifact Registry** — Docker image store
+- **Cloud Build** — CI/CD container pipeline
+- **Secret Manager** — OAuth credentials at runtime
+- **Cloud SQL** — Shared PostgreSQL, unix-socket connection
+- GitHub Actions — build, test, security scan, E2E
 
 # Deployment
 
-## GCP Cloud Run (africa-south1)
-
-Deployed as a containerised Cloud Run service in Johannesburg region, connected to Cloud SQL PostgreSQL via Unix socket and Google OAuth credentials stored in Secret Manager.
-
 ```bash
-# Build and push via Cloud Build
+# Build via Cloud Build
 gcloud builds submit \
   --tag africa-south1-docker.pkg.dev/pawacloud-assessment/pawacloud/paygohub:latest \
-  --region=africa-south1
+  --region=africa-south1 --project=pawacloud-assessment
 
 # Deploy to Cloud Run
 gcloud run deploy paygohub \
   --image=africa-south1-docker.pkg.dev/pawacloud-assessment/pawacloud/paygohub:latest \
-  --region=africa-south1 \
-  --allow-unauthenticated \
-  --min-instances=0 \
-  --add-cloudsql-instances=pawacloud-assessment:africa-south1:pawacloud-db \
-  --update-secrets="GOOGLE_CLIENT_ID=paygohub-google-client-id:latest,GOOGLE_CLIENT_SECRET=paygohub-google-client-secret:latest"
+  --region=africa-south1 --project=pawacloud-assessment
 
-# Stream logs
-gcloud run services logs read paygohub --region=africa-south1 --follow
+# Logs
+gcloud logging read \
+  'resource.type="cloud_run_revision" resource.labels.service_name="paygohub"' \
+  --project=pawacloud-assessment --limit=50
 ```
 
-## Commands
+# Engineering Challenges
 
-```bash
-# Local Development
-docker compose up -d
+## 1 — Migration idempotency on Cloud Run
 
-# Run tests
-dotnet test --logger html
+**Problem:** EF Core's `MigrateAsync()` runs migrations in a single call. A failure in any migration's `Up()` halts the chain — subsequent migrations never apply. Cloud Run containers start fresh on every revision, so each deploy re-runs `MigrateAsync()` against migrations that may be partially applied.
 
-# View deployed service
-gcloud run services describe paygohub --region=africa-south1
+**Root cause:** An early corrective migration (`FixSnakeCaseSchema`) tried to drop/recreate tables and rename columns without guarding against already-applied state. A downstream migration (`AddDataProtectionKeys`) conflicted with it — both tried the same renames, and whichever ran first left the other in an invalid starting state.
+
+**Fix:** Replaced all structural operations in corrective migrations with guarded raw SQL:
+
+```sql
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'customers' AND column_name = 'AccountNumber'
+    ) THEN
+        ALTER TABLE customers RENAME COLUMN "AccountNumber" TO account_number;
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS "DataProtectionKeys" (...);
 ```
+
+**Rule:** Every corrective migration must be a no-op when re-run on a DB where the change is already applied.
+
+## 2 — Npgsql column name mismatch (PascalCase vs snake_case)
+
+**Problem:** Raw SQL migrations from an earlier phase created columns with quoted PascalCase names (`"AccountNumber"`). Entity configurations used explicit `HasColumnName("account_number")` — Npgsql's default does not auto-convert. Result: every query touching `customers` failed with `column c.account_number does not exist`.
+
+**Fix:** Added a targeted migration with a guarded `RENAME COLUMN`. Also audited all entity configurations in `Data/Configurations/` to confirm `HasColumnName` declarations match the physical schema.
+
+**Rule:** If you mix raw-SQL migrations with EF-scaffolded migrations, keep a single source of truth for column names. Prefer explicit `HasColumnName` in config, verify it matches what the DB actually has.
+
+## 3 — OAuth correlation failures across container restarts
+
+**Problem:** ASP.NET Core Data Protection generates a key ring in-process at startup. On Cloud Run, each revision or scale-out spawns a new container with a fresh ring. The OAuth challenge writes a state cookie encrypted by ring A; the callback hits container B (ring B) → `Correlation failed`.
+
+**Fix:**
+1. `PayGoHubDbContext` implements `IDataProtectionKeyContext` — adds `DbSet<DataProtectionKey> DataProtectionKeys`
+2. `AddDataProtection().PersistKeysToDbContext<PayGoHubDbContext>()` in `Program.cs`
+3. Migration creates `"DataProtectionKeys"` table (quoted — EF Core uses the exact name)
+
+All containers now share one key ring via the database.
+
+## 4 — Conditional OAuth registration
+
+**Problem:** `AddGoogle()` throws `ArgumentException: The value cannot be an empty string (ClientId)` at startup when credentials are not configured — blocking CI builds and local dev without OAuth setup.
+
+**Fix:**
+```csharp
+var hasGoogleOAuth = !string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret);
+if (hasGoogleOAuth) { authBuilder.AddGoogle(options => { ... }); }
+```
+
+The app boots and serves in cookie-only mode when OAuth credentials are absent.
 
 # Database Schema
 
-Core entities with soft delete and audit fields:
+Core entities with soft delete (`DeletedAt`) and audit timestamps (`CreatedAt`, `UpdatedAt`):
 
-- **Customer** - Contact info, region, status
-- **Payment** - Amount, method (M-Pesa/MoMo/Bank/Cash), status
-- **Loan** - Principal, interest rate, balance, status
-- **Installation** - System type (SHS-80W to SHS-200W), scheduling
-- **Device** - Serial number, battery health, sync status
-
-# Future Roadmap
-
-- **Rust Lambda Functions** - Serverless payment processing on AWS
-- **M-Pesa Integration** - Real-time mobile money webhooks
-- **Device IoT** - Real-time solar controller telemetry
-- **Multi-tenant** - White-label solution for solar companies
+| Entity | Key fields |
+|---|---|
+| Customer | name, phone, region, `account_number`, country, currency |
+| Payment | amount, method (M-Pesa/MoMo/Bank/Cash), status |
+| Loan | principal, interest rate, balance, status |
+| Installation | system type (SHS-80W–200W), scheduled/completed dates |
+| Device | serial, battery health, sync status |
+| ActivityLog | entity-scoped audit entries with icon/color metadata |
+| DataProtectionKeys | ASP.NET Data Protection key ring (Cloud Run persistence) |
