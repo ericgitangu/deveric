@@ -2,7 +2,7 @@
 title: PawaCloud Assistant — AI Cloud Advisor
 description: AI-powered chatbot with Google Gemini 2.5 Flash, Rust+PyO3 text processing, Next.js 16 PWA frontend, PostgreSQL persistence, and GCP Cloud Run deployment
 date: "2026-03-13"
-url: https://pawacloud-web.fly.dev
+url: https://pawacloud-web.vercel.app
 repository: ericgitangu/pawa-cloud
 published: true
 ---
@@ -11,13 +11,13 @@ published: true
 
 PawaCloud Assistant is an AI-powered advisory chatbot that answers questions about cloud infrastructure, travel documents, news, and code reviews — streaming responses in real time via Server-Sent Events. Supports English, Swahili, and 100+ languages through Gemini's multilingual capabilities.
 
-**Live Demo:** [pawacloud-web.fly.dev](https://pawacloud-web.fly.dev) | **API Docs:** [Swagger](https://pawacloud-api-904401126919.africa-south1.run.app/docs) | **Status:** [Dashboard](https://pawacloud-web.fly.dev/status)
+**Live Demo:** [pawacloud-web.vercel.app](https://pawacloud-web.vercel.app) | **API Docs:** [Swagger](https://pawacloud-api-904401126919.africa-south1.run.app/docs) | **Status:** [Dashboard](https://pawacloud-web.vercel.app/status)
 
 # Architecture
 
 ## System Overview
 
-Split-deploy architecture with backend on GCP Cloud Run and frontend on Fly.io, both targeting Africa regions for lowest latency:
+Split-deploy architecture with backend on GCP Cloud Run and frontend on Vercel, both targeting Africa regions for lowest latency:
 
 ```
 pawait-assessment/
@@ -42,7 +42,7 @@ pawait-assessment/
 ## Request Flow
 
 ```
-User -> Next.js (Fly.io JNB) -> FastAPI (Cloud Run africa-south1)
+User -> Next.js (Vercel) -> FastAPI (Cloud Run africa-south1)
      -> Rust/PyO3 sanitise -> Gemini 2.5 Flash -> SSE stream back
      -> PostgreSQL (Neon eu-west-2) persist conversation
 ```
@@ -113,7 +113,7 @@ Same pattern as BSD Engine and Wave — compile Rust to a Python-importable .so 
 ## Infrastructure
 
 - GCP Cloud Run (africa-south1) for backend
-- Fly.io (JNB) for frontend
+- Vercel for frontend
 - Terraform IaC (Cloud Run service, Artifact Registry, IAM, service accounts)
 - Docker multi-stage builds
 - Neon PostgreSQL (eu-west-2)
