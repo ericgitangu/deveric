@@ -94,21 +94,27 @@ All test results are generated as HTML reports using:
 
 # Deployment
 
-## Fly.io Configuration
+## GCP Cloud Run (africa-south1)
 
-```toml
-app = 'paygohub-web'
-primary_region = 'jnb'  # Johannesburg
+Deployed as a containerised Cloud Run service in Johannesburg region, connected to Cloud SQL PostgreSQL via Unix socket and Google OAuth credentials stored in Secret Manager.
 
-[http_service]
-  internal_port = 8080
-  force_https = true
-  auto_stop_machines = "suspend"
-  auto_start_machines = true
+```bash
+# Build and push via Cloud Build
+gcloud builds submit \
+  --tag africa-south1-docker.pkg.dev/pawacloud-assessment/pawacloud/paygohub:latest \
+  --region=africa-south1
 
-[[http_service.checks]]
-  path = "/health"
-  interval = "15s"
+# Deploy to Cloud Run
+gcloud run deploy paygohub \
+  --image=africa-south1-docker.pkg.dev/pawacloud-assessment/pawacloud/paygohub:latest \
+  --region=africa-south1 \
+  --allow-unauthenticated \
+  --min-instances=0 \
+  --add-cloudsql-instances=pawacloud-assessment:africa-south1:pawacloud-db \
+  --update-secrets="GOOGLE_CLIENT_ID=paygohub-google-client-id:latest,GOOGLE_CLIENT_SECRET=paygohub-google-client-secret:latest"
+
+# Stream logs
+gcloud run services logs read paygohub --region=africa-south1 --follow
 ```
 
 ## Commands
@@ -117,11 +123,11 @@ primary_region = 'jnb'  # Johannesburg
 # Local Development
 docker compose up -d
 
-# Deploy to Fly.io
-fly deploy
+# Run tests
+dotnet test --logger html
 
-# View Logs
-fly logs --app paygohub-web
+# View deployed service
+gcloud run services describe paygohub --region=africa-south1
 ```
 
 # Database Schema
