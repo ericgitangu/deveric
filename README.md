@@ -58,15 +58,15 @@ MDX project files processed by Contentlayer at build time into typed `Project` o
 
 ### Certifications — 79 certs, 9 authorities, 10 domains
 
-`app/certifications/data.ts` (803 lines): 79 certifications from Meta (20), LinkedIn Learning (39), Coursera (12), Duke University, DeepLearning.AI, HackerRank, Udemy, SoloLearn, HackerX. Domains: Backend, Frontend, Mobile, Data Science, Blockchain, Security, DevOps, Languages, AI/ML, Fundamentals. Rendered in a client-side filtered `CertificationCarousel` — no server round-trip for domain switching.
+79 certifications from Meta (20), LinkedIn Learning (39), Coursera (12), Duke University, DeepLearning.AI, HackerRank, Udemy, SoloLearn, HackerX. Domains: Backend, Frontend, Mobile, Data Science, Blockchain, Security, DevOps, Languages, AI/ML, Fundamentals. Rendered in a client-side filtered `CertificationCarousel` — no server round-trip for domain switching.
 
 ### Virtual business card — vCard/ICS + QR code
 
-`BusinessCardPanel.tsx` (373 lines): VCF served at `/eric-gitangu.vcf` (importable by iOS Contacts, Android, Outlook, macOS Contacts). QR code generated client-side via `qrcode.react` pointing to the VCF URL. WhatsApp deep-link QR. Fixed left-edge tab on desktop, floating bottom-left pill on mobile.
+VCF served at `/eric-gitangu.vcf` (importable by iOS Contacts, Android, Outlook, macOS Contacts). QR code generated client-side via `qrcode.react` pointing to the VCF URL. WhatsApp deep-link QR. Fixed left-edge tab on desktop, floating bottom-left pill on mobile.
 
 ### Snake game — canvas, swipe, haptic feedback, Redis leaderboard
 
-`SnakeGame.tsx` (383 lines): canvas rendering with a 20px grid, responsive sizing (300–400px), keyboard arrows + `react-swipeable` for mobile, speed curve 200ms → 50ms floor, Vibration API haptics via `useHaptics`, `ZADD` to Upstash Redis sorted set `snake:leaderboard` on game over, top-10 leaderboard rendered alongside the game.
+Canvas rendering with a 20px grid, responsive sizing (300–400px), keyboard arrows + `react-swipeable` for mobile, speed curve 200ms → 50ms floor, Vibration API haptics via `useHaptics`, `ZADD` to Upstash Redis sorted set `snake:leaderboard` on game over, top-10 leaderboard rendered alongside the game.
 
 ### Fun zone
 
@@ -78,7 +78,7 @@ Snake game + `TipFetcher` (random dev tip from edge route handler, auto-refreshe
 
 ### SEO and structured data
 
-`app/lib/structured-data.ts`: Schema.org JSON-LD for `Person`, `WebSite`, `ProfilePage`, `BreadcrumbList`, `ItemList`, `AboutPage`. Per-page `generateMetadata` for og/twitter tags — no third-party SEO library.
+Schema.org JSON-LD for `Person`, `WebSite`, `ProfilePage`, `BreadcrumbList`, `ItemList`, `AboutPage`. Per-page `generateMetadata` for og/twitter tags — no third-party SEO library.
 
 ---
 
