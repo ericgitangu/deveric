@@ -18,7 +18,9 @@ Open accounts, view balances, and make idempotent fund transfers — backed by r
 - **Stateless compute, externalized state.** A Blazor WebAssembly SPA fronted by an ASP.NET Core **BFF** (YARP reverse-proxy) keeps the API URL and secrets server-side. Because Cloud Run scales to zero, durable state lives in **Neon Postgres** and shared/ephemeral state — distributed idempotency + cache-aside — in **Upstash Redis**. Both are serverless and swappable behind `EF Core` / `IDistributedCache`, so the vendor is a deployment choice, not a code dependency.
 - **CQRS** (MediatR) with a pipeline behavior that enforces an `X-Idempotency-Key` on every mutation (no double-debits across instances); **FluentValidation** at the request boundary; RFC 7807 problem responses.
 - **One container, three front doors** — Kestrel in a Linux container (Cloud Run), IIS + ANCM on-prem Windows, or Azure — the same `PesaCore.dll`. Secrets live only in GCP Secret Manager and are read at runtime.
-- **Observability:** OpenTelemetry → Collector → Prometheus → Grafana (RED, .NET runtime, host, and cache dashboards).
+- **Observability (hybrid):** OpenTelemetry → Collector → **Jaeger** (distributed traces / APM) + **Prometheus** → **Grafana** (RED, .NET runtime, host, and cache dashboards).
+- **Hardened edge + clustering (run locally via `make` + `docker`):** an **nginx** reverse-proxy / API gateway terminating TLS 1.2/1.3 with HSTS, a Content-Security-Policy, security headers, rate-limiting, gzip, and a load-balanced upstream across replicas; plus a local **Kubernetes** cluster (k3d / Kind + ingress-nginx + Horizontal Pod Autoscaler). The edge is "nginx locally, Google Cloud Load Balancing + Cloud Armor in the cloud — the same envelope expressed twice."
+- **Infrastructure as Code:** the GCP deployment is captured as **Terraform** — authored and cost-gated so spend stays ~$0 (scale-to-zero; the managed load balancer + Web Application Firewall sit behind a default-off flag).
 
 # From a .NET-fluency exercise to a live platform
 
@@ -26,4 +28,4 @@ PesaCore began as a focused modern-.NET signal — the .NET 4.5 / Visual Studio 
 
 # Stack
 
-C# · .NET 10 · ASP.NET Core · Blazor WebAssembly · YARP (BFF) · MediatR (CQRS) · FluentValidation · EF Core (Npgsql) · Dapper · Neon Postgres · Upstash Redis · OpenTelemetry · Serilog · ReDoc / OpenAPI · xUnit · GCP Cloud Run · Artifact Registry · Cloud Build · Secret Manager (`africa-south1`) · Docker · Husky.Net · IIS / Windows Server hosting profile
+C# · .NET 10 · ASP.NET Core · Blazor WebAssembly · YARP (BFF) · MediatR (CQRS) · FluentValidation · EF Core (Npgsql) · Dapper · Neon Postgres · Upstash Redis · OpenTelemetry · Jaeger · Prometheus / Grafana · nginx (edge / API gateway) · Kubernetes (k3d / Kind) · Terraform · TLS 1.2/1.3 · HSTS · CSP · Serilog · ReDoc / OpenAPI · xUnit · GCP Cloud Run · Artifact Registry · Cloud Build · Secret Manager (`africa-south1`) · Docker · Husky.Net · IIS / Windows Server hosting profile
