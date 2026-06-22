@@ -1,35 +1,29 @@
 ---
-title: PesaCore API — .NET 10 Fintech Platform
-description: ASP.NET Core 10 / Clean Architecture fintech API exploring modern .NET idioms — CQRS via MediatR, Polly retry + circuit breaker, FluentValidation, EF Core, OpenTelemetry, Serilog, and an IIS / Windows Server hosting profile.
-date: "2026-04-30"
-url: https://github.com/ericgitangu/pesacore-api
+title: PesaCore — Cloud-Native Core-Banking Platform
+description: ASP.NET Core 10 banking API + Blazor WebAssembly console — CQRS, idempotent transfers, real Postgres persistence, distributed Redis cache, OpenTelemetry, ReDoc — deployed serverless on GCP Cloud Run (scale-to-zero) and portable to on-prem Windows/IIS.
+date: "2026-06-22"
+url: https://pesacore-web-261341881894.africa-south1.run.app
 repository: ericgitangu/pesacore-api
 published: true
 ---
 
 # Preview
 
-PesaCore is a lightweight ASP.NET Core 10 / C# fintech API built as a hands-on .NET fluency signal pinned on the GitHub profile. It demonstrates production-shape modern-.NET idioms in a small, reviewable codebase — bridging the .NET 4.5 / Windows Server era at Veracode (Visual Studio plugin platform team, 2015–2018) to the current .NET LTS ecosystem.
+**Live:** [pesacore-web…run.app](https://pesacore-web-261341881894.africa-south1.run.app) · **API docs (ReDoc):** [/docs](https://pesacore-web-261341881894.africa-south1.run.app/docs)
 
-**Source:** [github.com/ericgitangu/pesacore-api](https://github.com/ericgitangu/pesacore-api)
+Open accounts, view balances, and make idempotent fund transfers — backed by real Postgres persistence (no fixtures). Every mutation requires an `X-Idempotency-Key`; the full stack scales to zero on Cloud Run.
 
-# What's in the repo
+# Architecture
 
-A single ASP.NET Core 10 minimal-host project plus a sibling xUnit test project, intentionally small enough to read end-to-end in one sitting. The interesting parts:
+- **Stateless compute, externalized state.** A Blazor WebAssembly SPA fronted by an ASP.NET Core **BFF** (YARP reverse-proxy) keeps the API URL and secrets server-side. Because Cloud Run scales to zero, durable state lives in **Neon Postgres** and shared/ephemeral state — distributed idempotency + cache-aside — in **Upstash Redis**. Both are serverless and swappable behind `EF Core` / `IDistributedCache`, so the vendor is a deployment choice, not a code dependency.
+- **CQRS** (MediatR) with a pipeline behavior that enforces an `X-Idempotency-Key` on every mutation (no double-debits across instances); **FluentValidation** at the request boundary; RFC 7807 problem responses.
+- **One container, three front doors** — Kestrel in a Linux container (Cloud Run), IIS + ANCM on-prem Windows, or Azure — the same `PesaCore.dll`. Secrets live only in GCP Secret Manager and are read at runtime.
+- **Observability:** OpenTelemetry → Collector → Prometheus → Grafana (RED, .NET runtime, host, and cache dashboards).
 
-- **Modern .NET surface** — nullable reference types, file-scoped namespaces, records and `required` modifiers, pattern-matching switch expressions on exceptions
-- **CQRS via MediatR** — request/response handlers with an idempotency pipeline behavior keyed on the `Idempotency-Key` header so retried POSTs don't double-debit
-- **Resilience via Polly** — retry policy with exponential jitter, plus a circuit breaker around outbound HTTP and database calls
-- **Validation** — FluentValidation at the request boundary, separate from domain invariants in the handlers
-- **Persistence** — Entity Framework Core with a SQLite default for local dev and an Azure SQL connection profile (`appsettings.Production.json`) for managed-identity auth
-- **Observability** — OpenTelemetry instrumentation (ASP.NET Core, HttpClient, EF Core, runtime, process) exporting via OTLP, plus Serilog with correlation-id middleware so every log line ties back to one request
-- **Docs** — Scalar OpenAPI for interactive API documentation
-- **Hosting flexibility** — ships an IIS hosting profile (`web.config`, `IISProfile.pubxml`, `appsettings.IIS.json`) so the same binary runs on predominantly-on-prem Windows Server environments without a code change
+# From a .NET-fluency exercise to a live platform
 
-# Why it exists
-
-I wrote PesaCore as a focused modern-.NET fluency exercise. The .NET 4.5 / Visual Studio plugin work I owned at Veracode (2015–2018) is the most direct on-prem-Windows-Server precedent in my history; PesaCore is the modern-.NET-LTS counterpart — a reviewable codebase that demonstrates current-idiom familiarity (nullable reference types, records, pattern-matching, minimal hosting, OpenTelemetry, EF Core) without anchoring the conversation to seven-year-old work.
+PesaCore began as a focused modern-.NET signal — the .NET 4.5 / Visual Studio plugin work I owned at Veracode (2015–2018) is my most direct on-prem-Windows-Server precedent, and this is its current-LTS counterpart. It has since grown into a deployed, full-stack, cloud-native platform while keeping that portability: the same binary still ships an IIS profile (`web.config`, `IISProfile.pubxml`) for predominantly-on-prem Windows Server environments.
 
 # Stack
 
-C# · .NET 10 · ASP.NET Core · MediatR (CQRS) · Polly · FluentValidation · Entity Framework Core · AutoMapper · Dapper · Serilog · OpenTelemetry · Scalar OpenAPI · xUnit · FluentAssertions · Moq · WebApplicationFactory · IIS / Windows Server hosting profile · Azure SQL · Managed Identity
+C# · .NET 10 · ASP.NET Core · Blazor WebAssembly · YARP (BFF) · MediatR (CQRS) · FluentValidation · EF Core (Npgsql) · Dapper · Neon Postgres · Upstash Redis · OpenTelemetry · Serilog · ReDoc / OpenAPI · xUnit · GCP Cloud Run · Artifact Registry · Cloud Build · Secret Manager (`africa-south1`) · Docker · Husky.Net · IIS / Windows Server hosting profile
