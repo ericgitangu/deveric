@@ -3,6 +3,7 @@ import Particles from "../components/particles";
 import { Navigation } from "../components/nav";
 import { BioSection } from "../components/BioSection";
 import { SkillCarousel } from "../components/SkillCarousel";
+import { education, experience } from "./data";
 
 export default function About() {
   return (
@@ -34,6 +35,48 @@ export default function About() {
             Areas of Expertise
           </h2>
           <SkillCarousel />
+        </section>
+
+        {/* Experience: plain server-rendered markup so the full career history
+            is in the HTML (the carousel above shows one card at a time). */}
+        <section aria-labelledby="experience" className="w-full max-w-3xl mt-20">
+          <h2 id="experience" className="text-xl md:text-2xl font-display text-zinc-100 mb-8 text-center">
+            Experience
+          </h2>
+          <ol className="relative border-l border-zinc-800 ml-2 space-y-10">
+            {experience.map((role) => (
+              <li key={`${role.company}-${role.period}`} className="pl-6">
+                <span className="absolute -left-[5px] mt-2 h-2.5 w-2.5 rounded-full bg-zinc-500" aria-hidden="true" />
+                <h3 className="text-base md:text-lg font-semibold text-zinc-100">
+                  {role.title}
+                </h3>
+                <p className="text-sm text-zinc-300">{role.company}</p>
+                <p className="text-xs text-zinc-500 mb-3">
+                  {role.period} · {role.location}
+                </p>
+                <p className="text-sm text-zinc-400 leading-relaxed">{role.summary}</p>
+                {role.highlights.length > 0 && (
+                  <ul className="mt-3 space-y-1.5 list-disc pl-4 text-sm text-zinc-400 leading-relaxed marker:text-zinc-600">
+                    {role.highlights.map((h) => (
+                      <li key={h}>{h}</li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section aria-labelledby="education" className="w-full max-w-3xl mt-16">
+          <h2 id="education" className="text-xl md:text-2xl font-display text-zinc-100 mb-6 text-center">
+            Education
+          </h2>
+          <div className="text-center">
+            <h3 className="text-base md:text-lg font-semibold text-zinc-100">{education.school}</h3>
+            <p className="text-sm text-zinc-300">{education.degree}</p>
+            <p className="text-xs text-zinc-500 mb-3">{education.period}</p>
+            <p className="text-sm text-zinc-400">{education.honors.join(" · ")}</p>
+          </div>
         </section>
       </main>
     </div>

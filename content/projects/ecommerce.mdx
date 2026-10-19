@@ -1,22 +1,37 @@
 ---
-title: Headless eCommerce Project
-description: A C2B and B2B e-Commerce app leveraging headless e-Commerce, it contains a full beginning to end user experience including a fully functional checkout with email notifications of orders, purchases etc. I am using Swell as my preferred headless e-Commerce solution.
-date: "2022-11-17"
-url: https://packandpick.vercel.app/
+title: Headless Commerce on Next.js Commerce and Swell
+description: How the Park & Pick storefront plugs into a headless commerce backend — Vercel's Next.js Commerce monorepo, its provider abstraction across twelve platforms, and the switch from the local mock provider to Swell with hosted checkout.
+date: "2022-11-16"
+url: https://packandpick.vercel.app
 repository: ericgitangu/nextjs-commerce
 published: true
-  
 ---
 
-# Preview
+# Overview
 
-Visit (https://packandpick.vercel.app/) to give it a try use the test credit card number 4242 4242 4242 4242 to experience the user checkout flow.
+This is the engineering side of [Park & Pick](/projects/parkandpick): the headless commerce architecture underneath the storefront. Instead of building a shop and a backend from scratch, I started from Vercel's open-source **Next.js Commerce** monorepo and wired it to **Swell** as the commerce backend. The interesting part is the architecture that makes that swap a configuration change rather than a rewrite.
 
-This is a SaaS headless ecommerce platform that provides provides a full customer checkout process, low-code using Swell as a headless store and Stripe to process purchases (NextJS). 
+# The provider abstraction
 
-# Technology 
+Next.js Commerce separates the storefront from the commerce platform behind a common interface, `@vercel/commerce`. The monorepo (pnpm workspaces with Turborepo) ships one package per platform: BigCommerce, Commerce.js, Kibo, OrderCloud, Saleor, Salesforce Commerce Cloud, Shopify, Spree, **Swell**, Vendure and a `local` mock. Each implements the same hooks and API operations: products, cart, search, wishlist, customer and checkout.
 
-- NextJS & Tailwind CSS
-- Swell
-- Firebase by Google for authentication and Login (TODO) 
-- Vercel & Github for CI/CD
+The storefront imports `@framework`, a TypeScript path alias that points at exactly one provider. Switching providers means changing that alias and the matching environment variables. The UI code doesn't change. In this project I moved the alias from the `local` mock to the Swell package, which is the one-line change that turns a demo into a real shop.
+
+# Request flow
+
+- **Catalogue and search** are fetched through the provider's operations and rendered by Next.js pages.
+- **Cart and wishlist** operations go through a single catch-all API route, which dispatches to the active provider's handlers, so the browser never talks to the commerce platform directly.
+- **Checkout** is delegated: `/checkout` is rewritten to the commerce API, which hands off to Swell's hosted checkout. Card data stays with the payment platform, and PCI scope stays with Swell rather than the storefront.
+- **Feature flags** in `commerce.config.json` switch capabilities per deployment. Here cart, search and wishlist are on; custom checkout and customer accounts are off.
+
+# Why headless
+
+A headless backend lets a small team get inventory, pricing, orders and payments from a managed platform, while keeping full control of performance, branding and the shopping experience on the front end. The provider abstraction adds an exit strategy: if the commerce platform stops being the right choice, the storefront survives the migration.
+
+# Stack
+
+- Next.js 12 (Pages Router), React 18, TypeScript, Tailwind CSS
+- `@vercel/commerce` provider architecture, Swell
+- pnpm workspaces, Turborepo
+- Internationalised routing (en-US, es)
+- Vercel

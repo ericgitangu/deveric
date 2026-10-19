@@ -1,13 +1,35 @@
 ---
-title: Hackerrank Solutions 
-description: A selection of easy, medium, hard questions soltions to some HackerRank problems with runtime and space analysis
-date: "2022-11-07"
-url: https://github.com/ericgitangu/Hackerrank-Projects/
+title: HackerRank Solutions in C++ and Java
+description: "Four HackerRank solutions synced from my profile, two in C++ and two in Java, each stored with its problem statement: Equalize the Array, Find Digits, Java Primality Test and Java String Tokens."
+date: "2019-08-27"
+url: https://github.com/ericgitangu/Hackerrank-Projects
 repository: ericgitangu/Hackerrank-Projects
 published: true
-  
 ---
 
-# Oveview
+# Overview
 
-A selection of curated problems ranging from different domains including but not limited to Dynamic Programming, Algorithm - Greed, DFS, BFS, Hash Tables, Sorting, Counting Arrays et. cetera
+A small archive of HackerRank problems I solved and synced to GitHub. Each problem has its own folder containing the problem statement (`README.md`) and my solution, so the repo reads as a self-contained set of worked examples. It's small — four problems — and I've since kept regular practice in my [LeetCode](/projects/leetcode) and [online-assessment prep](/projects/oa) repos, which go much further.
+
+# Problems
+
+### Equalize the Array (C++)
+Given an array, find the minimum number of deletions so that every remaining element is equal. The answer is the array length minus the frequency of the most common value. The solution counts occurrences in a `std::map`, takes the maximum count and subtracts it from the length: O(n log k) time for k distinct values. An `unordered_map` would make it O(n) on average.
+
+### Find Digits (C++)
+For an integer n, count how many of its digits divide n exactly. The solution converts n to a string, walks its characters, skips zeros to avoid division by zero and tests `n % d == 0`. Time is proportional to the number of digits. Repeated `% 10` and `/ 10` would do the same without allocating a string.
+
+### Java Primality Test (Java)
+Decide whether a very large number is prime. The solution parses the input into a `BigInteger` and calls `isProbablePrime`, the right tool when the input exceeds `long`. One thing I'd change: it passes a certainty of 1, which only bounds the error at 1/2. Production code should pass something like 50–100, so the false-positive probability is negligible.
+
+### Java String Tokens (Java)
+Split a string into tokens on any run of non-letter characters and print the count followed by each token. The solution trims the line and splits on the Unicode class regex `\P{Alpha}+`. The edge cases are where it gets interesting: it checks for an empty first token with `==`, which compares references rather than contents in Java, so `isEmpty()` is the correct test. A leading delimiter also produces an empty first token that should be filtered out.
+
+# Why keep it
+
+These are warm-up problems, but they cover habits that carry into production code: counting with maps instead of nested loops, guarding arithmetic edge cases such as zero divisors, using the standard library's well-tested primitives (`BigInteger`) rather than hand-rolling them, and treating input parsing as the place where bugs hide.
+
+# Built with
+
+- C++ (Standard Library containers)
+- Java (`java.math.BigInteger`, regex-based tokenising)

@@ -1,69 +1,40 @@
 ---
-title: Veriphrase
-description: Confirmation code encoder/decoder for secure verification workflows
-date: "2024-12-06"
+title: Veriphrase — LLM-Generated Memorable Phrases for Confirmation Codes
+description: A prototype that turns an opaque confirmation code into a memorable three-word phrase, using OpenAI to propose genre-themed words and NLTK part-of-speech tagging to filter them, behind a Django REST API and a Next.js 14 frontend.
+date: "2024-07-28"
 url: https://github.com/ericgitangu/veriphrase
 repository: ericgitangu/veriphrase
 published: true
 ---
 
-A full-stack confirmation code encoder and decoder application designed for users and customer care representatives to securely generate, verify, and decode confirmation codes.
+# Overview
 
-## Built with
+Confirmation codes like `X7KQ-29PL` are easy for computers and hard for people, especially when a customer is reading one aloud to a support agent. Veriphrase explores a friendlier encoding: map each code to a short, memorable phrase such as `silver-dragon-wanders`, which is easier to say, hear and type back. It's a two-day prototype from July 2024, built to test whether an LLM could generate good candidate words reliably.
 
-- Next.js
-- TypeScript
-- Python (FastAPI)
-- Docker
-- CSS/Tailwind
+# How it works
 
-## Key Features
+1. The frontend posts a confirmation code and an optional **genre**. There are about 50 to choose from, such as fantasy, space or nature; the default is fantasy.
+2. The Django REST Framework backend asks OpenAI's chat completions API (`gpt-3.5-turbo`, 10 candidates, temperature 0.7) for words in that genre.
+3. Candidates are split into words and filtered with **NLTK part-of-speech tagging**, keeping only nouns, verbs, adjectives and adverbs. That removes the filler words LLMs tend to add.
+4. Three words are sampled and joined with hyphens into the phrase, which is returned to the client and recorded against the code.
 
-### Code Generation
-- Secure code encoding algorithms
-- Customizable code formats
-- Time-based expiration
+# Stack
 
-### Verification Workflow
-- User-friendly verification interface
-- Customer support dashboard
-- Real-time code validation
+- **Backend:** Django 5 with Django REST Framework, `django-cors-headers` and Gunicorn.
+- **Frontend:** Next.js 14 with React 18 and TypeScript, Material UI and Tailwind.
+- **Packaging:** a Dockerfile for each service, Docker Compose for local development, and Kubernetes Deployment and Service manifests targeting Azure Container Registry images.
 
-### Security
-- Encrypted code storage
-- Rate limiting
-- Audit logging
+# What a production version needs
 
-## Tech Stack
+The prototype answers the interesting question — LLM plus POS filtering gives pronounceable, on-theme phrases — but it's deliberately thin elsewhere, and making it production-grade would mean:
 
-### Frontend
-- Next.js with TypeScript
-- Modern CSS styling
-- Responsive design
+- **Durable, collision-checked storage.** Mappings are held in memory, so they don't survive a restart and decoding isn't yet keyed by phrase. A real version stores code ↔ phrase pairs in a database with a uniqueness constraint and retries on collision.
+- **A deterministic option.** For high volume, a fixed curated wordlist (in the spirit of the EFF dice lists) indexed by the code's bits gives reversible encoding with no LLM call on the hot path, with the LLM kept for curating themed lists offline.
+- **Hardening:** environment-specific settings, restricted allowed hosts, authentication and rate limiting on the encode endpoint, and tests.
+- **Lean dependencies:** the backend pins several ML frameworks it doesn't import, which bloats the image.
 
-### Backend
-- Python FastAPI
-- RESTful API design
-- Docker containerization
+# Built with
 
-### Infrastructure
-- Docker for deployment
-- Environment-based configuration
-- Scalable architecture
-
-## Use Cases
-
-- Customer support verification
-- Account recovery workflows
-- Secure transaction confirmations
-- Multi-factor authentication support
-
-## Preview
-
-Repository: [github.com/ericgitangu/veriphrase](https://github.com/ericgitangu/veriphrase)
-
-## Connect
-
-- **Portfolio**: [developer.ericgitangu.com](https://developer.ericgitangu.com)
-- **GitHub**: [ericgitangu](https://github.com/ericgitangu)
-- **LinkedIn**: [Eric Gitangu](https://linkedin.com/in/ericgitangu)
+- Python, Django 5, Django REST Framework, NLTK, OpenAI API
+- Next.js 14, React 18, TypeScript, Material UI, Tailwind CSS
+- Docker, Docker Compose, Kubernetes manifests

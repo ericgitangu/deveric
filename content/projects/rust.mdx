@@ -1,19 +1,48 @@
 ---
-title: Rust Hands-on
-description: This repo hold the course contents for the Coursera Rust Data Engineering Course.
-date: "2024-11-20"
+title: Rust Hands-on — Collections, Ownership, Concurrency and Algorithms
+description: Twenty-six small Rust crates covering the standard collections, ownership and borrowing, traits and generics, error handling, Arc and Mutex concurrency, serde JSON and classic algorithms, with 121 unit tests and doc tests run by GitHub Actions.
+date: "2024-11-06"
 url: https://github.com/ericgitangu/rust-hands-on
 repository: ericgitangu/rust-hands-on
 published: true
 ---
 
-# Preview
+# Overview
 
-This repo hold the course contents for the Coursera Rust Data Engineering Course but going a little further than that, pursuing DSA LC-type problems to get a handle of using Rust and especially in creating CLI tools and creating performant concurrent applications.
+A hands-on Rust learning repository: 26 independent Cargo crates, each focused on one concept and each tested. Instead of reading about the borrow checker, every crate makes a concept concrete with a small program and the tests that pin its behaviour down. Rust has since become a production language for me — Rust services on AWS Lambda and a Rust/PyO3 evaluation core in ML tooling — and this is where that started.
 
-# Technology 
+# What's in it
 
-- Rust
-- Py03
-- Github applications
-- Rust tests; unit & documentation tests
+### Standard collections
+One crate each for `Vec`, `VecDeque`, `HashMap`, `HashSet`, `BTreeMap`, `BTreeSet`, `BinaryHeap` and `LinkedList`, plus one combining several. These carry most of the tests: the `VecDeque` crate alone has 23, covering both ends of the deque, rotation and capacity behaviour.
+
+### The language
+- Ownership and borrowing, with a separate crate for mutable borrowing rules.
+- Enums and exhaustive pattern matching.
+- Traits and generics.
+- `Option` and `Result`, and idiomatic error handling with `?`.
+- Iterators and ranges (a prime-number iterator).
+
+### Concurrency
+Ten threads incrementing a shared counter through `Arc<Mutex<i32>>`. Its doc comments walk through the mechanics: `lock()` returns a `MutexGuard` that gives exclusive mutable access, the lock is released automatically when the guard is dropped (RAII via the `Drop` trait), and `Arc` provides the shared ownership that lets every thread hold the same counter.
+
+### Serialisation
+Deriving `Serialize` and `Deserialize` with serde and round-tripping structs through `serde_json`.
+
+### Algorithms
+Two Sum, binary search, Kadane's maximum subarray, longest increasing subsequence, merge intervals, finding duplicates, memoised Fibonacci, and an interview-style exercise.
+
+# Testing and CI
+
+- **121 unit tests** across the crates, plus doc tests: examples in documentation comments that `cargo test` compiles and runs, so the docs can't drift from the code.
+- **About 550 lines of doc comments.**
+- **GitHub Actions** runs `cargo test` and then `cargo build` for every crate on each push and pull request to `main`.
+- A **dev container** (Rust image with rust-analyzer) gives a one-click, reproducible environment.
+
+A single Cargo workspace would let CI build every crate in one invocation and share a target directory; that's the next tidy-up.
+
+# Built with
+
+- Rust (stable), Cargo
+- serde, serde_json
+- GitHub Actions, Dev Containers

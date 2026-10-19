@@ -1,67 +1,42 @@
 ---
-title: Park and Pick
-description: Full-stack e-commerce platform built with Next.js Commerce and Shopify
-date: "2024-04-01"
-url: https://www.parkandpick.store
+title: Park & Pick — Food Storefront on Next.js Commerce
+description: Park & Pick, a branded storefront under the tagline "Derisking food chains through technology" — built on Next.js Commerce with a Swell backend, with product search, wishlists, cart and hosted checkout.
+date: "2022-11-16"
+url: https://packandpick.vercel.app
 repository: ericgitangu/nextjs-commerce
 published: true
 ---
 
-A production e-commerce storefront built on Next.js Commerce with Shopify integration, featuring seamless checkout, inventory management, and optimized performance.
+# Overview
 
-## Built with
+Park & Pick is a storefront concept under the tagline **"Derisking food chains through technology."** It's a fully branded online store, built in about three weeks in late 2022, with a live catalogue, search, wishlists and checkout backed by a headless commerce platform.
 
-- Next.js 14
-- Shopify Storefront API
-- Tailwind CSS
-- Vercel Edge Functions
-- TypeScript
+Live at [packandpick.vercel.app](https://packandpick.vercel.app). The engineering behind it — Next.js Commerce's provider abstraction and the Swell backend — is written up separately in [Headless Commerce on Next.js Commerce and Swell](/projects/ecommerce).
 
-## Key Features
+# What shoppers get
 
-### Modern Storefront
-- Server-rendered product pages
-- Real-time inventory sync
-- Fast checkout flow
-- Mobile-first design
+- **Browse and search.** A home page leading with the full product grid, plus search pages that filter by category and brand.
+- **Product pages** for each item in the catalogue.
+- **Wishlist**, enabled for this store, to save items for later.
+- **Cart** with live quantity updates, and **checkout** handed off to the commerce platform's hosted flow.
+- **Light and dark themes**, and localised routing in English (US) and Spanish.
 
-### Performance Optimized
-- Edge-rendered pages
-- Image optimization
-- Incremental static regeneration
-- Core Web Vitals optimized
+# Building the brand
 
-### E-commerce Essentials
-- Cart management
-- Wishlist functionality
-- Order tracking
-- Search with filters
+I built Park & Pick on an open-source commerce foundation so the effort could go into the product rather than plumbing. The work, tracked in the repo as a series of rebranding changes, included:
 
-## Tech Stack
+- a new identity: logo, favicon and app icons, hero copy and footer;
+- SEO metadata for the store: title, description, site name and social handles;
+- a simpler home page that leads with the full product grid;
+- trimmed sorting options and home-page sections;
+- turning on the wishlist and switching the store from mock data to a live Swell backend.
 
-### Frontend
-- Next.js 14 with App Router
-- React Server Components
-- Tailwind CSS
-- TypeScript
+# Lessons
 
-### Backend
-- Shopify Storefront API
-- GraphQL queries
-- Vercel Edge Functions
+Starting from a mature open-source storefront was the right trade for a concept store: within weeks it had search, cart, wishlist and checkout that would have taken months to build well. The cost is that you inherit someone else's architecture and upgrade cadence. That's acceptable when the commerce backend is swappable behind a provider interface, as it is here.
 
-### Infrastructure
-- Vercel hosting
-- Custom domain
-- Edge caching
-- Analytics
+# Built with
 
-## Preview
-
-Live at [parkandpick.store](https://www.parkandpick.store)
-
-## Connect
-
-- **Portfolio**: [developer.ericgitangu.com](https://developer.ericgitangu.com)
-- **GitHub**: [ericgitangu](https://github.com/ericgitangu)
-- **LinkedIn**: [Eric Gitangu](https://linkedin.com/in/ericgitangu)
+- Next.js 12, React 18, TypeScript, Tailwind CSS
+- Next.js Commerce, Swell (headless commerce backend)
+- Vercel

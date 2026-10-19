@@ -1,18 +1,43 @@
 ---
-title: Online Assessments Prep Guide
-description: A comprehensive Online Assessments (OA) guide with an emphasis on DSA.
-date: "2024-11-29"
+title: Online Assessment Prep — Data Structures and Algorithms in Python
+description: A Python reference kit for technical interviews and online assessments — 33 runnable scripts covering graphs, trees, heaps, tries, union-find, dynamic programming and concurrency, plus a 4,000-line DSA handbook.
+date: "2024-10-17"
 url: https://github.com/ericgitangu/oa
 repository: ericgitangu/oa
 published: true
 ---
 
-# Preview
+# Overview
 
-This is a Comprehensive Grind 75 Guide progress, working on sharing my LC experience and making material from my Premium account to help others, learning by doing and with other learners to hone my skills in DSA
+A working reference for data structures and algorithms, built while preparing for online assessments and kept up to date since (most recently in 2026). It has two halves: **33 runnable Python scripts**, about 6,700 lines, each implementing one technique end to end; and **`dsa.md`**, a 4,300-line handbook with comparison tables for data structures and algorithms, code snippets for each, and extended sections on dynamic programming and greedy algorithms. An `INDEX.md` lays out a daily competitive-programming routine, with a matching calendar file.
 
-# Technology 
+# What it covers
 
-- Python
-- Rust
-- Github Actions
+### Graphs
+BFS, DFS and general traversal (including an `itertools`-based variant), shortest paths, minimum spanning trees, union-find (disjoint set), topological sort and a travelling-salesman implementation.
+
+### Data structures
+Trie, binary search tree, stack and queue, min and max heaps, segment tree, and singly, doubly and circular linked lists.
+
+### Dynamic programming
+Memoisation, the 0/1 knapsack, a collection of common DP patterns, and longest palindromic substring.
+
+### Searching, sorting and strings
+A suite of sorting algorithms, binary search, array and hashing techniques, text-search algorithms and multiplication algorithms, plus a set of general optimisation tricks.
+
+### Concurrency
+Three scripts go beyond the usual interview syllabus, because concurrency questions show up in senior interviews and real systems alike:
+- a multi-threaded **chat room**,
+- a **meeting scheduler**,
+- the **dining philosophers** problem solved with locks.
+
+They use Python's `threading` and `concurrent.futures` with explicit locking.
+
+# Tooling
+
+Packaged with `pyproject.toml` (setuptools, Python 3.8+), linted with Ruff (pycodestyle, pyflakes and import sorting at 100 columns), and the Markdown is linted with markdownlint. Output uses `termcolor` so traces of an algorithm's steps are readable in a terminal. Tests are the next addition: each script has a natural property-based test (sorted output, valid MST weight, shortest path matching a brute-force check).
+
+# Built with
+
+- Python 3 (standard library: `heapq`, `collections`, `itertools`, `threading`, `concurrent.futures`)
+- Ruff, markdownlint, termcolor

@@ -153,13 +153,12 @@ export const skillAreas: SkillArea[] = [
 export const bioData = {
   name: "Eric Gitangu",
   alias: "Deveric",
-  title: "Software Engineer Architect / Lead",
+  title: "Senior Software Engineer, Architecture & Security",
   company: {
-    name: "Vishnu Systems, Inc.",
-    url: "https://vishnusystems.life",
+    name: "Moovn Technologies",
   },
   summary:
-    "Software Engineer Architect with 10+ years experience in Full Stack development, ML/AI engineering, and strong foundations in architectures, OOP, functional languages, systems design, and low-level computing (C/C++). Passionate about tech for good, demystifying the elusive world of tech, and ethical software practices.",
+    "Senior software engineer with 11 years in production systems across fintech, healthcare, energy access, logistics and application security. I design distributed, event-driven platforms and own them end to end: architecture, security, delivery and the teams that build them. Polyglot across TypeScript, Java, PHP, Python, Rust, Go and C#.",
   background: [
     "Full Stack + ML/AI",
     "DevOps & QA",
@@ -171,5 +170,130 @@ export const bioData = {
     "Tech for good",
     "Developer communities",
     "Building from scratch",
+  ],
+};
+
+// Career history, server-rendered on /about so crawlers see the full text
+// (the skills carousel only renders one card at a time). Source of truth:
+// github.com/ericgitangu/resume-app src/data/experience.json — keep in sync.
+export interface Role {
+  company: string;
+  title: string;
+  period: string;
+  location: string;
+  summary: string;
+  highlights: string[];
+}
+
+export const experience: Role[] = [
+  {
+    company: "Moovn Technologies (Mastercard partner)",
+    title: "Senior Full Stack Engineer, Architecture and Security",
+    period: "Feb 2026 – present",
+    location: "Nairobi · remote",
+    summary:
+      "Own delivery, security and architecture for a multi-surface fintech mobility platform: consumer, partner and admin web apps, a mobile API and the service backend, covering money movement, identity and regulated payments compliance.",
+    highlights: [
+      "Removed a critical authentication bypass and migrated stored credentials to modern hashing.",
+      "Built the card top-up rail on Mastercard Payment Gateway Services hosted sessions, so card data never reaches our servers, plus M-Pesa, MTN and Tigo mobile money rails with per-country routing; mapped controls to PCI DSS SAQ-A.",
+      "Designed a cross-product trust score engine with signed partner event ingestion, a tamper-evident ledger and a nightly recompute.",
+      "Introduced immutable releases with automatic rollback on a failed post-deploy smoke test.",
+    ],
+  },
+  {
+    company: "ENGIE Energy Access (now Ignite Energy Access)",
+    title: "Team Lead, Platform and Quality Engineering",
+    period: "May 2025 – Jan 2026",
+    location: "Nairobi · hybrid",
+    summary:
+      "Led platform and quality engineering for a pay-as-you-go solar platform serving seven African markets with millions of daily transactions.",
+    highlights: [
+      "Moved payments to an event-driven architecture with RabbitMQ bounded contexts for payment, token and subscription, removing peak-load timeouts across all seven markets.",
+      "Built 900 critical-path Playwright and Cypress scenarios: regression fell from three days to 45 minutes and releases rose from 2 to 12 a week.",
+      "Cut anomaly detection from hours to under five minutes and led the Rails 5 to 7.2 upgrade.",
+      "Line-managed four engineers across Kenya, Uganda and Tanzania; two were promoted to senior.",
+    ],
+  },
+  {
+    company: "Vishnu Systems, Inc.",
+    title: "Founder & Director of Engineering",
+    period: "Jan 2024 – Aug 2025",
+    location: "Atlanta · remote",
+    summary:
+      "Founded and shipped an ML security and robustness platform for software in medical devices (SiMD and SaMD).",
+    highlights: [
+      "FastAPI services with a Rust/PyO3 evaluation core and Go middleware, running GPU workers on AWS.",
+      "CNN, RAG and graph neural network pipelines (Airflow, MLflow) to detect adversarial attacks on medical ML models.",
+      "Compliance tooling mapping evaluation results to FDA, HIPAA and IEC 62304.",
+    ],
+  },
+  {
+    company: "Baw Bab Technologies, Inc.",
+    title: "Project Lead Developer",
+    period: "Apr 2023 – Aug 2025",
+    location: "Seattle / Nairobi · remote",
+    summary: "Digital addressing for last-mile delivery.",
+    highlights: [
+      "Led a five-engineer team and shipped the Nairobi County Government pilot serving 2.3 million residents, the second digital addressing programme in Africa, integrated with the county land registry.",
+      "Built a computer-vision and GIS pipeline converting structures to Google Plus Codes.",
+    ],
+  },
+  {
+    company: "Reinsurance Group of America",
+    title: "Senior Software Engineer, Full Stack (contract)",
+    period: "Jan 2022 – Jul 2022",
+    location: "Remote",
+    summary:
+      "Full stack delivery on MERN/MEAN alongside legacy Grails/Groovy, with Jest, Cucumber, Puppeteer and Cypress test suites.",
+    highlights: [],
+  },
+  {
+    company: "Wagelyft",
+    title: "Lead Software Engineer (contract)",
+    period: "Jan 2019 – Feb 2022",
+    location: "Nairobi · remote",
+    summary:
+      "Fintech and e-commerce SaaS for small businesses in Kenya: Reactive Spring and Angular, MERN/MEAN, AWS, M-Pesa and multi-currency payments.",
+    highlights: [
+      "Mentored 15 developers, six of whom moved to mid or senior roles.",
+    ],
+  },
+  {
+    company: "Vecima Networks",
+    title: "Software Engineer",
+    period: "Jan 2018 – Jan 2019",
+    location: "Peachtree City, GA",
+    summary:
+      "C and embedded assembly for petabyte-scale video streaming pipelines.",
+    highlights: [],
+  },
+  {
+    company: "Veracode",
+    title: "Software Engineer",
+    period: "Dec 2015 – Feb 2018",
+    location: "Burlington, MA",
+    summary:
+      "Application security platform: Jira and Visual Studio plugins, Jenkins and GitLab CI integrations in Java/Spring, C#/.NET and Python, and the TLS 1.2 enforcement upgrade.",
+    highlights: [],
+  },
+  {
+    company: "IBM",
+    title: "Software Engineer Intern",
+    period: "Sep 2013 – May 2014",
+    location: "Littleton, MA",
+    summary: "Selenium test automation for IBM Web Experience Factory.",
+    highlights: [],
+  },
+];
+
+export const education = {
+  school: "University of Massachusetts Lowell",
+  degree: "B.S. Computer Science, minor in Mathematics",
+  period: "2011 – 2015",
+  honors: [
+    "Microsoft Scholarship (2012–2013)",
+    "Google Scholarship (2011–2012)",
+    "Dean's List, nine semesters",
+    "Omicron Delta Kappa",
   ],
 };

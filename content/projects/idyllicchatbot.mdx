@@ -1,61 +1,37 @@
 ---
-title: Idyllic Chat Bot
-description: AI-powered conversational chatbot with natural language understanding
-date: "2024-03-15"
+title: Idyllic Chat Bot — Streaming AI Chat on Next.js and Vercel KV
+description: The AI chat component of the Idyllic web app — a Next.js 13 App Router chatbot that streams OpenAI responses from an edge route, persists per-user history in Vercel KV and signs users in with GitHub via Auth.js.
+date: "2023-06-18"
 url: https://idyllic-chat-bot.vercel.app
 repository: ericgitangu/idyllic-chat-bot
 published: true
 ---
 
-An intelligent conversational AI chatbot built with modern NLP techniques, providing natural and contextual responses for customer support and general assistance.
+# Overview
 
-## Built with
+The conversational AI piece of the Idyllic web app, built in mid-2023 when streaming chat on the edge was new. It starts from Vercel's open-source Next.js AI Chatbot template, which I adapted for Idyllic's authentication and deployment. Signed-in users hold multi-turn conversations whose replies stream token by token, revisit their history from a sidebar and share any conversation via a public link.
 
-- Next.js
-- TypeScript
-- OpenAI GPT API
-- Vercel AI SDK
-- Tailwind CSS
+Live at [idyllic-chat-bot.vercel.app](https://idyllic-chat-bot.vercel.app).
 
-## Key Features
+# How it works
 
-### Conversational AI
-- Natural language understanding
-- Context-aware responses
-- Multi-turn conversations
-- Intent recognition
+- **Edge chat route.** `POST /api/chat` runs on the edge runtime. It rejects unauthenticated requests outside local development, then calls OpenAI's chat completions API (`gpt-3.5-turbo`, temperature 0.7, `stream: true`) and pipes the response back through the Vercel AI SDK's `OpenAIStream` and `StreamingTextResponse`, so the UI renders tokens as they arrive.
+- **Bring-your-own key.** A request can carry a preview API key, which is used in place of the server key. That lets people try the bot without the deployment paying for every token.
+- **Persistence in Vercel KV.** When a completion finishes, the route stores the whole conversation as a Redis hash (`chat:{id}`) and indexes it in a per-user sorted set (`user:chat:{userId}`) ordered by time. History loads with a pipelined `hgetall`, so the sidebar is one round trip regardless of how many chats a user has.
+- **Server Actions.** Listing, opening, deleting, clearing and sharing chats are Next.js Server Actions rather than bespoke API endpoints, keeping the data access on the server and the client thin.
+- **Sharing.** A shared chat gets a public `/share/[id]` page with its own generated Open Graph image, so links unfurl with the conversation's title.
+- **Auth.** Auth.js (NextAuth) with the GitHub provider and JWT sessions; middleware protects the app routes.
+- **UI.** React Server Components, shadcn/ui on Radix primitives, Tailwind, and Markdown rendering with GitHub-flavoured Markdown, math and syntax-highlighted code blocks.
 
-### Modern UX
-- Real-time streaming responses
-- Typing indicators
-- Chat history persistence
-- Mobile-responsive design
+# What I'd change today
 
-### Integration Ready
-- REST API endpoints
-- Webhook support
-- Customizable responses
-- Easy embedding
+- Move from the deprecated `openai-edge` client to the current AI SDK provider model, which also makes switching between OpenAI and Anthropic models a one-line change.
+- Add per-user rate limiting in front of the chat route (Upstash Ratelimit on the same Redis), and cap conversation length sent as context.
+- Replace the template README with Idyllic-specific docs.
 
-## Tech Stack
+# Built with
 
-### Frontend
-- Next.js with React
-- Tailwind CSS
-- Vercel AI SDK for streaming
-
-### AI/ML
-- OpenAI GPT-4 API
-- Prompt engineering
-- Context management
-- Response streaming
-
-## Preview
-
-Live at [idyllic-chat-bot.vercel.app](https://idyllic-chat-bot.vercel.app)
-
-## Connect
-
-- **Portfolio**: [developer.ericgitangu.com](https://developer.ericgitangu.com)
-- **GitHub**: [ericgitangu](https://github.com/ericgitangu)
-- **LinkedIn**: [Eric Gitangu](https://linkedin.com/in/ericgitangu)
+- Next.js 13 (App Router, React Server Components, Server Actions, edge runtime)
+- Vercel AI SDK, OpenAI Chat Completions (`gpt-3.5-turbo`)
+- Vercel KV (Redis), Auth.js with GitHub OAuth
+- Tailwind CSS, shadcn/ui, Radix UI, react-markdown
