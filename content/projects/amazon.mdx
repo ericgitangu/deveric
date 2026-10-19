@@ -1,23 +1,41 @@
 ---
-title: Amazon Clone
-description: A C2B and B2B e-Commerce app leveraging headless e-Commerce, it contains a full beginning to end user experience including a fully functional checkout with email notifications of orders, purchases etc. I am using Swell as my preferred headless e-Commerce solution.
-date: "2022-08-29"
-url: https://amazon.ericgitangu.com
+title: Amazon Storefront Clone — React, Redux Toolkit and Firebase
+description: A React 18 clone of the Amazon storefront with Google sign-in, a Firestore-backed product catalogue and cart managed through Redux Toolkit async thunks, deployed to Firebase Hosting by GitHub Actions.
+date: "2022-07-15"
+url: https://github.com/ericgitangu/amazon-clone-ericgitangu
 repository: ericgitangu/amazon-clone-ericgitangu
 published: true
-  
 ---
 
-# Preview
+# Overview
 
-Visit (https://amazon.ericgitangu.com/) to give it a try use the test credit card number 4242 4242 4242 4242 to experience the user checkout flow.
+A single-page clone of the Amazon storefront, built in mid-2022 to practise state management against a real backend rather than local fixtures. Visitors sign in with Google, browse a product catalogue held in Cloud Firestore, and add, update and remove items in a persistent cart whose totals are recalculated on every change.
 
-This is a Amazon clone in progress, iteratively working on adding features to mimic the core functions of the Amazon eCommerce Store
+The project is an exercise rather than a shop: there is no payment step, and the checkout button is intentionally inert. The interesting part is how the client keeps Redux state and Firestore in step.
 
-# Technology 
+# Architecture
 
-- MaterialUI
-- React
-- Firebase by Google for authentication and Login (TODO)
-- Redux & Redux Toolkit (RTK)
-- Vercel & Github for CI/CD
+- **Client only.** A Create React App build (customised with `react-app-rewired` for webpack 5 polyfills) on React 18.2 and React Router 6.3.
+- **Data:** Cloud Firestore with two collections, `product` and `cart-items`, accessed through a small helper module (`getCollection`, `getDocument`, `addDocument`, `updateDocumentQuantity`, `deleteDocument`).
+- **Auth:** Firebase Authentication with the Google provider (`signInWithPopup`). Unauthenticated users are routed to the login screen; the signed-in user is cached client-side.
+- **Hosting and CI/CD:** Firebase Hosting with a single-page rewrite to `index.html`. GitHub Actions builds and deploys on merge to `main`, and a second workflow publishes a preview channel for every pull request.
+
+# State management
+
+Redux Toolkit holds three slices: `product`, `cart` and `user`. Every cart and product operation is a `createAsyncThunk` that calls the Firestore helpers, so components only dispatch intents and read selectors. Cart totals (quantity × price, summed) are derived in the `fulfilled` reducer of the cart fetch, which keeps components free of arithmetic. A later refactor ("redux rework to reduce fetchs") added a dedicated product slice and moved more of the Firestore access into thunks, so components stopped fetching on their own.
+
+Routes are `/` (catalogue), `/cart` and `/login`. Styling uses styled-components, with `react-toastify` for feedback and `react-number-format` for currency display.
+
+# What I'd change today
+
+- **Await every write.** Several thunks fire Firestore writes without awaiting them, so a failed write can leave Redux optimistic and wrong. I'd await, roll back on error and surface the failure.
+- **Stop writing on read.** The collection helper normalises document IDs on every fetch, which costs a write per document per read. IDs belong in the document at creation time.
+- **Replace `console.warn` with real error handling** and add tests around the thunks with the Firestore emulator.
+- **Add a checkout** behind a hosted payment page (for example Stripe Checkout), so card data never touches the client.
+
+# Built with
+
+- React 18, React Router 6, Redux Toolkit, React Redux
+- Firebase 9: Authentication (Google) and Cloud Firestore
+- styled-components, react-toastify
+- Firebase Hosting, GitHub Actions (merge deploys and PR previews)

@@ -1,22 +1,40 @@
 ---
-title: A FinTech ecommerce Project 
-description: A C2B leveraging sanity, it contains a full beginning to end user experience including a fully functional checkout capability.
-date: "2022-09-01"
-url: https://ecommerce.ericgitangu.com/
+title: Audio Shop — Next.js, Sanity CMS and Stripe Checkout
+description: An audio-gear storefront on Next.js 12 with a Sanity-managed catalogue, a React Context cart and Stripe Checkout sessions created server-side, plus an M-Pesa STK Push integration built against the Safaricom Daraja sandbox.
+date: "2022-07-19"
+url: https://ecommerce-seven-jet.vercel.app
 repository: ericgitangu/ecommerce
 published: true
-  
 ---
 
-# Preview
+# Overview
 
-Visit (https://ecommerce.ericgitangu.com/) to preview the site. Use the credicard #4242 4242 4242 4242 for checkouts.
+"Eric's Audio Shop" is a small direct-to-consumer storefront for headphones and speakers. Editors manage products and banners in Sanity; shoppers sign in with Google, build a cart and pay through Stripe's hosted checkout. It was built in mid-2022 to work through the full purchase path — content, cart, payment, confirmation — in one Next.js app.
 
-Next Js/ React app with a complete checkout site and login functionality. The project uses Sanity as a CMS running locally alongside the app and uses Vercel/Github 
+# Architecture
 
-# Technology 
+- **Frontend and API:** Next.js 12 (Pages Router) on React 18. The home page uses `getServerSideProps` for fresh banners and products; product pages are statically generated with `getStaticPaths` and `getStaticProps`, keyed by Sanity slug.
+- **Content:** a Sanity Studio v2 project in its own folder defines two schemas: `product` (image gallery, name, slug, price, details) and `banner`. It also includes a small custom input plugin. Images are served from Sanity's CDN through `@sanity/image-url`.
+- **Cart:** a React Context provider holds cart items, quantities and the running total, so any component can add, remove or adjust items without prop drilling.
+- **Payments:** a Next.js API route creates a Stripe Checkout Session on the server, building `price_data` line items from the cart (names, prices and Sanity image URLs), with adjustable quantities, a fixed shipping rate and success/cancel URLs. The browser then redirects to Stripe's hosted page, so card details never touch the app. The success page clears the cart and plays a confetti animation.
+- **Auth:** Firebase Authentication with Google sign-in gates the storefront.
+- **Hosting:** Vercel.
 
-- NextJS & Tailwind CSS
-- Sanity
-- Firebase by Google for authentication and Login (TODO) 
-- Vercel & Github for CI/CD
+# Mobile money
+
+The repo also contains an M-Pesa STK Push client written against Safaricom's Daraja sandbox: it posts a `processrequest` call to the STK Push endpoint, which sends a payment prompt to the customer's phone. I disabled it in the UI after hitting sandbox API issues the provider didn't resolve. The commit history records the decision ("Deprecate payment method until the vendor gets back to me with API issues"). The same rails later went into production work: M-Pesa, MTN and Tigo routing in fintech platforms I've built since.
+
+# What I'd change today
+
+- Keep every payment credential strictly server-side and out of any client-exposed environment variable, and load configuration (such as the CMS project ID) from the environment rather than code.
+- Persist the cart (it currently lives only in memory) and fix a bug in add-to-cart: when you add more of an item already in the cart, the update's `map` returns `undefined` for every other item, wiping them from the cart.
+- Send real receipts from a Stripe webhook rather than relying on success-page copy.
+
+# Built with
+
+- Next.js 12, React 18
+- Sanity Studio v2 and `@sanity/client`
+- Stripe Checkout (server-side session creation)
+- Firebase Authentication (Google)
+- Safaricom Daraja (M-Pesa STK Push, sandbox)
+- Vercel

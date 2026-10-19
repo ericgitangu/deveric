@@ -1,67 +1,46 @@
 ---
-title: Learning Hub
-description: Interactive educational platform with AI-assisted learning paths
-date: "2024-01-10"
-url: https://learning-hub-ericgitangu-deveric.vercel.app
+title: LearnAI Learning Hub — Next.js Frontend on Rust AWS Lambda Services
+description: A social e-learning chat platform with a Next.js 14 frontend (Prisma, PostgreSQL, NextAuth) and Rust AWS Lambda services on ARM64 behind API Gateway and Cognito, streaming AI replies over SSE with an OpenAI-to-Anthropic fallback.
+date: "2025-02-06"
+url: https://learning-hub-ai.vercel.app
 repository: ericgitangu/learning-hub
 published: true
 ---
 
-An innovative educational platform leveraging AI to create personalized learning experiences with adaptive content and progress tracking.
+# Overview
 
-## Built with
+LearnAI is a social e-learning app built around AI conversation. Learners chat with an AI tutor, organise conversations with tags, search their history, export chats and share them with others. Under the hood it's a deliberately split system: a Next.js 14 app that owns the user experience and relational data, and a set of Rust services on AWS Lambda that own the AI conversation engine.
 
-- Next.js 14
-- TypeScript
-- OpenAI API
-- Tailwind CSS
-- PostgreSQL
+Live at [learning-hub-ai.vercel.app](https://learning-hub-ai.vercel.app).
 
-## Key Features
+# Architecture
 
-### AI-Powered Learning
-- Personalized learning paths
-- Adaptive difficulty
-- Smart content recommendations
-- Progress predictions
+### Frontend: Next.js 14 (App Router)
+- **Auth:** NextAuth with a Prisma adapter and two providers: email and password (bcrypt-hashed credentials) and Google OAuth, with 24-hour JWT sessions.
+- **Data:** Prisma on PostgreSQL, modelling users, activity, chats, messages, tags, chat views and chat shares.
+- **API routes** for chats (messages, streaming, share, export, tags), search, profiles and health checks, plus proxy routes that call the Lambda backend.
+- **Streaming:** a Server-Sent Events route streams AI responses into the chat view as they generate.
+- **UI:** Tailwind, shadcn/ui and Radix, Framer Motion, React Hook Form with Zod validation, TanStack Query for server state, and Markdown with KaTeX for maths in answers. Strings are localised in English and Spanish.
 
-### Interactive Content
-- Code playgrounds
-- Quiz modules
-- Video integration
-- Note-taking
+### Backend: Rust on AWS Lambda
+- **Two Rust services**, a chat service and an agent service built around the ElizaOS framework, about 3,200 lines of Rust, compiled for the `provided.al2` custom runtime on **ARM64 (Graviton)** with X-Ray tracing enabled.
+- **Infrastructure as code:** an AWS SAM template defines API Gateway, a Cognito user pool with Google as an identity provider, a DynamoDB `sessions` table (on-demand billing, with a global secondary index on `tenant_id` for tenant-scoped queries), an SNS topic for chat events and an S3 bucket. Terraform and LocalStack scripts cover local and alternative provisioning.
+- **Model fallback:** the agent service tries OpenAI `gpt-4o-mini` first, falls back to Anthropic `claude-3-haiku` if that fails, and finally to a local pattern-matched reply, so a provider outage degrades the experience instead of breaking it.
+- **Tests:** unit tests with `mockall` in the chat handler and integration tests for the agent service.
 
-### Progress Tracking
-- Learning analytics
-- Achievement badges
-- Skill assessments
-- Completion certificates
+# Design choices
 
-## Tech Stack
+- **Rust on Lambda for the hot path.** Rust's fast cold starts and small memory footprint suit pay-per-request compute, and ARM64 Lambdas are cheaper per GB-second than x86.
+- **Two data stores, each for its job.** PostgreSQL holds relational, user-facing data (chats, tags, shares, search), while DynamoDB holds high-churn session state keyed for tenant isolation.
+- **Graceful degradation over hard dependencies** on any single LLM provider.
 
-### Frontend
-- Next.js 14 with App Router
-- React with TypeScript
-- Tailwind CSS
-- Framer Motion
+# What I'd change today
 
-### AI Integration
-- OpenAI GPT for content
-- Embedding-based recommendations
-- Adaptive assessments
+Move the CI workflows to the repository root so GitHub actually runs them, add frontend tests (Jest and MSW are configured but unused), and add retrieval over course material: the current tutor is conversational, without embeddings or a vector store.
 
-### Backend
-- Next.js API routes
-- PostgreSQL database
-- Prisma ORM
-- NextAuth.js
+# Built with
 
-## Preview
-
-Live at [learning-hub-ericgitangu-deveric.vercel.app](https://learning-hub-ericgitangu-deveric.vercel.app)
-
-## Connect
-
-- **Portfolio**: [developer.ericgitangu.com](https://developer.ericgitangu.com)
-- **GitHub**: [ericgitangu](https://github.com/ericgitangu)
-- **LinkedIn**: [Eric Gitangu](https://linkedin.com/in/ericgitangu)
+- Next.js 14, React 18, TypeScript, Tailwind, shadcn/ui, TanStack Query, Zod
+- NextAuth, Prisma, PostgreSQL
+- Rust, AWS Lambda (ARM64), API Gateway, Cognito, DynamoDB, SNS, S3, AWS SAM, Terraform, LocalStack
+- OpenAI (`gpt-4o-mini`), Anthropic (`claude-3-haiku`)

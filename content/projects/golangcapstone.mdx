@@ -1,18 +1,37 @@
 ---
-title: Go Specialization course by University of California, Irvine Certification
-description: A selection of easy, medium, hard questions soltions to some LeetCode problems with runtime and space analysis
-date: "2023-11-03"
-repository: ericgitangu/Go-Specialization.git
-url: https://github.com/ericgitangu/Go-Specialization.git
+title: Programming with Google Go — UC Irvine Specialization Work
+description: Twelve Go programs from UC Irvine's Programming with Google Go specialization, from interfaces and JSON to goroutines, WaitGroups, race conditions and a mutex-based dining philosophers simulation.
+date: "2023-10-29"
+url: https://github.com/ericgitangu/Go-Specialization
+repository: ericgitangu/Go-Specialization
 published: true
-  
 ---
 
 # Overview
 
-A selection of curated golang topics and problems with solutions to help you get started with golang and work through intermediate to hard real world applications including concurrency notably the dining philosphers problem. The problems are from the [Go Specialization course by University of California, Irvine](https://www.coursera.org/specializations/google-golang) on Coursera.
+My work through the [Programming with Google Go](https://www.coursera.org/specializations/google-golang) specialization from the University of California, Irvine on Coursera: twelve standalone Go programs, about 600 lines in total, each a self-contained `package main` that exercises one part of the language. Go has since become one of my working languages for middleware and services, and these exercises are where the concurrency model clicked.
 
-- Go Basics
-- Functions, Methods, and Interfaces in Go
-- Concurrency in Go
-- [Dining Philosophers Problem](https://en.wikipedia.org/wiki/Dining_philosophers_problem)
+# What's in the repo
+
+### Language fundamentals
+- **`slice.go`, `trunc.go`, `findian.go`:** slices, type conversion and string handling on user input.
+- **`makejson.go`:** building a map and marshalling it with `encoding/json`.
+- **`read.go`:** reading a file line by line with `bufio` into a slice of structs.
+- **`bubblesort.go`:** an in-place bubble sort driven by a swap helper.
+- **`kinematics.go`:** a closure, `GenDisplaceFn`, that captures acceleration, initial velocity and initial displacement and returns a function of time.
+
+### Types and interfaces
+- **`animals.go`, `zoo.go`:** an `Animal` interface (`Eat`, `Move`, `Speak`) implemented by `Cow`, `Bird` and `Snake`, with an interactive prompt that creates and queries animals by name. This is the exercise that makes Go's implicit interface satisfaction concrete.
+
+### Concurrency
+- **`goroutines.go`:** splits an array into four chunks, sorts each in its own goroutine, waits on a `sync.WaitGroup` and merges the sorted results.
+- **`race_conditions.go`:** two goroutines sharing state without synchronisation, written to demonstrate a race and why `go run -race` exists.
+- **`dining_philosophers.go`:** five philosophers and five chopsticks modelled as `sync.Mutex` values, each philosopher eating three times, coordinated with a `WaitGroup`.
+
+# Notes on the dining philosophers
+
+The course version has every philosopher pick up the left chopstick then the right. That symmetric ordering can deadlock in principle if all five grab their left chopstick at once. The standard fixes are to impose a global lock ordering (always take the lower-numbered chopstick first) or to add a host goroutine that admits at most four philosophers at a time. If I revisited it, I'd implement the host with a buffered channel as a semaphore, which is the more idiomatic Go answer.
+
+# Built with
+
+- Go standard library: `sync` (`Mutex`, `WaitGroup`), `encoding/json`, `bufio`, `os`, `fmt`

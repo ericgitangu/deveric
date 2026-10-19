@@ -21,9 +21,9 @@ const socials = [
 	},
 	{
 		icon: <Mail size={20} />,
-		href: "mailto:developer.ericgitangu.com",
+		href: "mailto:developer.ericgitangu@gmail.com",
 		label: "Email",
-		handle: "developer.ericgitangu.com",
+		handle: "developer.ericgitangu@gmail.com",
 	},
 	{
 		icon: <Github size={20} />,

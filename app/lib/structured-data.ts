@@ -7,9 +7,10 @@ const PERSON = {
   "@type": "Person",
   name: "Eric Gitangu",
   alternateName: ["Deveric", "ericgitangu"],
-  jobTitle: "Software Engineering Lead / Architect",
+  jobTitle: "Senior Full Stack Engineer, Architecture and Security",
+  worksFor: { "@type": "Organization", name: "Moovn Technologies" },
   description:
-    "Experienced engineering leader skilled in architecting scalable systems, driving technical strategy, and building high-performing teams and platforms. 10+ years across Full Stack, ML/AI, DevOps, and Cloud Architecture. Polyglot — Python, Java, Rust, TypeScript, Go, C# — with production experience across fintech, healthcare, energy access, and government-scale infrastructure.",
+    "Senior software engineer with 11 years in production systems across fintech, healthcare, energy access, logistics and application security. Designs distributed, event-driven platforms. Polyglot — TypeScript, Java, PHP, Python, Rust, Go and C#.",
   url: "https://developer.ericgitangu.com",
   image: "https://developer.ericgitangu.com/ericgitangu.jpeg",
   email: "deveric@unicorns.run",

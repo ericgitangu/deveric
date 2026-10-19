@@ -1,13 +1,40 @@
 ---
-title: LeetCode Solutions 
-description: A selection of easy, medium, hard questions soltions to some LeetCode problems with runtime and space analysis
-date: "2022-11-07"
-url: https://github.com/ericgitangu/LeetCode-Projects/
+title: LeetCode Solutions in Python, C++, Java and Rust
+description: My LeetCode practice repository, synced automatically each week by GitHub Actions — about two dozen solved problems across Python, C++, Java, Rust, JavaScript and C#, each stored with its problem statement and runtime and memory results.
+date: "2021-12-23"
+url: https://github.com/ericgitangu/LeetCode-Projects
 repository: ericgitangu/LeetCode-Projects
 published: true
-  
 ---
 
 # Overview
 
-A selection of curated problems ranging from different domains; Dynamic Programming, Algorithm - Greed, DFS, BFS, Hash Tables, Sorting, Counting Arrays et. cetera
+The repository where my LeetCode submissions land. Instead of copying solutions by hand, a scheduled GitHub Actions workflow syncs accepted submissions from my LeetCode account every Saturday, so the repo stays a current record of practice rather than a one-off dump. Each problem lives in its own folder with the problem statement and my solution, and sync commits record the submission's runtime and memory percentiles (for example, a Rust Two Sum at 0 ms, faster than 100% of submissions).
+
+# What's in it
+
+- **About two dozen solved problems** in their own folders, several solved more than once in different languages.
+- **Languages:** Python (the majority), C++, Java, Rust, JavaScript and C#.
+- **Problems include** Two Sum, 3Sum and 4Sum, Container With Most Water, Longest Palindromic Substring, Longest Substring Without Repeating Characters, Climbing Stairs and Letter Combinations of a Phone Number.
+- **A `LeetCode/` folder of further problem statements** (including Number of Islands and a SQL design problem) that I've staged for upcoming practice; those folders hold the statement and examples, not yet solutions.
+
+# Patterns, and where I'd go further
+
+Many of these are early solutions, kept as written. Reading them back, it's useful to note where each sits against the optimal approach:
+
+- **Two pointers on sorted input.** 3Sum Closest sorts the array, then walks a left and right pointer inward around each anchor, for O(n²) overall. Container With Most Water moves the shorter wall inward each step, for O(n).
+- **Backtracking.** Letter Combinations of a Phone Number builds each combination with a depth-first search, appending a character, recursing and then popping it.
+- **Memoised recursion.** Climbing Stairs counts paths top-down with a cache, O(n) time. The same recurrence is Fibonacci, so two rolling variables would reduce space to O(1).
+- **Longest Substring Without Repeating Characters** grows a set from every start index, which is O(n²). A sliding window that stores each character's last-seen index brings it to O(n).
+- **Longest Palindromic Substring** checks candidate pairs directly. Expanding around each of the 2n−1 centres is the standard O(n²) time, O(1) space approach, and Manacher's algorithm reaches O(n).
+
+Revisiting old solutions with fresh eyes, then solving the same problem again in Rust, is most of the value of keeping this repo.
+
+# Automation
+
+The sync runs on a weekly cron (`joshcai/leetcode-sync`), committing each new accepted submission with its language, difficulty and performance in the commit message. Credentials for the sync belong in GitHub encrypted secrets, referenced from the workflow, never in the file itself.
+
+# Built with
+
+- Python, C++, Java, Rust, JavaScript, C#
+- GitHub Actions (scheduled LeetCode sync)
