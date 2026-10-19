@@ -102,23 +102,26 @@ export default function Home() {
 
         {/* Main Heading */}
         {/* Full name in the h1 (strongest on-page signal for "Eric Gitangu"
-            searches); "aka Deveric" keeps the handle crawlable. Sizes step
-            down from md:text-9xl because the longer name overflows at md. */}
-        <h1 className="z-10 flex flex-col items-center text-center duration-1000 cursor-default animate-title font-display">
-          <span className="flex items-center gap-3 text-4xl text-transparent bg-white text-edge-outline sm:text-6xl lg:text-8xl whitespace-nowrap bg-clip-text">
-          Eric Gitangu{" "}
+            searches); "(deveric)" keeps the handle crawlable and sits tight
+            under the name, centred on the name rather than name + photo.
+            Sizes step down from md:text-9xl: the longer name overflows at md. */}
+        <h1 className="z-10 flex items-center gap-3 duration-1000 cursor-default animate-title font-display sm:gap-5">
+          <span className="flex flex-col items-center">
+            <span className="text-4xl leading-none text-transparent bg-white text-edge-outline sm:text-6xl lg:text-8xl whitespace-nowrap bg-clip-text">
+              Eric Gitangu
+            </span>{" "}
+            <span className="mt-1 text-base leading-none text-zinc-400 sm:mt-2 sm:text-xl lg:text-3xl">
+              (deveric)
+            </span>
+          </span>
           <span aria-hidden="true">
             <Image
-              style={{ borderRadius: "50%", marginTop: "-1rem" }}
+              style={{ borderRadius: "50%" }}
               src="/favicon.png"
               width={75}
               height={75}
               alt="Eric Gitangu's photo"
             />
-          </span>
-          </span>
-          <span className="mt-3 text-lg tracking-widest text-zinc-400 sm:text-2xl md:text-3xl">
-            aka Deveric
           </span>
         </h1>
 
