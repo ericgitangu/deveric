@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import fs from "node:fs";
-import path from "node:path";
+import { allProjects } from "contentlayer/generated";
 
 // Render at request time so URLs match whichever host served the sitemap —
 // the canonical is developer.ericgitangu.com but the host header is whatever
@@ -34,27 +33,21 @@ function resolveBase(): string {
 
 export default function sitemap(): MetadataRoute.Sitemap {
 	const base = resolveBase();
-	const projectsDir = path.join(process.cwd(), "content", "projects");
-	const projectEntries: MetadataRoute.Sitemap = fs.existsSync(projectsDir)
-		? fs
-				.readdirSync(projectsDir)
-				.filter((f) => f.endsWith(".mdx"))
-				.map((f) => {
-					const slug = f.replace(/\.mdx$/, "");
-					const stat = fs.statSync(path.join(projectsDir, f));
-					return {
-						url: `${base}/projects/${slug}`,
-						lastModified: stat.mtime,
-						changeFrequency: "monthly" as const,
-						priority: 0.7,
-					};
-				})
-		: [];
+	// Published projects only (unpublished MDX used to leak in via fs scan).
+	// lastModified from frontmatter `date`: file mtime on Vercel is the clone
+	// time, so it changed every deploy and told Google nothing.
+	const projectEntries: MetadataRoute.Sitemap = allProjects
+		.filter((p) => p.published)
+		.map((p) => ({
+			url: `${base}/projects/${p.slug}`,
+			...(p.date ? { lastModified: new Date(p.date) } : {}),
+			changeFrequency: "monthly" as const,
+			priority: 0.7,
+		}));
 
 	return [
 		...staticPages.map((p) => ({
 			url: `${base}${p.path}`,
-			lastModified: new Date(),
 			changeFrequency: p.changeFrequency,
 			priority: p.priority,
 		})),

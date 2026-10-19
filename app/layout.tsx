@@ -14,20 +14,40 @@ import {
 	profilePageSchema,
 	jsonLdScript,
 } from "./lib/structured-data";
+import { SITE_NAME, SITE_URL, TWITTER_HANDLE } from "./lib/seo";
 
 export const metadata: Metadata = {
-	metadataBase: new URL("https://developer.ericgitangu.com"),
+	metadataBase: new URL(SITE_URL),
 	title: {
-		default: "Eric Gitangu — developer.ericgitangu.com",
+		default: "Eric Gitangu — Software Engineering Lead & Architect",
 		template: "%s · Eric Gitangu",
 	},
 	description:
-		"Experienced engineering leader skilled in architecting scalable systems, driving technical strategy, and building high-performing teams and platforms. 10+ years in Full Stack, ML/AI, DevOps, and Cloud Architecture. Projects, blog, journal, and certifications by Eric Gitangu.",
-	alternates: { canonical: "https://developer.ericgitangu.com" },
-	authors: [{ name: "Eric Gitangu", url: "https://developer.ericgitangu.com" }],
+		"Eric Gitangu (Deveric) — Nairobi-based software engineering lead and architect with 10+ years across full stack, ML/AI, DevOps and cloud architecture. Fintech, distributed systems and production projects in Rust, Go, TypeScript, Python, .NET and Java.",
+	keywords: [
+		"Eric Gitangu",
+		"Deveric",
+		"software engineer Nairobi",
+		"software architect Kenya",
+		"engineering lead",
+		"full stack developer",
+		"fintech engineer",
+		"cloud architecture",
+		"Rust",
+		"TypeScript",
+		"Go",
+		"Python",
+	],
+	// Canonical for "/" only. The home page is a client component and can't
+	// export metadata, so it lives here — but children INHERIT it, so every
+	// route MUST override via pageMetadata() (app/lib/seo.ts), otherwise Google
+	// treats that route as a duplicate of the home page.
+	alternates: { canonical: "/" },
+	authors: [{ name: "Eric Gitangu", url: SITE_URL }],
 	creator: "Eric Gitangu",
 	publisher: "Eric Gitangu",
 	applicationName: "Eric Gitangu — Portfolio",
+	category: "technology",
 	manifest: "/manifest.json",
 	themeColor: "#3b82f6",
 	appleWebApp: {
@@ -36,20 +56,16 @@ export const metadata: Metadata = {
 		title: "Deveric",
 	},
 	openGraph: {
-		title: "Eric Gitangu - Deveric.",
+		title: "Eric Gitangu — Software Engineering Lead & Architect",
 		description:
-			"Software Engineer Architect / Lead with expertise in Full Stack, ML/AI, DevOps, and Cloud Architecture.",
-		url: "https://developer.ericgitangu.com/",
-		siteName: "Eric Gitangu — developer.ericgitangu.com",
-		images: [
-			{
-				url: "https://media.licdn.com/dms/image/D4D03AQGrFBDkYWUNqA/profile-displayphoto-shrink_800_800/0/1664606973025?e=2147483647&v=beta&t=k0kebZyN6d08jZJ9rQGx33XFWr2xlep8JlAWl6Z47aY",
-				width: 1200,
-				height: 630,
-			},
-		],
-		locale: "en-US",
-		type: "website",
+			"Software engineering lead / architect — full stack, ML/AI, DevOps and cloud architecture. Projects, writing and certifications.",
+		url: "/",
+		siteName: SITE_NAME,
+		locale: "en_US",
+		type: "profile",
+		firstName: "Eric",
+		lastName: "Gitangu",
+		username: "ericgitangu",
 	},
 	robots: {
 		index: true,
@@ -63,8 +79,18 @@ export const metadata: Metadata = {
 		},
 	},
 	twitter: {
-		title: "dev_ericgitangu",
 		card: "summary_large_image",
+		title: "Eric Gitangu — Software Engineering Lead & Architect",
+		site: TWITTER_HANDLE,
+		creator: TWITTER_HANDLE,
+	},
+	// Search Console / Bing Webmaster ownership tokens, supplied via env so
+	// they are not hard-coded. Unset → tag omitted.
+	verification: {
+		google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+		other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+			? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+			: undefined,
 	},
 	icons: {
 		shortcut: "/favicon.png",

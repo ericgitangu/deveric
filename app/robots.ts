@@ -12,14 +12,10 @@ export default function robots(): MetadataRoute.Robots {
 	const base = `${proto}://${host}`;
 
 	return {
-		rules: [
-			{ userAgent: "*", allow: "/", disallow: ["/api/"] },
-			{ userAgent: "Googlebot", allow: "/" },
-			{ userAgent: "Googlebot-Image", allow: "/" },
-			{ userAgent: "Bingbot", allow: "/" },
-			{ userAgent: "DuckDuckBot", allow: "/" },
-			{ userAgent: "LinkedInBot", allow: "/" },
-		],
+		// One "*" group only. A crawler obeys only its most specific matching
+		// group, so the old per-bot "Allow: /" groups silently re-opened /api/
+		// to Googlebot/Bingbot.
+		rules: [{ userAgent: "*", allow: "/", disallow: ["/api/"] }],
 		sitemap: `${base}/sitemap.xml`,
 		host: base,
 	};
