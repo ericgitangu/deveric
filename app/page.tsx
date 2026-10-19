@@ -101,8 +101,12 @@ export default function Home() {
         <div className="hidden w-screen h-px animate-glow md:block animate-fade-left bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0" />
 
         {/* Main Heading */}
-        <h1 className="flex z-10 text-4xl text-transparent duration-1000 bg-white cursor-default text-edge-outline animate-title font-display sm:text-6xl md:text-9xl whitespace-nowrap bg-clip-text">
-          deveric{" "}
+        {/* Full name in the h1 (strongest on-page signal for "Eric Gitangu"
+            searches); "aka Deveric" keeps the handle crawlable. Sizes step
+            down from md:text-9xl because the longer name overflows at md. */}
+        <h1 className="z-10 flex flex-col items-center text-center duration-1000 cursor-default animate-title font-display">
+          <span className="flex items-center gap-3 text-4xl text-transparent bg-white text-edge-outline sm:text-6xl lg:text-8xl whitespace-nowrap bg-clip-text">
+          Eric Gitangu{" "}
           <span aria-hidden="true">
             <Image
               style={{ borderRadius: "50%", marginTop: "-1rem" }}
@@ -111,6 +115,10 @@ export default function Home() {
               height={75}
               alt="Eric Gitangu's photo"
             />
+          </span>
+          </span>
+          <span className="mt-3 text-lg tracking-widest text-zinc-400 sm:text-2xl md:text-3xl">
+            aka Deveric
           </span>
         </h1>
 
