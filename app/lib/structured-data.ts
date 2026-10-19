@@ -11,7 +11,7 @@ const PERSON = {
   description:
     "Experienced engineering leader skilled in architecting scalable systems, driving technical strategy, and building high-performing teams and platforms. 10+ years across Full Stack, ML/AI, DevOps, and Cloud Architecture. Polyglot — Python, Java, Rust, TypeScript, Go, C# — with production experience across fintech, healthcare, energy access, and government-scale infrastructure.",
   url: "https://developer.ericgitangu.com",
-  image: "https://developer.ericgitangu.com/favicon.png",
+  image: "https://developer.ericgitangu.com/ericgitangu.jpeg",
   email: "deveric@unicorns.run",
   address: {
     "@type": "PostalAddress",
@@ -21,8 +21,9 @@ const PERSON = {
   sameAs: [
     "https://github.com/ericgitangu",
     "https://linkedin.com/in/ericgitangu",
+    "https://twitter.com/dev_ericgitangu",
     "https://resume.ericgitangu.com",
-    "https://developer.ericgitangu.com",
+    "https://blog.ericgitangu.com",
   ],
   knowsLanguage: ["en", "sw"],
   nationality: { "@type": "Country", name: "Kenya" },
@@ -52,11 +53,6 @@ export function websiteSchema() {
       "Personal site of Eric Gitangu — projects, blog, journal, certifications.",
     inLanguage: "en-US",
     author: PERSON,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://developer.ericgitangu.com/blog?q={search_term_string}",
-      "query-input": "required name=search_term_string",
-    },
   };
 }
 
