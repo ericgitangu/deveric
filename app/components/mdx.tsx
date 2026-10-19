@@ -12,8 +12,10 @@ function clsx(...args: (string | undefined | false | null)[]): string {
 }
 
 const components = {
+	// Markdown "#" renders as <h2> (h1 styling kept): the project Header already
+	// owns the page's single <h1>; several h1s dilute the title signal.
 	h1: (({ className, ...props }: ComponentPropsWithoutRef<"h1">) => (
-		<h1
+		<h2
 			className={clsx(
 				"mt-2 scroll-m-20 text-4xl font-bold tracking-tight",
 				className,

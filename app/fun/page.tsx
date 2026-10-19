@@ -9,6 +9,9 @@ const FunPage: React.FC = () => {
 	return (
 		<div className="relative w-screen min-h-screen overflow-hidden bg-gradient-to-tl from-black via-zinc-600/20 to-black flex flex-col md:flex-row items-center justify-center p-4">
 			<Navigation />
+			{/* Page has no visible title (the game is the page); screen readers
+			    and crawlers still get one h1. */}
+			<h1 className="sr-only">Snake game by Eric Gitangu</h1>
 			{/* Particles Background */}
 			<Particles
 				className="absolute inset-0 -z-10 animate-fade-in"

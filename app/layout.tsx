@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 		template: "%s · Eric Gitangu",
 	},
 	description:
-		"Eric Gitangu (Deveric) — Nairobi-based software engineering lead and architect with 10+ years across full stack, ML/AI, DevOps and cloud architecture. Fintech, distributed systems and production projects in Rust, Go, TypeScript, Python, .NET and Java.",
+		"Eric Gitangu (Deveric) — Nairobi-based software engineering lead and architect: full stack, ML/AI, DevOps and cloud. Fintech and distributed systems projects.",
 	keywords: [
 		"Eric Gitangu",
 		"Deveric",
