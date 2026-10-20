@@ -75,7 +75,24 @@ export default function About() {
             <h3 className="text-base md:text-lg font-semibold text-zinc-100">{education.school}</h3>
             <p className="text-sm text-zinc-300">{education.degree}</p>
             <p className="text-xs text-zinc-500 mb-3">{education.period}</p>
-            <p className="text-sm text-zinc-400">{education.honors.join(" · ")}</p>
+            <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-sm text-zinc-400">
+              {education.honors.map((h) => (
+                <li key={h.label}>
+                  {h.href ? (
+                    <a
+                      href={h.href}
+                      target="_blank"
+                      rel="noopener"
+                      className="underline decoration-zinc-600 underline-offset-4 hover:text-zinc-200"
+                    >
+                      {h.label}
+                    </a>
+                  ) : (
+                    h.label
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       </main>
