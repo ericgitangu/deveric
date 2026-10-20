@@ -33,6 +33,17 @@ const PERSON = {
     name: "University of Massachusetts Lowell",
     sameAs: "https://www.uml.edu",
   },
+  award: [
+    "Google UNCF Scholarship (2011)",
+    "Microsoft Scholarship (2012)",
+  ],
+  subjectOf: {
+    "@type": "BlogPosting",
+    headline: "Hats off to the 2011 Google UNCF scholarship recipients",
+    url: "https://students.googleblog.com/2011/08/hats-off-to-2011-google-uncf.html",
+    publisher: { "@type": "Organization", name: "Google" },
+    datePublished: "2011-08-25",
+  },
   hasOccupation: {
     "@type": "Occupation",
     name: "Software Engineering Lead / Architect",

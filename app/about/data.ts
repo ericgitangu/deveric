@@ -290,10 +290,14 @@ export const education = {
   school: "University of Massachusetts Lowell",
   degree: "B.S. Computer Science, minor in Mathematics",
   period: "2011 – 2015",
+  // href = public record of the honor (cited source; also strengthens E-E-A-T).
   honors: [
-    "Microsoft Scholarship (2012–2013)",
-    "Google Scholarship (2011–2012)",
-    "Dean's List, nine semesters",
-    "Omicron Delta Kappa",
-  ],
+    { label: "Microsoft Scholarship (2012–2013)" },
+    {
+      label: "Google UNCF Scholarship (2011–2012)",
+      href: "https://students.googleblog.com/2011/08/hats-off-to-2011-google-uncf.html",
+    },
+    { label: "Dean's List, nine semesters" },
+    { label: "Omicron Delta Kappa" },
+  ] as { label: string; href?: string }[],
 };
