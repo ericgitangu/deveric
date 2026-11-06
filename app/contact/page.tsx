@@ -5,13 +5,22 @@ import { Navigation } from "../components/nav";
 import { Card } from "../components/card";
 import { FaDiscord } from "react-icons/fa";
 import { FaReddit } from "react-icons/fa";
+import { FaDev } from "react-icons/fa";
+import { FaQuora } from "react-icons/fa";
 
+// Social profiles rendered as crawlable, rel="me" links (identity for search/SEO).
 const socials = [
 	{
 		icon: <Twitter size={20} />,
-		href: "https://twitter.com/dev_ericgitangu",
+		href: "https://x.com/dev_ericgitangu",
 		label: "X",
 		handle: "@dev_ericgitangu",
+	},
+	{
+		icon: <FaDev size={20} />,
+		href: "https://dev.to/ericgitangu",
+		label: "dev.to",
+		handle: "ericgitangu",
 	},
 	{
 		icon: <Linkedin size={20} />,
@@ -43,6 +52,12 @@ const socials = [
 		label: "reddit",
 		handle: "dev_eric_gitangu",
 	},
+	{
+		icon: <FaQuora size={20} />,
+		href: "https://www.quora.com/profile/Eric-Gitangu-3",
+		label: "Quora",
+		handle: "Eric-Gitangu-3",
+	},
 ];
 
 export default function Example() {
@@ -60,6 +75,7 @@ export default function Example() {
 							<Link
 								href={s.href}
 								target="_blank"
+								rel="me noopener noreferrer"
 								className="p-4 relative flex flex-col items-center gap-4 duration-700 group md:gap-8 md:py-24  lg:pb-48  md:p-16"
 							>
 								<span
