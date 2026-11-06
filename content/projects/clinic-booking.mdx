@@ -1,0 +1,39 @@
+---
+title: Idyllic Clinic Booking — No Double-Booking, Enforced by Postgres
+description: A clinic appointment system where the database, not application code, makes double-booking impossible. FastAPI and async SQLAlchemy over PostgreSQL 17, a Next.js booking app and admin dashboard, deployed on Cloud Run behind a Vercel edge proxy.
+date: "2026-10-18"
+url: https://clinic.ericgitangu.com
+repository: ericgitangu/clinic-booking
+published: true
+---
+
+# Overview
+
+A clinic appointment API where every booking rule lives in the database, not in application code. Doctors have working hours, a slot is a fixed, aligned 30 minutes, and a patient can book, cancel and reschedule. FastAPI and PostgreSQL 17 own the rules; the web apps — a Next.js booking flow with Google sign-in and an allowlisted admin dashboard — are thin clients of the same REST API.
+
+Live at [clinic.ericgitangu.com](https://clinic.ericgitangu.com): the booking flow at [/book](https://clinic.ericgitangu.com/book), Swagger UI against the real API at [/docs](https://clinic.ericgitangu.com/docs). Full write-up: [No double booking, enforced by Postgres](https://dev.to/ericgitangu/no-double-booking-enforced-by-postgres-building-a-clinic-booking-system).
+
+# The one hard problem
+
+"Once booked, the slot must not be available to others." A check in application code races the moment two POSTs for the same slot arrive at once, and `SELECT ... FOR UPDATE` cannot lock a row that does not exist yet. So there is no slot-taken pre-check at all. Instead:
+
+- A **partial unique index** `(doctor_id, starts_at) WHERE status = 'booked'` lets the database reject the second concurrent insert at READ COMMITTED. A twin index on `(patient_id, starts_at)` stops one patient holding two simultaneous slots.
+- **CHECK constraints** pin `ends_at = starts_at + 30 min` and 1800-second alignment, so equal `starts_at` *is* overlap — a plain unique index is enough, no `btree_gist` exclusion constraint needed.
+- The resulting `IntegrityError` is mapped to an HTTP **409** by SQLSTATE and constraint name. The single source of the 409 is the database.
+- Cancelled rows drop out of the partial index, so a cancelled slot is free again while its history is kept.
+
+Verified under real concurrency: 20 simultaneous bookings of one slot return exactly one `201` and nineteen `409`s (the committed race test fires 25 and expects 1/24). Constraint names are part of the contract — tests assert they exist in `pg_indexes` and `pg_constraint`.
+
+# How it fits together
+
+- **Single system of record.** FastAPI + async SQLAlchemy over PostgreSQL 17; slots are computed from working hours rather than stored. RFC 7807 problem-details errors and idempotency keys on mutations.
+- **Two apps, one workspace.** A pnpm monorepo: a Next.js booking app (Google sign-in via Better Auth, Resend for email) and a separate admin dashboard that only admits the allowlisted owner and invited staff.
+- **Zero-cost edge front door.** The API runs on Cloud Run as IAM-only — only the Vercel proxy can reach it; everything scales to zero. A Go gateway handles realtime push (SSE / Ably).
+- **Keyless CI/CD.** CircleCI deploys without long-lived cloud credentials; the whole system and its trade-offs are documented as ADRs in the repo.
+
+# Built with
+
+- FastAPI, async SQLAlchemy, PostgreSQL 17 (partial unique indexes, CHECK constraints, Alembic)
+- Next.js (App Router) booking app + admin dashboard, pnpm workspace, Better Auth (Google), Resend
+- Go realtime gateway (SSE / Ably), OpenAPI / REST contract, RFC 7807 problem details
+- GCP Cloud Run (IAM-only, scale-to-zero) behind a Vercel edge proxy, CircleCI keyless deploy
