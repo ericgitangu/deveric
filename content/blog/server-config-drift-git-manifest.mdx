@@ -72,6 +72,8 @@ def check_server(rows):
     return findings  # all of them, not the first
 ```
 
+A complete, runnable version of the check with a sample manifest is in [this gist](https://gist.github.com/ericgitangu/e3e247db8ee66209107593bced39c330).
+
 The first run on the production server passed. A release later, a few of those files changed through the deploy, and the hashes were re-pinned in a commit. That is the whole workflow: a change to the server is either a commit or an incident.
 
 ## Making it bite
