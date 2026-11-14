@@ -1,0 +1,107 @@
+---
+published: true
+title: "The server had files git never met: fixing config drift with a pinned manifest | Eric Gitangu"
+description: "Eric Gitangu on production config drift: mirror server-only files into git, pin each with a hash manifest, and make the deploy refuse to run while the server differs."
+date: "2026-11-14"
+tags: ["Eric Gitangu", "devops", "configuration drift", "deployment pipeline", "server hardening"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This is one problem from last week: configuration drift on a production server, and how I made git the record without touching the server.
+
+## The problem
+
+Every deploy script we had installed something: application code, edge config, scheduled jobs. The server also held files that no script installed. Monitoring config and alert rules. A few scheduled jobs. Service units. Login hardening. Privilege rules. Each one was put there by hand, for a good reason, by someone who then went to lunch.
+
+Those files were a large part of the hardening, and they lived in exactly one place.
+
+That gives you two quiet ways to lose them:
+
+1. **Rebuild the server.** Everything the scripts install comes back. Everything else does not, and nothing tells you.
+2. **Copy repo to server.** Where the repo holds an older copy of a file, the copy reverts a live fix.
+
+Neither fails loudly. You find out when the alert that should have fired didn't.
+
+## The decision
+
+The tempting fix is to write installers for everything and re-apply from git. That changes a production server to solve a record-keeping problem, and it assumes git knows better than the machine that is actually serving traffic. It didn't.
+
+So I went the other way. The server is right today; git catches up. Server to repo, read-only, nothing changed on the server.
+
+## The manifest
+
+Each server-only file is mirrored into the repo and gets one row in a manifest:
+
+```text
+# server_path          repo_path                 owner group mode sha256_of_live_file  status
+/etc/example/app.conf  ops/mirror/app.conf       root  root  644  3f9a...c1            verbatim
+/etc/example/db.conf   ops/mirror/db.conf        root  root  600  b07e...9d            redacted
+/usr/local/bin/probe   ops/mirror/probe          root  root  755  91c4...e2            repo-ahead
+```
+
+The hash is always the hash of the **live** file. The status says how the repo copy relates to it:
+
+- **verbatim**: the repo copy must hash to the live hash. Byte for byte.
+- **redacted**: the file holds a secret, so the repo copy carries a placeholder. Here the repo copy must **not** hash like the live file. If it matches, someone committed the secret. Same check, opposite sign.
+- **repo-ahead**: the repo carries a change that isn't installed yet. The row still pins what is live today, so any further edit on the server still shows as drift. Install it, flip the row to verbatim.
+
+That third status matters more than it looks. Without it, the first file that is legitimately mid-change forces you to either lie in the manifest or switch the check off.
+
+## One check, two modes
+
+One read-only script reads the manifest. It never writes anywhere.
+
+- **Against a checkout** (CI, pre-push, tests): every repo copy exists and relates to its pinned hash the way its status says.
+- **On the server**: every live file exists, has the pinned owner, group and mode, and hashes to the pinned hash.
+
+It names every finding instead of dying on the first one. A missing file reads as "a rebuild lost this, reinstall from the repo copy". A changed hash reads as "someone edited the server, re-mirror and bump the row".
+
+```python
+def check_server(rows):
+    findings = []
+    for r in rows:
+        p = Path(r.server_path)
+        if not p.is_file():
+            findings.append(f"MISSING {p}: reinstall from {r.repo_path}")
+            continue
+        st = p.stat()
+        got = (owner(st), group(st), oct(st.st_mode & 0o7777)[2:])
+        if got != (r.owner, r.group, r.mode):
+            findings.append(f"PERMS   {p}: want {r.owner} {r.group} {r.mode}, got {' '.join(got)}")
+        if sha256(p) != r.live_hash:
+            findings.append(f"DRIFT   {p}: changed since it was mirrored")
+    return findings  # all of them, not the first
+```
+
+The first run on the production server passed. A release later, a few of those files changed through the deploy, and the hashes were re-pinned in a commit. That is the whole workflow: a change to the server is either a commit or an incident.
+
+## Making it bite
+
+A check nobody runs is a README. So it went into the path that already has everyone's attention.
+
+**The deploy refuses to start while the server differs from git.** Every other pre-deploy gate reasons from the repo. If the server isn't what the repo says, those gates are describing a different machine.
+
+**There is an override, because 3am exists.** It needs a written reason. It is logged and it raises an alert. And if the record can't be written, the override is refused. No unrecorded bypass.
+
+**Detection between deploys.** Kernel audit rules watch writes by human sessions to the application and config directories. The deploy tooling records its own windows, so its writes are subtracted. What's left is exported as metrics with alerts on top, and a full check runs nightly.
+
+## Two fixes the same night
+
+The audit scan was rewritten to filter in a single pass, so a long release build can't make it outlast its own timeout. A drift detector that times out during deploys is a detector with a blind spot exactly where the writes are.
+
+And the gate originally said "drift" without saying which. Now it names what it is refusing on. A gate that says no without saying why gets overridden; that's not a people problem, it's an error-message problem.
+
+## What is live, and what isn't
+
+- The mirror, manifest and check are in the repo. The server-side check ran read-only on production and passed.
+- The deploy gate and the detection code are in the release that is now live in production.
+- A prevention layer that tightens who can change the server, and how, is built, tested and rehearsed in dry-run. It gets applied only with a person present, so I'm not claiming it here. Locking yourself out of production is also a kind of drift.
+
+## Takeaways
+
+- If no script installs a file, that file is a rumour. Write it down with a hash.
+- Record first, enforce second. Git has to be right before it gets to be the boss.
+- Give "mid-change" a legal state, or people will switch the check off.
+- For redacted files, a matching hash is the failure.
+- An override should cost one sentence of explanation and always leave a trace.
+
+Drift isn't a bug you fix once. It's entropy with sudo. The best you can do is make it loud.

@@ -39,3 +39,6 @@ next-env.d.ts
 .contentlayer
 # Claude Code
 .claude/
+
+# nightly blog task drafts
+.syndication/

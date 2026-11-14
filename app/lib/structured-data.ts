@@ -151,6 +151,55 @@ export function projectSchema(p: {
   };
 }
 
+export function blogListSchema(
+  posts: { slug: string; title: string; description: string }[],
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "Engineering blog — Eric Gitangu",
+    url: "https://developer.ericgitangu.com/blog",
+    description:
+      "Daily engineering notes by Eric Gitangu: real problems taken from diagnosis to production across architecture, payments, security and delivery pipelines.",
+    author: PERSON,
+    blogPost: posts.map((p) => ({
+      "@type": "BlogPosting",
+      headline: p.title,
+      description: p.description,
+      url: `https://developer.ericgitangu.com/blog/${p.slug}`,
+    })),
+  };
+}
+
+export function blogPostingSchema(p: {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  tags?: string[];
+}) {
+  const url = `https://developer.ericgitangu.com/blog/${p.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: p.title,
+    description: p.description,
+    url,
+    mainEntityOfPage: url,
+    datePublished: p.date,
+    dateModified: p.date,
+    keywords: p.tags,
+    inLanguage: "en-US",
+    author: PERSON,
+    publisher: PERSON,
+    isPartOf: {
+      "@type": "Blog",
+      name: "Engineering blog — Eric Gitangu",
+      url: "https://developer.ericgitangu.com/blog",
+    },
+  };
+}
+
 export function aboutPageSchema() {
   return {
     "@context": "https://schema.org",

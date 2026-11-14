@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import { allProjects } from "contentlayer/generated";
+import { allPosts, allProjects } from "contentlayer/generated";
 
 // Render at request time so URLs match whichever host served the sitemap —
 // the canonical is developer.ericgitangu.com but the host header is whatever
@@ -17,7 +17,7 @@ const staticPages: StaticEntry[] = [
 	{ path: "/", changeFrequency: "weekly", priority: 1.0 },
 	{ path: "/about", changeFrequency: "monthly", priority: 0.9 },
 	{ path: "/projects", changeFrequency: "weekly", priority: 0.9 },
-	{ path: "/blog", changeFrequency: "weekly", priority: 0.8 },
+	{ path: "/blog", changeFrequency: "daily", priority: 0.9 },
 	{ path: "/journal", changeFrequency: "weekly", priority: 0.7 },
 	{ path: "/certifications", changeFrequency: "monthly", priority: 0.7 },
 	{ path: "/contact", changeFrequency: "yearly", priority: 0.6 },
@@ -52,5 +52,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			priority: p.priority,
 		})),
 		...projectEntries,
+		...allPosts
+			.filter((p) => p.published)
+			.map((p) => ({
+				url: `${base}/blog/${p.slug}`,
+				lastModified: new Date(p.date),
+				changeFrequency: "monthly" as const,
+				priority: 0.8,
+			})),
 	];
 }

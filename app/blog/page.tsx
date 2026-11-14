@@ -1,61 +1,56 @@
-"use client";
-
+import Link from "next/link";
 import React from "react";
-import Particles from "../components/particles";
 import { Navigation } from "../components/nav";
+import { Card } from "../components/card";
+import { formatDate, publishedPosts } from "./posts";
 
-export default function Blog() {
-	const redirectUrl = "https://blog.ericgitangu.com";
-
+export default function BlogPage() {
 	return (
-		<div className="flex flex-col items-center justify-center w-screen h-screen overflow-hidden bg-gradient-to-tl from-black via-zinc-600/20 to-black">
+		<div className="relative pb-16">
 			<Navigation />
-			<Particles
-				className="absolute inset-0 -z-10 animate-fade-in"
-				quantity={100}
-			/>
-			<h1 className="z-10 text-4xl text-transparent duration-1000 bg-white text-edge-outline animate-title font-display sm:text-6xl md:text-9xl whitespace-nowrap bg-clip-text">
-				Blog
-			</h1>
-			<div className="hidden w-screen h-px animate-glow md:block animate-fade-right bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0" />
-			<div className="my-8 text-center animate-fade-in max-w-2xl px-4">
-				<h2 className="text-lg text-slate-300 font-medium mb-2">
-					Tech Insights
-				</h2>
-				<p className="text-sm text-slate-400 mb-4">
-					Thoughts on AI, systems architecture, software engineering, and cybersecurity.
-					Built with Django and deployed on Fly.io.
-				</p>
-				<ul className="text-xs text-slate-500 text-left space-y-2 mb-8">
-					<li className="flex items-start gap-2">
-						<span className="text-blue-400">&#x2022;</span>
-						AI/ML insights and implementation patterns
-					</li>
-					<li className="flex items-start gap-2">
-						<span className="text-green-400">&#x2022;</span>
-						Systems design and architecture deep dives
-					</li>
-					<li className="flex items-start gap-2">
-						<span className="text-purple-400">&#x2022;</span>
-						Software engineering best practices
-					</li>
-					<li className="flex items-start gap-2">
-						<span className="text-orange-400">&#x2022;</span>
-						Cybersecurity tips and terminal tricks
-					</li>
-				</ul>
-				<a
-					href={redirectUrl}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 rounded-full hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
-				>
-					Visit Blog
-					<span aria-hidden="true" className="text-lg">&rarr;</span>
-				</a>
-				<p className="mt-4 text-xs text-slate-600">
-					blog.ericgitangu.com
-				</p>
+			<div className="px-6 pt-16 mx-auto space-y-8 max-w-3xl lg:px-8 md:space-y-12 md:pt-24 lg:pt-32">
+				<div>
+					<h1 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
+						Engineering blog
+					</h1>
+					<p className="mt-4 text-zinc-400">
+						Daily notes by Eric Gitangu: one real problem per post, from
+						diagnosis to production. Architecture, payment integrations,
+						security and compliance, delivery pipelines.
+					</p>
+				</div>
+				<div className="w-full h-px bg-zinc-800" />
+				{publishedPosts.length === 0 ? (
+					<p className="text-zinc-500">First post ships soon.</p>
+				) : (
+					<div className="grid grid-cols-1 gap-4">
+						{publishedPosts.map((post) => (
+							<Card key={post.slug}>
+								<Link href={`/blog/${post.slug}`}>
+									<article className="p-4 md:p-8">
+										<time
+											dateTime={new Date(post.date).toISOString()}
+											className="text-xs text-zinc-400"
+										>
+											{formatDate(post.date)}
+										</time>
+										<h2 className="mt-2 text-xl font-medium text-zinc-200 group-hover:text-white font-display">
+											{post.title}
+										</h2>
+										<p className="mt-2 text-sm text-zinc-400 group-hover:text-zinc-200">
+											{post.description}
+										</p>
+										{post.tags && post.tags.length > 0 ? (
+											<p className="mt-3 text-xs text-zinc-500">
+												{post.tags.map((t) => `#${t}`).join(" ")}
+											</p>
+										) : null}
+									</article>
+								</Link>
+							</Card>
+						))}
+					</div>
+				)}
 			</div>
 		</div>
 	);
