@@ -78,6 +78,8 @@ export const Page = defineDocumentType(() => ({
 
 export default makeSource({
 	contentDirPath: "./content",
+	// The stand-up ledger lives in content/ but is a record, not a document type.
+	contentDirExclude: [".standup-ledger.md"],
 	documentTypes: [Page, Project, Post],
 	mdx: {
 		remarkPlugins: [remarkGfm],
