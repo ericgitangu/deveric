@@ -1,0 +1,105 @@
+---
+published: true
+title: "HTTP 200, status 0, nothing wrong: teaching an API to tell empty from broken | Eric Gitangu"
+description: "Eric Gitangu on a mobile API that answered 'nothing nearby' and 'the store is down' the same way: classify every failure at one choke point, give it a stable code, and flip normal states per route without breaking installed apps."
+date: "2026-11-15"
+tags: ["Eric Gitangu", "api design", "backward compatibility", "observability", "mobile backend"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This is one problem from the last two weeks: an API that answered "nothing nearby" and "the store is down" with the same shape, and how I taught it the difference without breaking a single installed app.
+
+## The problem
+
+The mobile API wraps every answer in an envelope. The HTTP status is 200 and a `status` field inside says whether it worked: `1` is success, `0` is failure.
+
+That contract is older than most of the code around it, and the apps in people's pockets depend on it.
+
+A monitor watches for silent failures: 200 on the wire, status 0 in the body. When I read a few days of its log, a lot of what it had caught was not failure at all. A driver with no rides nearby. An empty queue. An empty document list. A setting nobody had configured yet. Each one answered status 0, because at some point "no results" was written down the error path.
+
+Three things follow from that:
+
+1. **The app can't tell "nothing here" from "something broke".** Both arrive as failure.
+2. **The monitor counts ordinary days as failures.** An alert that pages on a normal state teaches people to ignore the alert.
+3. **A real fault hides in that noise.** Same shape, same count.
+
+## The decision
+
+The textbook fix is real HTTP status codes. Not available: installed builds read the envelope, and I can't recall an app from someone's phone.
+
+So the rules were:
+
+- No existing key, header or status changes for a client that did not ask for it.
+- Status 0 splits into three classes: **normal state** (nothing to show), **refusal** (you may not, and here is why) and **fault** (we broke).
+- Every status-0 answer carries a stable, machine-readable code.
+- Classification happens in one place, not at every call site.
+
+## One choke point
+
+A hook sits at the last point before the response leaves. If the answer is JSON with status 0 and no code, it looks the message up in a catalog and adds a code and a reason. It only adds. It also publishes the code in a response header, so the access log and the monitor see it without parsing bodies.
+
+```python
+CATALOG = {
+    "No rides available":   ("no_results",  "normal"),
+    "Account not verified": ("unverified",  "refusal"),
+    "Could not read store": ("store_fault", "fault"),
+}
+
+def classify(request, body):
+    if not is_app_request(request) or body.get("status") != 0:
+        return body, None
+    field = "error_code" if request.route in ECHOES_ONE_TIME_CODE else "code"
+    if field not in body:
+        code, _ = CATALOG.get(body.get("message"), ("unclassified", "unknown"))
+        body = {**body, field: code}   # add only: no key removed or changed
+    code = body[field]
+    return body, code if code in STABLE_CODES else None   # header gets stable codes only
+```
+
+A complete, runnable version with the baseline test is in [this gist](https://gist.github.com/ericgitangu/876b7ec7cf816d0f7b7e995a93650c75).
+
+The monitor then counts only what is unclassified or uncoded. Everything else is a known answer with a name.
+
+To stop the pile growing back, a test walks the source for status-0 sites and compares them with a committed baseline. A new site with no code and no catalog entry fails the build. The debt can shrink. It cannot grow.
+
+## Three things that bit
+
+**The hook was too greedy.** Payment providers call routes on the same API, and a provider's callback body is the provider's contract, not mine. The classifier now applies only to requests that carry the app's session token header, and provider routes are excluded by name. That fix went in the same day as the hook.
+
+**`code` was already taken.** Several endpoints return a one-time code in a field called `code`, and installed builds read it as exactly that. Put a refusal code there and an installed build reads it as the one-time code. On those routes the refusal goes in `error_code`, and the header copies only values from the stable list, so nothing that isn't a stable code reaches the access log through it.
+
+**The version gate could never open.** The plan was to answer normal states with status 1 only for app builds at or above a minimum version, so older builds kept today's behaviour. I built it, tested it and merged it. Then it turned out the installed apps send no version. The gate compared against nothing and stayed shut.
+
+It was replaced by a per-route switch: a list of route keys, empty by default. A listed route answers status 1 with the same keys and empty values. An unlisted route answers exactly as before. Both carry the stable code.
+
+A feature flag keyed on a signal you have never seen in your own logs is a wish.
+
+## The telemetry that saw nothing
+
+The mobile telemetry was written from a hook that runs at request shutdown. That hook runs before the buffered response is flushed, so it never saw the body.
+
+It moved into the same output hook as the classifier and now records the envelope status and the code. The monitors count by code: on money routes an allowlist of normal-state codes is skipped, and anything unclassified, unknown or missing still counts.
+
+## Empty is not unreadable
+
+One follow-up shows the pattern in small. The endpoint that lists a user's saved cards treated "this user has no cards" and "the card vault can't be read" alike.
+
+- No cards: status 1, an empty list, code `no_results`.
+- Vault unreadable: status 0, code `unavailable`, an honest message instead of the library's raw error text.
+
+Before changing it I read the client sources to see which keys they read and how they type them. No key was removed.
+
+## What is live, and what isn't
+
+- The classifier, the catalog, the baseline test, the per-route switch, the telemetry change and the monitor changes are in production. So is the saved-cards split.
+- The switch is per route and off by default. Turning a route on is a config decision made route by route, so I'm not claiming a number here.
+- The next step is built and waiting in a release that is not in production yet: real faults on money paths answer a real 5xx (a store fault is a 503 with a retry hint) instead of 200 with status 0. The request still stops and nothing is written; only the HTTP answer changes. I'm not claiming that one until it ships.
+
+## Takeaways
+
+- Empty is a result. Treat it like one.
+- Normal state, refusal and fault are three different answers. Give each a name a machine can read.
+- Classify at one choke point, then fence it with a baseline so new unnamed failures fail the build.
+- Before you gate on a client signal, check the client actually sends it.
+- Read the client code before you touch a field. `code` meant two things and the apps only knew one.
+
+200 OK with status 0 is Schrödinger's response: you don't know if it's dead until you open the body. Better to write the answer on the box.
