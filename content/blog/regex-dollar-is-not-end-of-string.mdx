@@ -1,0 +1,103 @@
+---
+published: true
+title: "Your regex $ is not the end of the string: the id guard that said yes to a trailing newline | Eric Gitangu"
+description: "Eric Gitangu on a red-team finding in an id validator: $ matches before a final newline. Anchor at the true end, fix every inlined copy, and add a source check so the loose anchor can't come back."
+date: "2026-11-16"
+tags: ["Eric Gitangu", "regex", "input validation", "application security", "red team"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This one is a single character in a regex, found by a red-team pass, and what it took to fix it everywhere instead of once.
+
+## The problem
+
+Records are addressed by a 24-character hex id. Before an id from a request goes near the data store, a guard checks its shape:
+
+```text
+^[0-9a-fA-F]{24}$
+```
+
+Start, 24 hex characters, end. Most of us have written that line.
+
+A red-team pass sent the guard a valid id with a newline after it. The guard said yes.
+
+In Perl-style regex engines, the backend's included, `$` does not mean "the end of the string". It means "the end of the string, or just before a newline that ends it". So 24 hex characters plus a newline is 25 characters, and it passes a check whose whole job is to say "exactly 24".
+
+I'm not claiming an exploit or an incident. The finding was narrower, and enough for me: a validator accepted input it was written to refuse.
+
+## The decision
+
+- Anchor at the true end. `\z` means the end of the string and nothing else.
+- Fix the shared guards first, then go and find every copy.
+- Failing test first, both times.
+- Leave a check behind so the loose anchor can't come back.
+
+## Fix one: the shared guards
+
+The backend has a few shared helpers that answer "is this an id?". They moved from `$` to `\z`, and the test now says both halves out loud: a valid id passes, and the same id with a trailing newline is refused.
+
+Here is the same bug in Python, which spells the strict anchor `\Z`:
+
+```python
+import re
+
+LOOSE  = re.compile(r"^[0-9a-f]{24}$")
+STRICT = re.compile(r"^[0-9a-f]{24}\Z")
+
+good = "0123456789abcdef01234567"
+
+LOOSE.match(good + "\n")    # a match: $ stops before the final newline
+STRICT.match(good + "\n")   # None
+```
+
+A complete, runnable version with tests is in [this gist](GIST_URL).
+
+## Fix two: the copies
+
+Fixing the helper fixed the helper. The same pattern was also written inline at call sites across the codebase: request handlers, scheduled jobs, tools.
+
+So the second test doesn't test behaviour. It reads the source. It walks the first-party code, skips vendored folders, and fails on any line where the id pattern still ends in `$`, naming the file and the line.
+
+It went red with a list. One mechanical change turned each of them into `\z`. It went green.
+
+That test stays in the suite. A new `$`-anchored id check now fails the build before it reaches review.
+
+## Three things that bit
+
+**Tests that pinned the old text.** Several older tests assert that a particular guard exists in a particular file by matching the source text. They were pinned to the `$` spelling and failed the moment the fix landed. Each pin was updated to follow the new anchor. Annoying, and also the system working: those pins exist so a guard can't quietly disappear.
+
+**The mechanical change was too mechanical.** One of the files it touched is a generator that writes test scripts for an API client, and those scripts are JavaScript. JavaScript has no `\z`, and its `$` without the multiline flag already means the true end. The replace had broken a line that was correct. I put it back and exempted that one file from the scan, with the reason written next to the exemption.
+
+`$` is not one thing. It depends on whose regex engine is reading it.
+
+**A number that isn't.** Same red-team pass, same family of bug. A money bounds check read: refuse below the minimum, refuse above the maximum. NaN compares false against both, so it walked through. And a string like `1e999` counts as numeric but converts to infinity.
+
+Now an amount that is not finite is refused by name before the range checks, and reads as zero where amounts are parsed.
+
+```python
+import math
+
+def within_bounds(value, low, high):
+    if not math.isfinite(value):   # nan < low and nan > high are both False
+        return False
+    if value < low:
+        return False
+    if value > high:
+        return False
+    return True
+```
+
+## What is live, and what isn't
+
+- The strict anchor in the shared guards and at every inlined copy, and the finite-amount checks, are in a release that is running in production.
+- The source check runs with the test suite. It covers first-party backend code; one JavaScript-generating file is exempt on purpose, for the reason above.
+- No incident and no exploit claimed. This is a finding from a red-team pass, closed.
+
+## Takeaways
+
+- `$` can match before a final newline. If you mean the end, write `\z`, or use a full-match call.
+- A guard that says yes to one thing it shouldn't is not a guard for that thing.
+- Fixing the helper doesn't fix the copies. Search for them, then turn the search into a test.
+- A mechanical replace still needs a reader. The same character means different things in different engines.
+- Range checks pass NaN. Check finite first.
+
+One character, one afternoon. Turns out `$` was never the bottom line.

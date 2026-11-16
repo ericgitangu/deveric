@@ -1,0 +1,130 @@
+---
+published: false
+title: "HTTPS-only ate the payment callbacks: one plain-HTTP exception, four rounds to get it right | Eric Gitangu"
+description: "Eric Gitangu on payment callbacks lost behind an HTTPS redirect: proxy an exact allowlist over plain HTTP, forward the raw URI, refuse traversal and request splitting, and make the exception count itself."
+date: "2026-11-14"
+tags: ["Eric Gitangu", "nginx", "payment callbacks", "web security", "reverse proxy"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This is one problem from last week: production went HTTPS-only, payment callbacks started bouncing off a redirect, and the small plain-HTTP exception that fixed it took four rounds to get right.
+
+## The problem
+
+After the hardening, port 80 serves nothing. GET and HEAD get a 301 to https. Every other method gets a 308, so the method and body survive for a client that follows the redirect.
+
+Browsers follow. Payment providers don't.
+
+A provider that still has an `http://` callback URL registered sends its "payment succeeded" POST, receives a 308, and considers the job done. The callback is gone. And a lost callback is money: the customer paid, and our side never hears about it.
+
+308 Permanent Redirect, 0 permanent payments.
+
+The real fix is to change the URL registered with each provider. First I needed to know which ones were still on plain HTTP, and to stop losing callbacks while I found out.
+
+## The decision
+
+Proxy instead of redirect, for callbacks only.
+
+On port 80, callback paths are handed to the application over the same loopback hop the TLS edge already uses. Everything else still redirects. Admin pages and anything that reveals personal or card data are matched first and always redirect, whatever else matches.
+
+The exception also has to report on itself. Every proxied callback goes to its own log, is counted as a metric, and raises an alert. The forwarded-protocol header stays `http` on purpose, so the application's audit of money callbacks records which provider is still calling over plain HTTP.
+
+That was the plan. Review had other ideas.
+
+## Round 1: "contains callback" is not a rule
+
+The first version matched any path containing `callback`, plus a few open prefixes.
+
+Review caught it: the backend's router passes extra path segments to the handler as arguments. So `/login/callback` is not a callback. It is the login endpoint with an argument, and my rule served it over plain HTTP.
+
+Fix: an exact list. Every alternative is a full path, anchored at the end. A new provider callback gets added on purpose, by a human, in a diff.
+
+## Round 2: matched one path, forwarded another
+
+nginx matches locations against the normalised path. A bare `proxy_pass` forwards the raw one.
+
+So a request for `/login/../callbacks/provider-a` normalises to an allowlisted path and matches. The raw path goes upstream, the backend drops the dot segments its own way, and serves login. Same hole, with extra steps.
+
+Fix, second attempt: refuse the traversal spellings in the raw path (dot segments, encoded dots and slashes, semicolons, double slashes), and forward the normalised path, the one the allowlist had actually judged.
+
+## Round 3: the fix was the next bug
+
+Forwarding the normalised path means forwarding the decoded path.
+
+A re-review showed what that buys you: an encoded CR LF in the path is decoded and splits the upstream request. The payload forged the forwarded-for header on a callback endpoint and got past the provider source-address allowlist. One request in, one and a bit out.
+
+Final form:
+
+- `proxy_pass` is bare again. The raw, still-encoded URI reaches the application exactly as the provider sent it.
+- Control characters anywhere in the raw URI, encoded or not, are a 400 for the whole port-80 server, before any location. A payload like that shouldn't even earn a redirect that echoes it.
+- The traversal check stays, but reads only the path part of the raw URI. Callback queries legitimately carry URLs and semicolons.
+
+```nginx
+# path part of the raw request line, query excluded
+map $request_uri $raw_path {
+    default          $request_uri;
+    "~^(?<p>[^?]*)"  $p;
+}
+
+server {
+    listen 80;
+    server_name pay.example.test;
+
+    if ($request_uri ~* "(%0d|%0a|%00|%09|[\x00-\x1f\x7f])") { return 400; }
+
+    # never over plain http, whatever else matches
+    location ~ ^/(admin|account) { return 308 https://$host$request_uri; }
+
+    # exact callback paths, each anchored
+    location ~ ^/(callbacks/provider-a|callbacks/provider-b/[A-Za-z0-9_-]+/[0-9a-f]+)$ {
+        if ($raw_path ~* "(\.\.|/\./|%2e|%2f|;|//)") { return 308 https://$host$request_uri; }
+
+        proxy_pass http://127.0.0.1:9090;            # no URI part: raw request goes upstream
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;  # stays "http" on purpose
+    }
+
+    location / { return 308 https://$host$request_uri; }
+}
+```
+
+The lesson I keep relearning: when the thing that judges a request and the thing that forwards it disagree about what the request is, don't translate. Refuse.
+
+## Round 4: too exact for the real world
+
+The allowlist was now exact, and wrong.
+
+One provider's callback carries its data in path segments, in three registered shapes. My list had only the bare one, so a real callback from that provider never matched on port 80. Each shape is now allowed, and each segment has its own strict class: identifier characters, digits for a phone number, an amount with at most two decimals, a fixed set of values for the last one. A wrong segment count does not match. Neither does an amount in scientific notation.
+
+Same round: the proxied location had the web server's default body limit while the TLS edge allowed a larger one. An oversized callback body was rejected only on port 80. Same cap on both now.
+
+## Tests that try to break in
+
+The tests run the real server block in a container, in front of a stub application that logs every request it receives.
+
+- **Positive list:** every real callback shape arrives, with encoded data and query string unchanged.
+- **Negative list:** every bypass from the reviews gets a redirect or a 400, and produces no upstream request at all. Not "the app refused it". The app never saw it.
+
+A second policy test pins that this proxy hop is the only thing port 80 does besides redirecting.
+
+A generic, runnable version (config, stub app, both lists) is in [this gist](GIST_URL).
+
+## Shipping it
+
+The first copy of that file was installed by hand. For a file that needed four rounds of fixes in one day, that's the wrong delivery mechanism.
+
+The deploy now installs it byte for byte from the reviewed commit. It backs up the copy it is about to replace (no backup, nothing written), tests the config before the single reload, and restores the old copy if the test fails. A dry run prints the diff and writes nothing.
+
+## What is live, and what isn't
+
+- The allowlisted proxy, with its log, counter and alert, is in a release that is live in production.
+- What I'm not claiming: that every provider has moved to https. That is what the alert is for.
+
+## Takeaways
+
+- A redirect is a request for cooperation. Machines that send you money rarely cooperate.
+- Allowlist by exact, anchored path. A substring match is a wish.
+- Know which form of the URL you matched and which form you forward. If they can differ, refuse the request.
+- Fixing traversal by forwarding the decoded path trades one bug for another.
+- An exception should count itself, so you know the day it can go.
+
+The best version of this config is the one I get to delete.

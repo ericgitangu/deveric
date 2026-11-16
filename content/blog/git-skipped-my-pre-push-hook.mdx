@@ -1,0 +1,124 @@
+---
+published: true
+title: "git skipped my pre-push hook and pushed anyway: the gate that lost its executable bit | Eric Gitangu"
+description: "Eric Gitangu on a pre-push gate that stopped running after a rewrite dropped its executable bit: git prints a hint and pushes. Gate the pushed commit, check the stored mode, and make CI refuse a hook that can't run."
+date: "2026-11-16"
+tags: ["Eric Gitangu", "git hooks", "ci pipeline", "developer tooling", "pipeline robustness"]
+---
+
+I'm Eric Gitangu. I work on a mobility/fintech platform. This one is about a safety check on `git push` that stopped running, said so in a hint nobody reads, and what I changed so it can't go quiet again.
+
+## The setup
+
+One of the web apps, an admin console, has a pre-push hook. Before a push leaves the laptop, the hook runs a set of gates that check the app still agrees with the API contract it is built against. A failing gate refuses the push.
+
+The hooks are tracked in the repository and `core.hooksPath` points git at that directory, so every clone gets the same gates.
+
+## Problem one: the gate judged the wrong thing
+
+The gates read the working tree. A push sends commits. Those are not always the same thing.
+
+On a stale checkout, the gates refused the push of an unrelated commit that was already green. From a linked worktree, they couldn't find a package they depend on.
+
+So I changed what the hook judges. git gives pre-push one line per pushed ref on stdin, and the hook now works from that:
+
+- A deletion has nothing to gate.
+- Each distinct pushed commit is gated once. A tag is gated on the commit it points at.
+- If the commit is the checked-out HEAD and the checkout is clean (no tracked changes, no untracked files that aren't ignored), it is gated in place.
+- Otherwise the commit is checked out into a temporary worktree and gated there, with its own dependencies installed from its own lockfile, frozen, install scripts off. Never a link to another checkout's dependencies.
+- If that install fails, the push is refused. Nothing was gated, so nothing goes.
+- The temporary worktree is removed on exit, failure, Ctrl-C and hang-up.
+
+The shape of it:
+
+```sh
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac   # all zeros: a deletion
+
+  if [ "$local_sha" = "$head" ] && [ -z "$(git status --porcelain)" ]; then
+    run_gates .                        # clean HEAD: gate in place
+  else
+    git worktree add -q --detach "$tmp" "$local_sha" || exit 1
+    install_deps "$tmp" || exit 1      # this commit's lockfile, frozen
+    run_gates "$tmp"    || exit 1
+  fi
+done
+```
+
+That went in, tests and all.
+
+## Problem two: the fix switched the gate off
+
+The next day I found the hook file had been committed with mode `100644`. The rewrite had dropped its executable bit.
+
+Here is what git does with a hook that is not executable:
+
+```text
+hint: The '.githooks/pre-push' hook was ignored because it's not set as executable.
+hint: You can disable this warning with `git config advice.ignoredHook false`.
+```
+
+Then it pushes. Exit code 0.
+
+So pushes from any checkout of that commit ran no pre-push gate at all. The commit that made the gate smarter also made it not run.
+
+I'm not claiming anything bad went out in that window. I have no evidence that it did. The finding is narrower and it was enough for me: the check was absent and nothing failed.
+
+## The decision
+
+Restoring the mode is a one-line fix. It also leaves the same hole for the next rewrite.
+
+- A gate that can be missing without anything failing isn't a gate. Make its absence a failure.
+- Catch it in two places: on the laptop at the first commit, and in CI where no local setting can hide it.
+- Failing test first, with a fixture that reproduces the silent skip.
+
+## The check
+
+It asks two questions.
+
+**What mode did git store?** That is what every fresh clone gets. The file on disk can lie: it can be executable locally and still be `100644` in git.
+
+```sh
+mode="$(git ls-files --stage -- .githooks/pre-push | cut -d' ' -f1)"
+[ "$mode" = "100755" ] || refuse "pre-push is stored as $mode"
+```
+
+**Will git find an executable hook in this checkout?** This covers a hooks path that is unset, one pointed at nowhere, and linked worktrees.
+
+```sh
+dir="$(git rev-parse --git-path hooks)"
+[ -x "$dir/pre-push" ] || refuse "no executable pre-push in $dir"
+```
+
+Each refusal prints the reason and the fix, which is `git update-index --chmod=+x` on the file and a commit.
+
+Then the wiring:
+
+- The pre-commit hook calls the check first. A checkout whose pre-push can't run fails at its first commit, not after a week of ungated pushes.
+- CI runs the stored-mode half on every push and pull request. CI has no local hooks config, so it only reads what git stored. It also runs the check's own test.
+
+The test builds throwaway repositories and covers:
+
+- a good hook in a linked worktree, where a real push runs it
+- a hook stored as `100644`: the check refuses, and the fixture proves a real push skips the hook
+- executable on disk but `100644` in git: still refused
+- hooks path unset, and hooks path set to `/dev/null`: both refused
+
+The second case matters most to me. The test doesn't trust my reading of git's behaviour. It makes git do it.
+
+## What is live, and what isn't
+
+- The commit-aware pre-push, the check, the pre-commit call and the CI job are on the app's main branch, and CI runs the job on every push and pull request.
+- This is developer tooling. "Shipped" here means every checkout of main, not a server.
+- The same repository already had the rule for its credential scan: if the scanner isn't installed, the commit is blocked.
+- Limits: pre-commit can be skipped too, so CI is the backstop for the mode. The check proves the hook can run. It does not prove the gates inside it are good.
+
+## Takeaways
+
+- git skips a non-executable hook with a hint, not an error. Hints scroll past.
+- The mode stored in git is the one that counts. Read it with `git ls-files --stage`.
+- A push gate should judge the commit being pushed, with that commit's dependencies.
+- If a check can be absent, test for its absence. In CI too.
+- Reproduce the failure in a fixture. Don't assert what you believe the tool does.
+
+The hook had one job and no permission to do it. Now it's `+x`, and if that ever changes, the build gets hooked first.

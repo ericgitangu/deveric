@@ -1,0 +1,101 @@
+---
+published: false
+title: "The attacker kept changing IPs, the account stayed the same: login lockout that follows the identifier | Eric Gitangu"
+description: "Eric Gitangu on password guessing that rotates IP addresses: lock the identifier, pay one hash check on every failed sign-in, send the SMS after the answer."
+date: "2026-11-14"
+tags: ["Eric Gitangu", "authentication", "web security", "rate limiting", "account enumeration"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This is one problem from the last two weeks: a password-guessing script that walked straight past the rate limit, and the login hardening that followed.
+
+## The problem
+
+The logs showed scripted sign-in attempts against one account. A few tries, then a new source address, then a few more. The addresses came from anonymising networks, so there was always another one.
+
+The rate limit at the edge was per address, and every address stayed politely under it. The login endpoint being hit kept no count of failures per account. Nothing, anywhere, added the attempts up.
+
+Rate limiting by IP is checking hats at the door. The script just kept changing hats.
+
+## The decision
+
+Count failures against the thing being attacked: the identifier.
+
+The guard keys on the canonical identifier (lower-cased email, or dial code plus national number for a phone) and the kind of account. Never the address. Enough failures inside a window lock that identifier for a while, and a locked sign-in gets a 429 with a stable reason code and a generic message.
+
+The details that mattered:
+
+- **The lock is checked before the account lookup and the password check.** An identifier that doesn't exist locks exactly like one that does. Otherwise the lockout itself tells you which accounts are real.
+- **Attempts refused while locked are not counted.** A client that keeps hammering cannot extend the lock.
+- **A success clears the counter.**
+- **The identifier is stored only as a hash**, in a row that expires on its own.
+- **A store fault fails open, with an error log.** A lockout that fails closed turns one database blip into "nobody can sign in".
+
+The trade-off is written down next to the code: anyone who knows your email can lock you out for the length of the lock. I accepted that, because the alternative is unlimited guessing. The per-address limit stays in front, and locked failures raise an alert.
+
+```python
+def login(guard, users, actor, identifier, password):
+    wait = guard.retry_after(actor, identifier)   # before any lookup
+    if wait:
+        return 429, {"code": "login_locked", "retry_after": wait}
+
+    row = users.get(canonical(identifier))
+    if check_credentials(row, password):          # one hash check, always
+        guard.success(actor, identifier)
+        return 200, {"code": "ok"}
+
+    guard.failure(actor, identifier)              # never called while locked
+    return 401, {"code": "invalid_credentials"}
+```
+
+## Then the reviews started
+
+The first version covered two endpoints. Review rounds over the next few days found the rest.
+
+**The log line leaked.** Each failure logged a hash of the identifier, not the identifier. But it was a plain hash, so anyone able to read the logs could hash a guessed email and confirm it offline. It is now a truncated HMAC keyed with a server secret. The storage key stayed unkeyed on purpose: a key rotation must not drop live locks.
+
+**There were other doors.** An independent review noted that the lockout covered the main app logins and not the other credential endpoints. They all share the one guard now.
+
+**Two-factor cleared the count too early.** With a second factor, the counter now clears only after the second factor passes, and wrong codes count as failures.
+
+**A 429 with no clock.** The lock answered 429 without saying for how long. Every locked answer now carries `Retry-After`, the unlock time, and a message with the wait. The admin console shows a countdown.
+
+**Admin sign-in is a different problem.** A lock keyed on the account alone would let anyone lock an administrator out. There the lock is per account and source address, with a ceiling per account across all sources. Past the ceiling: one error line, a notification to the admins, and sign-ins from addresses that account has not used recently are refused until the window ends. A command-line break-glass clears it.
+
+## The quieter leak: time
+
+The lockout stopped the guessing. It did not stop the login from answering a different question: does this account exist?
+
+An unknown account was answered faster than a wrong password, because with no row there was no hash to check. A stopwatch is enough to see that.
+
+Now every password login pays exactly one hash check. Unknown account, account with no stored hash, empty password: each spends one verification against a fixed dummy hash and fails. Rows still in an older hash format pay the dummy check too. Both failures return the same body with the same stable code, and a status message such as "awaiting approval" appears only after the password has verified.
+
+The code-request endpoint had the same leak in a different shape. For a known id it sent an SMS and an email before answering. For an unknown id it sent nothing. Same body, different time.
+
+The sends are now queued and run after the response has been flushed to the client. Where the runtime can't finish a response early, they run inline as before. A failed send is logged by error type only, because a provider's error message can carry the phone number or the code.
+
+"Constant time" would be generous. "Same work" is honest.
+
+## Tests
+
+- **The guard:** locks at the threshold and not before, follows the identifier and not the address, treats unknown and known identifiers identically, does not extend on refused attempts, clears on success, fails open with a log line, and never logs a raw identifier or a password.
+- **The wiring:** every login endpoint is pinned to the shared helpers. A login that goes back to a bare "row found and password matches" fails the suite.
+- **Timing:** the medians for an unknown account and a wrong password must sit within a tolerant factor. Without the dummy check, the unknown case is nearly free and the test fails.
+- **Deferred sends:** the answer is returned with nothing sent, then the queue drains. An unknown id queues nothing. A send that throws changes nothing the client sees.
+
+A generic, runnable version of the pattern (guard, one-hash check, keyed log reference, deferred sends, tests) is in [this gist](GIST_URL).
+
+## What is live, and what isn't
+
+- Everything above is in a release that is live in production.
+- What I'm not claiming: that guessing is now impossible. A lockout slows it down. The timing test is a tolerance, not a proof. And someone who knows an identifier can still lock it for the window. That is the trade, on purpose.
+
+## Takeaways
+
+- Rate-limit the target, not only the source.
+- Check the lock before you look anything up.
+- Don't let a locked-out client extend its own lock.
+- A plain hash in a log is a lookup table waiting for a guess.
+- Every failed sign-in should cost the same work and return the same body.
+- Send the SMS after the answer.
+
+The script still has plenty of hats. The door just stopped looking at them.
