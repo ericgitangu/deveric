@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 
 interface Tip {
 	id: number;
@@ -14,8 +13,11 @@ const TipFetcher: React.FC = () => {
 	useEffect(() => {
 		const fetchTips = async () => {
 			try {
-				const response = await axios.get<Tip[]>("/api/tips");
-				setTips(response.data);
+				const response = await fetch("/api/tips");
+				if (!response.ok) {
+					throw new Error(`GET /api/tips answered ${response.status}`);
+				}
+				setTips((await response.json()) as Tip[]);
 			} catch (error) {
 				console.error("Error fetching tips:", error);
 			}
