@@ -1,0 +1,126 @@
+---
+published: true
+title: "The card number was in the name field: refusing card-shaped values at every write | Eric Gitangu"
+description: "Eric Gitangu on a PCI DSS data-at-rest scan that found card numbers typed into bank-detail and name fields: one pure detection rule, a guard at every write path, an audited mask, and sealing account numbers at rest."
+date: "2026-11-16"
+tags: ["Eric Gitangu", "pci dss", "data at rest", "application security", "fintech backend"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This one is about card data showing up where nobody designed it to live, and what I changed so it can't get there again.
+
+## The problem
+
+The platform keeps card data out of its own systems on purpose: card entry runs through hosted fields, so the card number never touches our servers. That is the whole point of a reduced PCI DSS scope.
+
+Scope is a claim, though, and claims need evidence. So I ran a read-only scan over the data store looking for anything that looks like a card number: a run of 13 to 19 digits that passes the Luhn checksum.
+
+It found some. Not in any card table. In free text.
+
+- A bank SWIFT code field holding a card number.
+- A bank routing number field holding one.
+- A user's display name holding one.
+
+Nobody attacked anything. People typed a card number into the box in front of them, because a form asked for "account details" and a card is the account they know. The system accepted it, because a name field accepts text and a card number is text.
+
+That is the uncomfortable part of PCI work. Your scope is not defined by the fields you designed. It is defined by every field a person can type into.
+
+## The decision
+
+Two rules, both mine to make:
+
+1. **Mask what is already there, in place.** Not delete: the rest of the record is real.
+2. **Refuse the value at every write path from now on.** Not at one form. Every path that can write those fields.
+
+And a third that was already in flight: bank account numbers get sealed at rest, so even a correct account number is not sitting in clear.
+
+## One rule, one place
+
+The first thing I wrote was a pure function. No framework, no database. If the detection rule lives in five controllers it will be five slightly different rules within a month.
+
+```python
+import re
+
+RUN = re.compile(r"(?<!\d)\d(?:[ -]?\d){12,18}(?!\d)")
+
+def luhn(digits: str) -> bool:
+    total = 0
+    for i, ch in enumerate(reversed(digits)):
+        n = int(ch)
+        if i % 2:
+            n = n * 2 - 9 if n > 4 else n * 2
+        total += n
+    return total % 10 == 0
+
+def find_card_numbers(value: str) -> list[tuple[int, int]]:
+    hits = []
+    for m in RUN.finditer(value):
+        start, end = m.span()
+        before = value[start - 1] if start else ""
+        after = value[end] if end < len(value) else ""
+        # part of a longer token (an id, a hash, a file name) is not a card number
+        if before.isalpha() or after.isalpha() or "_" in (before, after):
+            continue
+        if luhn(re.sub(r"\D", "", m.group())):
+            hits.append((start, end))
+    return hits
+```
+
+A single space or dash between digits is allowed, so a number typed in groups of four is still found. A run longer than 19 digits is not one card number. A run that is part of a longer letter-and-digit token, or the fraction of a decimal, is not one either. Those context rules came straight from the scanner, so the guard and the scan agree on what a card number is.
+
+A runnable version with the decimal rule, the refusal and a self-test is in [this gist](https://gist.github.com/ericgitangu/5a67d648614546e0c96f44c767c4d019).
+
+## The guard
+
+The rule is called from the write funnels: the model methods every insert and update goes through, plus the gates in front of account creation, profile names and bank details. Legacy forms, mobile API, the newer versioned API and the admin console all land on the same check.
+
+A refused write answers `422` with a stable code and the **field name only**:
+
+```json
+{ "status": 0, "code": "card_number_not_allowed_here", "field": "routing_number" }
+```
+
+The value is never echoed in the response and never written to the log. A guard that logs the card number it just refused has moved the problem into the log files.
+
+## Three things that bit
+
+**Real bank account numbers pass Luhn.** About one in ten random 13 to 19 digit numbers is checksum-valid. Guarding the account number field means some genuine account numbers get refused. I accepted that trade-off on purpose: the refusal names the field, and the person is told to check they entered a bank account, not a card. A false refusal costs one retry. A false accept costs a PCI finding.
+
+**A field the server never generates was stored unchecked.** Social sign-in posts a provider id from the client. The server stored it as given. Anything the client sends is free text until proven otherwise, so it joined the guarded list. A real provider id that is longer than 19 digits or fails the checksum still passes.
+
+**Order matters between masking and sealing.** The account numbers were being encrypted at rest in the same period. Once a value is sealed, a plaintext scan can't see it. If a card number had been typed into an account field and then sealed, the scan would report clean while the card number sat inside the ciphertext. So the mask runs before the seal, or the sealed rows are checked separately. A clean scan only means "clean in the places the scan can read".
+
+## The mask
+
+The cleanup tool is boring on purpose:
+
+- Dry run is the default. It prints counts per field, never a value.
+- Applying has to be named explicitly.
+- Each change writes an audit row first: record, field, masked value. No audit row, no change.
+- The write is a compare-and-set on the old value, so a record that changed underneath is reported, not overwritten.
+- It is idempotent. A second run finds nothing.
+
+The masked form keeps the first six and last four digits, which is the PCI DSS display rule, and the audit row never holds the clear value.
+
+## Sealing at rest
+
+Bank account numbers are now encrypted at rest through a vault: the ciphertext is bound to the record it belongs to, and only the last four digits are kept for display. The migration that sealed existing rows was a dry run by default, took a backup first and verified before and after. The backup itself is encrypted, created private and deleted once every row is read back. A bank-details write on a box without the key ring answers a coded refusal instead of a raw 500.
+
+## What is live, and what isn't
+
+- Sealing bank account numbers at rest is in production, released on 10 November.
+- The detection rule, the guard on every write path, the mask tool and an audit entry for each sealed field are built and tested, and waiting in a release that is not in production yet. I'm not claiming those as live until they ship.
+- Backups taken before the mask still hold the old values until retention ages them out. The mask doesn't rewrite backups, and I'd rather say so than pretend the history is clean.
+
+## Takeaways
+
+- Your PCI scope is every field a person can type into, not the fields you designed for cards.
+- Put the detection rule in one pure function. Call it from every write funnel.
+- Refuse with the field name. Never echo or log the value you refused.
+- Pick your false-positive side on purpose and write the trade-off down.
+- Mask before you seal, or your scan goes blind exactly where it matters.
+
+A name field is not a wallet. Somebody will still try to keep a card in it.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
