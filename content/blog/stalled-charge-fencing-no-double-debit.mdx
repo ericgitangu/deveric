@@ -1,0 +1,141 @@
+---
+published: true
+title: "The request that woke up late: fencing a stalled charge so a retry can't debit twice | Eric Gitangu"
+description: "Eric Gitangu on a wallet charge that got stuck mid-payment: why a timeout can't tell a dead request from a slow one, how a retry that takes over can cause a double debit, and the one-time marker that fences the first attempt out."
+date: "2026-11-17"
+tags: ["Eric Gitangu", "system design", "distributed systems", "fencing tokens", "payments architecture"]
+---
+
+I'm Eric Gitangu. I work on a mobility/fintech platform. This post is about one question that sounds easy until money is involved: a charge got stuck halfway. Who is allowed to finish it?
+
+## The setup
+
+Paying for a trip from a wallet is several writes, not one:
+
+1. **Claim** the trip: a conditional write moves its payment state to "charging". Only one request can win it.
+2. **Stamp a plan** on the trip before any money moves: the amount, and a ledger entry id minted up front.
+3. **Debit** the wallet with a conditional write that refuses to go below zero.
+4. **Settle**: write the ledger entry under the pre-minted id and mark the trip paid.
+
+The trip and the wallet are separate records. Nothing wraps all four steps in one transaction, so the order is the design. The plan goes down before the debit so that anyone who finds the trip later can tell how far the first attempt got.
+
+## Problem one: stuck in "charging"
+
+If the request faults after step 1, the trip stays "charging" forever. Every retry sees the claim and backs off. The customer sees a payment that never completes, and no error to act on.
+
+So a retry has to be able to take over. The rule I shipped first:
+
+- A claim younger than a short grace period may still be in flight. The retry gets a "try again" answer and touches nothing.
+- Past the grace period, retries are serialized: only the one that moves the claim time forward from the value it read may continue.
+- Then it asks one question: **did the debit land?**
+
+That question has three answers, not two:
+
+- **Yes** (the ledger entry or the debit's audit record exists): finish the settle step. No second debit.
+- **Provably no** (there is no plan, or no trace of the debit): release the claim and charge fresh.
+- **Can't tell**: move nothing, raise a reconcile flag a human will see, answer "try again".
+
+A failed read is not a "no". If the lookup faults, the request is refused. Unknown never gets rounded to the convenient answer.
+
+## Problem two: the first attempt wasn't dead
+
+That takeover has a hole, and I found it by writing the test before trusting the design.
+
+"The claim is old" does not mean "the first attempt is dead". It can be stalled: blocked on a slow database call. The request time limit I was relying on didn't count time spent blocked on the database, so a stalled request could outlive the grace period and then carry on.
+
+The sequence:
+
+1. Attempt A claims the trip, stamps the plan, and stalls just before the debit.
+2. The grace period passes. Retry B takes over, finds no debit on record, releases and charges fresh. The wallet is debited once. Correct so far.
+3. A wakes up. Nothing has told it the world changed. It debits.
+
+The failing test showed exactly that: one fare, two debits. "No debit on record" was true when B looked. It just wasn't going to stay true.
+
+This is the classic zombie-worker problem. A timeout is a guess about another process, and you can't build money rules on a guess. You need a write that makes the guess true.
+
+## The fence
+
+Each stamped plan gets a one-time marker: a unique record that can be created exactly once.
+
+- The original attempt must take the marker **immediately before** it debits.
+- A takeover that finds no debit must **burn the same marker** before it charges fresh.
+
+Whoever gets there first wins, and the loser moves nothing.
+
+```python
+def charge(trip_id):
+    if not trips.cas(trip_id, expect={"pay": "unpaid"},
+                     set={"pay": "charging", "claimed_at": now()}):
+        return resume(trip_id)
+
+    plan = {"entry_id": new_id(), "amount": fare(trip_id)}
+    # one plan per claim: the stamp lands only while no plan is there
+    if not trips.cas(trip_id, expect={"pay": "charging", "plan": None}, set={"plan": plan}):
+        return Retry()                      # lost the claim: release nothing
+
+    if not markers.create_once(f"debit:{plan['entry_id']}"):
+        return Retry()                      # a takeover fenced this attempt out
+
+    wallet.debit_if_sufficient(plan)
+    return settle(trip_id, plan)
+
+
+def resume(trip_id):
+    trip = trips.get(trip_id)
+    if age(trip.claimed_at) < GRACE:
+        return Retry()                      # may still be in flight
+    if not trips.cas(trip_id, expect={"pay": "charging", "claimed_at": trip.claimed_at},
+                     set={"claimed_at": now()}):
+        return Retry()                      # another retry got here first
+
+    plan = trip.plan
+    if plan is None:                        # stamped before the debit: nothing started
+        release(trip_id)
+        return charge(trip_id)
+
+    landed = debit_landed(plan)             # True / False / None; a read fault raises
+    if landed is True:
+        return settle(trip_id, plan)        # finish, never debit again
+    if landed is False and markers.create_once(f"debit:{plan['entry_id']}"):
+        release(trip_id)                    # the stalled attempt can never debit now
+        return charge(trip_id)
+
+    flag_for_reconcile(trip_id, plan)       # marker already taken: debit may still land
+    return Retry()
+```
+
+Walk the race again. If B burns the marker first, A wakes, fails `create_once` and stops. If A took the marker first and then stalled, B finds it taken with no debit on record. That is the one state nobody can prove from the outside: A is past the fence and its debit may still land. So B does not guess. It flags the trip for reconciliation and refuses.
+
+Two smaller rules hold the fence up:
+
+- **One plan per claim.** The plan stamp is itself conditional on no plan being there. An attempt that loses that write may have been taken over, so it releases nothing. It no longer owns what it would be releasing.
+- **Settle is idempotent.** The ledger entry goes in under the id minted in the plan, so finishing a charge twice writes one row.
+
+## Rejected alternatives
+
+- **A longer grace period.** It makes the race rarer and every honest retry slower. Rare is not a property you want on a debit.
+- **A lock with a TTL.** It's the same guess with a different name. The holder can stall past the TTL and still believe it holds the lock.
+- **Reverse the second debit afterwards.** Compensation is a fine tool, but the customer has already seen a wrong balance, and now the reversal is a money path that can fail too.
+
+## Trade-offs I accepted
+
+- **One extra write per charge.** The marker costs a round trip on the happy path. A double debit costs a refund, a support ticket and some trust.
+- **Some charges wait for a human.** In the unprovable case the system refuses instead of deciding. That is slower for one customer and correct for all of them.
+
+## Where it is
+
+The resume rule and the marker fence are live in production. The next step is built and tested but not live yet: putting the fence inside the debit write's own condition, so even an attempt that got past the marker can't move money after a takeover.
+
+## Takeaways
+
+- A timeout tells you a request is late. It never tells you it's dead.
+- Before taking over someone's work, make a write that stops them from finishing it.
+- "Did it land?" has three answers. Treat "can't tell" as its own case, and never as "no".
+- Stamp the plan before the money moves, and mint ids up front so the last step is idempotent.
+- If you no longer own the claim, don't release it.
+
+Retries are how you get reliability. Fences are how you survive the retries.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
