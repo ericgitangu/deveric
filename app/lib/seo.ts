@@ -4,6 +4,16 @@ export const SITE_URL = "https://developer.ericgitangu.com";
 export const SITE_NAME = "Eric Gitangu";
 export const TWITTER_HANDLE = "@dev_ericgitangu";
 
+// The root app/opengraph-image.tsx card only reaches "/" and the routes that
+// inherit it; a route with its own openGraph block (every post) lost it, so
+// shares of a post rendered with no image. Set it explicitly here.
+const SHARE_IMAGE = {
+	url: "/opengraph-image",
+	width: 1200,
+	height: 630,
+	alt: "Eric Gitangu — Software Engineering Lead & Architect",
+};
+
 // Google truncates snippets around 155-160 chars. Cut on a word boundary so
 // long MDX frontmatter descriptions (up to ~400 chars) stay readable in SERPs;
 // the full text still renders on the page itself.
@@ -39,6 +49,7 @@ export function pageMetadata({
 			siteName: SITE_NAME,
 			locale: "en_US",
 			type: "website",
+			images: [SHARE_IMAGE],
 		},
 		twitter: {
 			card: "summary_large_image",
@@ -46,6 +57,7 @@ export function pageMetadata({
 			description,
 			site: TWITTER_HANDLE,
 			creator: TWITTER_HANDLE,
+			images: [SHARE_IMAGE.url],
 		},
 	};
 }
