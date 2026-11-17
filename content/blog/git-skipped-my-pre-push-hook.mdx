@@ -90,6 +90,8 @@ dir="$(git rev-parse --git-path hooks)"
 [ -x "$dir/pre-push" ] || refuse "no executable pre-push in $dir"
 ```
 
+The hook and both checks, as standalone files, are in [this gist](https://gist.github.com/ericgitangu/21f1f814e563423b713cb6f502c44cf2).
+
 Each refusal prints the reason and the fix, which is `git update-index --chmod=+x` on the file and a commit.
 
 Then the wiring:
