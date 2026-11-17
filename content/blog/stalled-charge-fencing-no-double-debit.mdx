@@ -104,6 +104,8 @@ def resume(trip_id):
     return Retry()
 ```
 
+The same pattern as a standalone file, with a short README, is in [this gist](https://gist.github.com/ericgitangu/2aa1cedc877e98f760ea1b6e80799a7a).
+
 Walk the race again. If B burns the marker first, A wakes, fails `create_once` and stops. If A took the marker first and then stalled, B finds it taken with no debit on record. That is the one state nobody can prove from the outside: A is past the fence and its debit may still land. So B does not guess. It flags the trip for reconciliation and refuses.
 
 Two smaller rules hold the fence up:
