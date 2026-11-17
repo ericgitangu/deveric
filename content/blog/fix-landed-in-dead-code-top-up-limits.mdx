@@ -1,0 +1,129 @@
+---
+published: true
+title: "I fixed the limit check in a function nothing calls: green tests, dead code, live payment route | Eric Gitangu"
+description: "Eric Gitangu on a top-up limit fix that passed its tests and shipped into dead code: why blank is not unset, one bounds resolver for every payment rail, and the route-level test that would have caught it."
+date: "2026-11-17"
+tags: ["Eric Gitangu", "payments", "testing", "dead code", "payment integration"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This one is about a limit check I fixed, tested and shipped, in a function the live payment route never calls.
+
+## The setup
+
+Users top up a wallet through several payment rails: card, a few mobile-money rails, a web flow. Each location can set a minimum and a maximum top-up amount. If it sets none, a default range applies.
+
+Each rail had its own copy of that logic.
+
+## Problem one: blank is not unset
+
+The admin form saved a blank limit as an empty value, not as "nothing set". The rails asked the wrong question:
+
+```python
+# "is it set?" An empty value is set.
+max_amount = stored_max if stored_max is not None else DEFAULT_MAX
+```
+
+So a blank overrode the default. A location saved with blank limits enforced a maximum of nothing, and that rail refused every top-up. In an older version of the same bug, the blank went into arithmetic and came back as a server error.
+
+The fix was one resolver. A stored bound may override the default only if it is a positive number. Anything else falls back. The maximum is never below the minimum.
+
+```python
+import math
+
+def valid(v):
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return False
+    return math.isfinite(f) and f > 0
+
+def resolve_bounds(raw_min, raw_max, default_min, default_max):
+    lo = float(raw_min) if valid(raw_min) else default_min
+    hi = float(raw_max) if valid(raw_max) else default_max
+    return lo, max(lo, hi)   # never an inverted range
+```
+
+I moved four rails onto it and added a source check: each rail file on its list must call the resolver and must not contain the old raw copy.
+
+## Problem two: the fix went into a function nothing calls
+
+Two more were left on my side, card and one mobile-money rail. I moved both.
+
+The card file had a validator with a top-up branch, and the limit check lived in that branch. I fixed it there. The tests drove that method directly: a blank limit keeps the default, below the minimum is refused, above the maximum is refused, a valid amount passes. Green. It went to production in the morning release.
+
+The live card top-up routes don't call that validator. They call a different one, which only checks that the fields are present. The branch I fixed had one caller, the payout path, and payout never asks for the top-up branch.
+
+So the live card top-up had no limit check of ours. Not before my fix and not after it. Any amount went on to the card provider. The release note for that morning says it in plain words: the card half was written into a function nothing calls.
+
+Nothing broke. Nothing got fixed either.
+
+My tests were honest about what they tested. They called the method. Nobody asked the route.
+
+## The decision
+
+- Put the check where the money enters: the validator the live routes run.
+- Refuse before anything else happens. No claim taken, no provider called.
+- Delete the dead branch. Two copies of one check is how this happened.
+- Test through the public route, red first.
+- Settle the open question: what about an account with no location? Skip the limits, or apply the default? The default applies to every account, on every rail. One rail already worked that way.
+
+## The fix
+
+The live validator now resolves the bounds from the account's location and refuses before the idempotency claim and before the first call to the card provider.
+
+```python
+def validate_topup(account, amount):
+    require_fields(account, amount)
+
+    loc = location_of(account)            # may be None
+    lo, hi = resolve_bounds(
+        loc.min_topup if loc else None,
+        loc.max_topup if loc else None,
+        DEFAULT_MIN, DEFAULT_MAX,
+    )
+    if amount < lo:
+        return refuse("amount is less than the minimum")
+    if amount > hi:
+        return refuse("amount is greater than the maximum")
+    return ok()
+
+# the route: validate, then claim the idempotency key, then call the provider
+```
+
+A refused amount costs nothing and leaves nothing behind.
+
+The resolver, the route and the route-level test, as one runnable file, are in [this gist](https://gist.github.com/ericgitangu/d094c03fb562ff7b2ce17db0c0c51ad4).
+
+The old branch is gone. If anything asks the old validator for a top-up, it delegates to the live one, so the file has one bounds block.
+
+The new test drives the real public route in a child process. The provider client is a double that records the call and answers an error, so nothing leaves the process. Before the fix the test was red: an over-limit amount reached the provider call. After it, the amount is refused and the double has recorded nothing.
+
+Two more of the same family turned up while I was in there:
+
+- Another top-up route loaded the user with a projection of two fields. Its limit block needed the currency and the location, which were never loaded, so the block never ran on real data. The projection now carries both.
+- One rail's eligibility check read a config key that was never defined, so it refused every number. That rail is switched off in production. The key is defined now, and its test reads the real config file.
+
+## Shipped
+
+- Staging first, then production the same evening, as the second release of the day.
+- No server errors in the window after activation.
+- The source check gained the rail file it was missing. Two rails owned by another workstream are still outside it.
+
+Limits, so I don't oversell it:
+
+- The source check proves a file calls the resolver. It does not prove the live route does. That is the exact gap I fell into.
+- The card routes have a route-level test now. I'm not claiming that for every rail.
+
+## Takeaways
+
+- A test that calls a method proves the method. It says nothing about who calls it.
+- On a money path, write at least one test that enters through the route.
+- Blank, zero and "not set" are three different things until one function says otherwise.
+- Refuse before you claim, lock or call out.
+- Delete the dead copy. Otherwise someone will fix it again.
+
+Dead code passes every test you write for it. It has nothing to lose.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
