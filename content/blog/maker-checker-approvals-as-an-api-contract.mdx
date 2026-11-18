@@ -1,0 +1,127 @@
+---
+published: true
+title: "The admin who moves money shouldn't approve it: maker-checker as an API contract | Eric Gitangu"
+description: "Eric Gitangu on designing maker-checker (dual control) for admin money operations: approvals bound to a hash of the exact request, single-use by compare-and-set, a decision core with injected I/O, and a 409 that turns a synchronous write into a workflow."
+date: "2026-11-16"
+tags: ["Eric Gitangu", "system design", "maker-checker", "fintech architecture", "separation of duties"]
+---
+
+I'm Eric Gitangu. I work on payments infrastructure. This post is about one design question: how do you let an admin console move money without letting any one admin do it alone?
+
+The textbook answer is maker-checker, also called dual control or four-eyes: one person proposes, a different person approves. Auditors ask for it under SOC 2 and PCI DSS as separation of duties. Most implementations stop at "add an approvals table". The interesting decisions are everywhere else.
+
+## The question that shapes everything
+
+What exactly is being approved?
+
+If the approval says "Alice may credit wallet 123", the checker approved an intent. The maker can then execute something slightly different: another amount, another target, or the same approval twice. An approval that doesn't pin down what it approves is a rubber stamp.
+
+So the approval is bound to the exact mutation.
+
+## Approvals bound to a hash of the request
+
+The maker's first request doesn't move anything. It creates a pending approval keyed on a hash of the canonical mutation: route, target, operation, amount and currency, every field that changes what happens. The API answers `409` with an approval-required code and the approval id.
+
+A different admin reviews and approves it. The maker then repeats the identical request with the approval id attached. The server recomputes the hash from what is actually about to execute, not from what the approval row says. Only a match proceeds.
+
+```python
+import hashlib, json
+
+CONTROL_FIELDS = {"approval_id"}   # how you ask, not what you're asking for
+
+def mutation_hash(route: str, body: dict) -> str:
+    mutation = {k: v for k, v in body.items() if k not in CONTROL_FIELDS}
+    canonical = json.dumps({"route": route, **mutation}, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode()).hexdigest()
+
+def decide(policy, store, actor, route, body, now):
+    """No framework, no database driver, no clock: the store, policy and time are injected."""
+    limit = policy.limit_for(body["currency"])
+    if limit is None:
+        return Refuse(503, "config_invalid")               # unknown never means unlimited
+    if not policy.needs_second_admin(store, actor, body, limit, now):
+        return Proceed()
+
+    h = mutation_hash(route, body)
+    approval_id = body.get("approval_id")
+    if approval_id is None:
+        pending = store.create_pending(maker=actor, hash=h, now=now)
+        return Refuse(409, "approval_required", approval_id=pending.id)
+
+    a = store.get(approval_id)
+    # wrong id, wrong maker, changed request, expired: one answer, so nothing leaks
+    if a is None or a.maker != actor or a.hash != h or a.expired(now):
+        return Refuse(409, "approval_invalid")
+    if a.status == "pending":
+        return Refuse(409, "approval_pending")
+    # single use: approved -> consumed, only if nobody else got there first
+    if a.status != "approved" or not store.compare_and_set(approval_id, expect="approved", to="consumed"):
+        return Refuse(409, "approval_already_used")
+    return Proceed(audit=("money_approval", approval_id))
+```
+
+Three properties fall out of that shape:
+
+- **What you approved is what runs.** Change one field and the hash no longer matches.
+- **Single use.** The approval moves from `approved` to `consumed` with a compare-and-set, so two racing requests can't both spend it.
+- **Approvals age out.** A stale approval is a liability, not a convenience.
+
+Look at the `approval_invalid` line too. Unknown id, someone else's approval, a changed request and an expired one all get the same answer. A caller probing ids learns nothing about which ones exist.
+
+## Four decisions I'd defend in a design review
+
+**1. A decision core with injected I/O, a thin runtime shell.** The decision function has no framework, no database driver and no clock. The store, the policy, the actor and the time are passed in, and every state change goes through the store as a compare-and-set. The result says whether to proceed, what to answer, and which audit and alert events the caller must emit. The shell does the I/O. The money rules get tested exhaustively against an in-memory store, and the runtime has nothing interesting left to get wrong. If the shell can't reach a decision at all, the request is refused, never allowed.
+
+**2. Fail closed on configuration.** A currency with no limit configured is not "no limit". It's a refused request and a config error someone has to fix. A kill switch, if you keep one, should be explicit and loud: off only when someone deliberately says so, and visible every time it matters.
+
+**3. Count the window, not just the request.** A per-request limit invites splitting: ten small credits instead of one big one. The rule looks at the request plus what has already moved on the same target in a rolling window, and at the maker's own total across targets. Nobody has to be malicious for this to matter. Splitting is also what a hurried, well-meaning person does to get unblocked.
+
+**4. Independence is proven, not assumed.** The checker must be a different person from the maker, and the system has to be able to show that, not just believe it. When it can't establish independence, it refuses. The most privileged role is still bound by the rule. Separation of duties that the top role can skip is only a suggestion.
+
+## Money moves only with its paper trail
+
+Approval decides whether money may move. The move has its own ordering:
+
+1. Write an intent row.
+2. Write the audit-chain row.
+3. Move the money with a compare-and-set that references the intent.
+
+If the intent or the audit row can't be stored, the money doesn't move, and the API says so. A reconciler picks up intents that were written but never completed. Audit strictness is tiered by blast radius: the money path is the one where a missing record stops the operation.
+
+Each approval also gets its own audit row, and the people involved are notified when it's decided.
+
+## Rejected alternatives
+
+- **Role-only gating.** "Only finance admins can credit wallets" limits who can act. It does nothing about one finance admin acting alone. Roles answer "may this person do this?", and dual control answers "has a second person agreed to this exact thing?". You need both.
+- **A signed approval token instead of a row.** It's stateless and elegant. But it can't be single-use without server state, and it can't be revoked before it expires. Once you add a "used tokens" table you've rebuilt the row, with less visibility.
+- **Approving an intent instead of a hash.** It's friendlier for edits, but it lets the executed request drift from the approved one. A changed request should be a new approval.
+- **`202 Accepted` with a job id.** It's tempting, but nothing has been accepted. The request conflicts with a policy, and the client has to come back with proof. That's a `409`.
+
+## The UX cost
+
+Maker-checker turns a synchronous write into a workflow, and that's friction. The admin console reads the approval-required code and shows "Sent for approval" with the request id and a link to the approvals queue, instead of an error.
+
+Responses never include the limit or any number from the policy. An answer like "you can move up to X without approval" tells a careful insider exactly how to stay under the bar.
+
+## Trade-offs I accepted
+
+- **Two people for one action.** Larger moves get slower. That's the point, and the window rule keeps the friction on the cases that matter.
+- **Async where admins expect sync.** The cost is paid in the UI, with a clear state and a queue, not by weakening the rule.
+- **Approvals expire.** Sometimes a legitimate approval lapses and has to be requested again. That's cheaper than a pile of live approvals nobody remembers granting.
+- **More rows per money move.** Intent, audit, approval and notification. Storage is cheap. Reconstructing who did what after the fact is not.
+
+## Takeaways
+
+- Approve the exact mutation, not an intent. Hash it, and recompute the hash at execution.
+- Make approvals single-use with compare-and-set, and let them expire.
+- Give every invalid approval the same answer.
+- Keep the decision free of framework and clock; inject the store and time.
+- Unknown config means refuse. Any kill switch must be explicit and loud.
+- Count windows, not just requests.
+- Prove independence. No bypass for the top role.
+
+Four eyes are cheaper than one incident. Make the second pair of eyes approve what actually runs.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
