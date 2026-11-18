@@ -1,0 +1,112 @@
+---
+published: true
+title: "Which endpoint is slow? Per-route latency with a hard cap on series, and a top-K that can change its mind | Eric Gitangu"
+description: "Eric Gitangu on per-route latency metrics without a cardinality explosion: fold paths into routes, cap the series in the exporter, re-rank the top-K with decay and hysteresis, and merge evicted routes so counters never go down."
+date: "2026-11-18"
+tags: ["Eric Gitangu", "system design", "observability", "metrics cardinality", "top-k"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This post is about a question every on-call engineer asks and few systems answer cheaply: which endpoint is slow?
+
+## The problem
+
+After an incident review I went looking for latency per route and found there wasn't any. We had overall request time and error rates. Nothing could say "this route's p95 doubled since yesterday".
+
+The textbook fix is a latency histogram labelled by route. The textbook trap is that a route label has no upper bound:
+
+- **Paths carry ids.** `/trips/8841/view` and `/trips/8842/view` are one route and two label values.
+- **The internet sends paths you never wrote.** A scanner walking a wordlist mints a new label value with every request.
+- **A histogram multiplies everything.** Routes x methods x status classes x buckets.
+
+In a metrics store, every distinct label set is a time series held in memory. Unbounded labels are how the dashboard takes down the thing that watches production.
+
+## The constraints
+
+- **No change to the request path.** The numbers come from the access log the reverse proxy already writes, which carries the request time.
+- **No new daemon.** A short scheduled job at the lowest CPU and I/O priority, so measuring latency can't add to it.
+- **A hard cap on series**, enforced by the exporter itself.
+- **Counters that only go up**, so rate math over them stays valid.
+
+## Step one: fold the path into a route
+
+A pure function turns a path into a route. The query string goes. UUIDs, long hex ids, plain numbers and long opaque tokens become `:id`. Anything outside a small safe alphabet is replaced, and the result is length-bounded. A version segment like `v2` is a word, not an id, and there's a test row that says so.
+
+Some lines must not count at all: static assets, our own health probes, lines that don't parse, and the inner hop. A request passes two proxy hops and both write the log, so only the outer one counts or every request is measured twice. Each dropped line is counted by reason. A drop you don't count is a hole in the data you can't see.
+
+## Step two: seats, and a cap
+
+A route gets its own series only after it has been seen a few times, and only while there is a free seat. Everything else lands in one series called `other`. Nothing is lost: the totals still add up. A scanner's one-off paths never reach the threshold, so they never get a series.
+
+That bounded the cardinality. It also had a flaw I only saw after writing it down.
+
+## Problem two: top-K was really first-K
+
+The set of seated routes only grew. Once it was full, it was frozen. A route shipped next month, or a quiet one that got busy, would live in `other` forever, while a route nobody calls any more kept its seat.
+
+## The re-rank
+
+Every run, after reading the new lines:
+
+1. **Decay** every score, seated and waiting, by a constant factor. Old traffic fades without storing a single timestamp.
+2. Find the hottest waiting route and the coldest seated one.
+3. **Swap only if the challenger wins by a margin.** Two routes with similar traffic would otherwise trade seats every run, and each trade ends one series and starts another. A test feeds a barely hotter route and asserts nobody moves.
+4. **A few swaps per run at most.** Even a big traffic shift changes the series set slowly.
+5. **Ties break on the route name.** Same log in, same output out. A test runs the same input twice and compares the output.
+
+```python
+def rerank(self):
+    for scores in (self.heat, self.candidates):
+        for route in list(scores):
+            scores[route] *= DECAY                  # old traffic fades
+    for _ in range(MAX_SWAPS):                      # bounded churn per run
+        if not self.candidates or len(self.seated) < CAP:
+            return
+        hot, hot_score = min(self.candidates.items(), key=lambda kv: (-kv[1], kv[0]))
+        cold = min(self.seated, key=lambda r: (self.heat.get(r, 0.0), r))
+        if hot_score < MARGIN * self.heat.get(cold, 0.0):
+            return                                  # not clearly hotter: nobody moves
+        self._evict(cold)                           # merge into "other"
+        self.seated.append(hot)
+        self.heat[hot] = self.candidates.pop(hot)
+```
+
+The full pattern as a standalone file, with a self-test, is in [this gist](https://gist.github.com/ericgitangu/b01cc740429f088fad7d5a963034a2e8).
+
+## The eviction detail that matters
+
+When a route loses its seat, its histogram is not deleted. It is added into `other`, bucket by bucket, for the same method and status class.
+
+Delete it and the total request count drops. A counter that goes down reads as a reset, and every rate over it is wrong for that window. Merged, the route's own series ends and the totals stay monotonic. The promoted route starts its own series from zero. Its earlier hits were already counted in `other`, and they stay there.
+
+## The boring parts that make it trustworthy
+
+- **Read each line once.** The state holds the log file's identity, an offset and the histograms. A rotated log is finished from the rotated file, matched by identity and not by name, before the new one is read. A log truncated in place restarts at zero. There is a read budget per run, so a backlog is worked off over several runs.
+- **State first, then metrics**, both written to a temporary file and renamed. A crash between the two re-renders from the saved state on the next run.
+- **Fail open, loudly.** A failed run writes "exporter up: 0" and exits clean. One alert watches that value. A separate staleness alert covers a writer that stops altogether. Both have a runbook entry.
+- **Percentiles are precomputed.** p50, p95 and p99 per route over a short and a long window, as stored rollups. The long window is evaluated less often because it is the expensive one. The "slow endpoints" view for operators reads the rollups, and a test pins the names the reader asks for to rules that exist.
+
+## Trade-offs I accepted
+
+- **Resolution is one run of the job.** Fine for "what got slow today", wrong for a per-second view.
+- **It is the proxy's view of time.** The whole request as the proxy saw it, not time inside the app.
+- **An evicted route loses its own history.** It lives on inside `other`.
+- **The waiting list is bounded too.** When it overflows, the smallest scores are dropped, so a route that builds very slowly can be forgotten and start again.
+
+## Where it is
+
+The exporter, the rollup rules and the slow-endpoints read are in the release that went live in production this week. The cap, the decay and the margin are settings, not constants.
+
+## Takeaways
+
+- A label with no upper bound is a memory leak with a dashboard on top.
+- Cap the series in the exporter. Don't rely on traffic being polite.
+- A top-K that never forgets is a first-K. Decay the scores.
+- Add hysteresis, or two similar routes will fight over the last seat every run.
+- When you drop a series, merge its counts somewhere. Counters must not go down.
+- Count what you drop, by reason.
+
+The exporter has a short memory by design. It decays gracefully.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
