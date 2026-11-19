@@ -1,0 +1,110 @@
+---
+published: true
+title: "The linter was grading the wrong checkout: a lint baseline that can only shrink | Eric Gitangu"
+description: "Eric Gitangu on adopting a linter for the shell scripts that deploy production: a baseline that can only shrink, three checks with three policies, and two bugs in the gate that let it pass without looking."
+date: "2026-11-19"
+tags: ["Eric Gitangu", "system design", "ci/cd", "linting", "release engineering"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This post is about adding a linter to code that was already running production, and about the day the linter turned out to be grading the wrong checkout.
+
+## The problem
+
+The shell scripts in our repo are not side projects. They deploy production, apply configuration and decide whether a merge is allowed. They were also the one kind of code with no automated check. The backend had a static analyser with a baseline. The scripts had code review and hope.
+
+Turning a linter on in old code usually ends one of two ways:
+
+- **Fix everything first.** A week of diffs nobody asked for, in the scripts you least want to touch.
+- **Warn only.** A wall of yellow that everyone scrolls past by day three.
+
+I wanted a third outcome: old findings tolerated, new ones refused, and a tolerated set that can only get smaller.
+
+## Three checks, three policies
+
+Not every finding is the same kind of problem, so each check got its own rule.
+
+- **Syntax (`bash -n`): never tolerated.** A script that does not parse is not debt. It is an outage with a date on it.
+- **Lint (ShellCheck): a baseline.** Existing findings are recorded. Anything beyond them fails.
+- **Format (shfmt): enforced on new files only.** Existing scripts get a report. The indent is detected per file, never imposed, so the gate does not start a formatting war or bury a real change in whitespace.
+
+Two more rules apply to all three. A missing tool blocks, with the install hint. It never passes quietly. And the gate judges the staged content, not the working tree: what is committed is what is checked.
+
+## The baseline: counts, not lines
+
+The baseline is one committed text file. Each line is a file, a rule and how many findings of that rule the file is allowed.
+
+Counts are deliberate. A baseline keyed by line number breaks on every edit above the line, and people learn to regenerate it without reading. With counts, moving a line changes nothing. A file may have fewer findings than its entry, never more. A file and rule the baseline does not list has zero allowed.
+
+## The ratchet
+
+A baseline alone is only a list. Anyone can add a line to it in the same commit as the new finding, and the gate goes green.
+
+So a second step compares the proposed baseline with the committed one:
+
+```python
+def ratchet_breaches(old, new):
+    out = []
+    for key, n in sorted(new.items()):       # key = (file, rule)
+        if key not in old:
+            out.append(f"new entry {key}")   # baselining a new finding
+        elif n > old[key]:
+            out.append(f"grew {key}")        # raising a count by hand
+    return out                               # empty = allowed
+
+def regenerate(old, current):
+    # after a fix: min(old, current), and nothing can be added
+    return {k: min(n, current.get(k, 0)) for k, n in old.items()
+            if min(n, current.get(k, 0)) > 0}
+```
+
+A new entry is refused. A higher count is refused. Regenerating takes the smaller of the old and the current number per entry, so an entry that was never there cannot appear. Creating the baseline is a separate one-time mode that refuses to run when a baseline exists.
+
+The file has one direction. It shrank twice on the day it was created, because fixing a finding was now the shortest way through the gate.
+
+The full pattern with a self-test is in [this gist](https://gist.github.com/ericgitangu/ca23030734b3396e4c5e9e9815024cb6).
+
+## One entry point
+
+The commit hook and the merge check call the same script. A test fails if either one stops calling it, so "passes locally" and "passes at merge" cannot drift into two different gates.
+
+The deploy scripts run the syntax check on every script they are about to ship, before the first write. No linter is installed on a server. A parse check needs only the shell that is already there.
+
+## Then I reviewed the gate itself
+
+The same day, we ran an adversarial pass over our own release checks. The gate had two bugs. Both let it report green without having looked.
+
+**Bug one: two files, one result.** Workers check scripts in parallel and each writes a result file. I had named that file after the script's path with the slashes replaced by underscores. So `a/b.sh` and `a_b.sh` shared one result, and whichever worker finished last won. A clean script could overwrite the findings of the other. The fix: the name is a digest of the whole path.
+
+**Bug two: the wrong checkout.** The merge check does not trust a branch to judge itself. It runs the trusted copy of the gate against a throwaway merge of the candidate, passed in as the tree to judge. The parent process honoured that. The workers did not. Each worker is a fresh process, and each one recomputed the tree from where the script lives. They judged the trusted checkout: code that had already passed.
+
+What gave it away was a new script failing with "cannot read". It existed in the candidate and not in the tree the workers were reading. Edited scripts were the quiet case. Their old, clean versions were being checked, and nothing complained.
+
+The fix has two parts. The tree is handed to the workers explicitly instead of being derived by each one. And when a tree is named, a script missing from it fails loudly. It is never skipped, and never read from somewhere else.
+
+Each bug got a failing test first, then the fix.
+
+## Trade-offs I accepted
+
+- **Counts can net out.** Fix one finding and add another in the same file under the same rule, and the count is unchanged. Review still matters.
+- **Warnings and above.** Style-level notes are not gated.
+- **Only files named `.sh`.** Hook files without an extension are outside this gate.
+- **Format debt stays** in old scripts until someone touches them on purpose.
+
+## Where it is
+
+The gate, the ratchet and the deploy-time syntax check are in the release that went live in production this week. The baseline is shorter than the day it was written.
+
+## Takeaways
+
+- A syntax error is not debt. Don't put it in a baseline.
+- Baseline by count per file and rule, not by line number.
+- A baseline without a ratchet is a suggestion. Compare it with the last commit and refuse growth.
+- A gate is code. Give it tests, and have someone try to break it.
+- A worker that works out its own context will sooner or later check the wrong thing. Pass the context in.
+- A check that cannot find its input must fail, not skip.
+
+Technical debt, now with a no-new-borrowing clause.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
