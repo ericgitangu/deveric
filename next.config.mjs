@@ -8,6 +8,20 @@ const nextConfig = {
 		// removed entirely in 14. Drop it before the next major upgrade.
 		mdxRs: true,
 	},
+	async redirects() {
+		return [
+			{
+				source: "/projects/vishnu",
+				destination: "/projects/medical-ai-assurance",
+				permanent: true,
+			},
+			{
+				source: "/projects/pawa-cloud",
+				destination: "/projects/multilingual-ai-assistant",
+				permanent: true,
+			},
+		];
+	},
 	// *.vercel.app aliases of the production deployment (deveric-io.vercel.app,
 	// deveric-vert.vercel.app, previews) serve the full site with 200s. Mark
 	// every host except the canonical one noindex so they never compete with

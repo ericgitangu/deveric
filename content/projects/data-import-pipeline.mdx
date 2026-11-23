@@ -1,0 +1,21 @@
+---
+title: Reliable Data Import Pipeline
+description: A tested batch-processing service for loading structured files into a relational database with validation, safe retries, and dry-run reporting.
+date: "2026-11-05"
+published: true
+---
+
+# Overview
+
+A small data ingestion system that moves structured records into a relational database while making failures visible and repeatable.
+
+## Capabilities
+
+- Validate incoming rows before writing.
+- Keep repeated imports safe through idempotent processing.
+- Report rejected records and roll back when data quality falls below a configured threshold.
+- Support dry runs that produce a report without changing stored data.
+
+## Stack
+
+Python, PostgreSQL, Docker, and automated tests.
