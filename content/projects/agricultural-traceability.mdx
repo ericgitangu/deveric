@@ -1,21 +1,31 @@
 ---
 title: Agricultural Traceability Platform
-description: A multi-role platform for recording agricultural provenance, coordinating inspections, and supporting auditable supply-chain compliance.
+description: A multi-role traceability platform combining geospatial records, supply-chain events, and verifiable transaction history.
 date: "2026-03-06"
+url: "#"
+repository: Vunachain/vunachain
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A traceability system that connects field activity with downstream supply-chain records. Geospatial data, role-specific dashboards, and verifiable transaction records help participants follow a product from source to buyer.
+Agricultural compliance depends on linking field activity to later inspections, processing, and buyer hand-offs. A useful system must make those records understandable to different participants while preserving a verifiable history across the supply chain.
 
-## Capabilities
+## Engineering approach
 
-- Record field observations and supply-chain handoffs.
-- Review geospatial and compliance information through role-specific dashboards.
-- Preserve traceability events in an auditable ledger.
-- Coordinate operational updates across web and API services.
+- **Role-specific workspaces.** Field, cooperative, audit, and buyer workflows use separate dashboard views over a shared API.
+- **Geospatial evidence.** Field boundaries and observations are stored with PostGIS and visualized on layered maps, keeping location data attached to the compliance workflow.
+- **Verifiable provenance.** Harvest and hand-off events are anchored through smart-contract integrations, while the application database supports the operational query path.
+- **Cross-service processing.** A Django API, React/Vite web client, smart contracts, and event-driven workers are developed and tested as a coordinated system.
+- **Practical delivery path.** Docker Compose and local service emulation support development before deployment to managed cloud services.
+
+## Outcomes and trade-offs
+
+The project brings field records, mapped compliance context, and transaction-backed provenance into a single workflow. The design keeps searchable operational data in PostgreSQL/PostGIS and uses the ledger for verifiable events, rather than forcing every read through the chain.
 
 ## Stack
 
-React, Django, PostgreSQL with geospatial extensions, and smart-contract integrations.
+- React 18, Vite, Tailwind CSS, Leaflet, and Wagmi
+- Python, Django REST Framework, PostgreSQL, and PostGIS
+- Solidity contracts and Celo integrations
+- Docker Compose, AWS event services, and Fly.io deployment

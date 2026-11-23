@@ -1,16 +1,30 @@
 ---
 title: Service Provider Mobile App
-description: A mobile-first application for service providers to manage availability, receive requests, and track active assignments.
+description: A responsive self-service portal for providers to manage their accounts, earnings, documents, payouts, and active work.
 date: "2026-06-14"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A provider-facing application focused on the operational steps involved in accepting and completing service requests.
+Providers need a direct way to maintain their account and complete work-related tasks without routing every update through an internal operations team. The portal makes those workflows accessible from a mobile device while preserving the platform's existing identity and service rules.
 
-## Capabilities
+## Engineering approach
 
-- Manage availability and incoming work.
-- Follow assignment status from acceptance through completion.
-- Support a responsive, installable mobile experience.
+- **Self-service account workflows.** Providers can review earnings and trip history, maintain required documents, configure payouts, and manage account-related tasks.
+- **A dedicated application surface.** The portal keeps provider workflows separate from customer and staff screens while integrating with the shared API.
+- **Static hosting with client-side data.** A Next.js static export is served under a stable path; the authenticated browser client communicates with the backend-for-frontend for mutations and account state.
+- **Mobile-first interaction.** Responsive layouts and address/map components support common tasks on smaller screens.
+
+## Outcomes and trade-offs
+
+The portal reduces reliance on staff-mediated account updates and provides a consistent home for provider operations. Because the application is statically hosted, route prefixes and API configuration are explicit rather than inferred from a server-rendered runtime.
+
+## Stack
+
+- Next.js 16 App Router, React, and TypeScript
+- Base UI, CSS Modules, Tailwind utilities, SWR, and Zod
+- Shared REST/BFF integration and browser authentication
+- Vitest and React Testing Library

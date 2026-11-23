@@ -1,21 +1,29 @@
 ---
 title: Reliable Data Import Pipeline
-description: A tested batch-processing service for loading structured files into a relational database with validation, safe retries, and dry-run reporting.
+description: A repeatable batch-ingestion workflow that validates structured records, supports safe retries, and reports the impact before writing data.
 date: "2026-11-05"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A small data ingestion system that moves structured records into a relational database while making failures visible and repeatable.
+Batch imports can introduce partial, duplicated, or low-quality data when validation and persistence are handled as one opaque operation. Operators need to understand what will be accepted, what will be rejected, and whether a failed attempt can be safely repeated.
 
-## Capabilities
+## Engineering approach
 
-- Validate incoming rows before writing.
-- Keep repeated imports safe through idempotent processing.
-- Report rejected records and roll back when data quality falls below a configured threshold.
-- Support dry runs that produce a report without changing stored data.
+- **Validate before persistence.** Each incoming row is checked against the expected schema, with rejected records included in the import report.
+- **Make retries predictable.** Idempotent processing prevents duplicate writes when a batch is submitted again after an interrupted run.
+- **Protect data quality.** A configurable rejection threshold can abort the transaction instead of leaving a partially accepted batch in the database.
+- **Preview before changing state.** Dry-run mode produces the same validation report without persisting changes, giving operators a review step before applying an import.
+
+## Outcomes and trade-offs
+
+The pipeline makes batch behavior auditable and repeatable, with explicit controls for data quality and transaction boundaries. The trade-off is that imports with substantial rejection rates require an operator decision rather than silently accepting a partial result.
 
 ## Stack
 
-Python, PostgreSQL, Docker, and automated tests.
+- Python and PostgreSQL
+- Docker-based local development
+- Automated validation and integration tests

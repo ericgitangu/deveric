@@ -1,16 +1,31 @@
 ---
 title: Local Service Marketplace
-description: A platform for discovering services, submitting requests, and coordinating fulfilment between users and providers.
+description: A marketplace experience for discovering services and coordinating fulfillment across customer, provider, and transaction workflows.
 date: "2020-05-28"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A marketplace-style application that connects people seeking services with providers who can fulfil them. Its workflows cover discovery, request handling, and service status.
+Commerce and on-demand services often span several legacy systems: a storefront, account and wallet services, fulfillment, and mobile-facing workflows. Replacing the whole platform at once would create unnecessary migration risk and disrupt existing data.
 
-## Capabilities
+## Engineering approach
 
-- Browse available services.
-- Submit and follow service requests.
-- Coordinate activity between user and provider experiences.
+- **A customer-facing marketplace.** The web surface brings discovery and service journeys together with account and transaction workflows.
+- **Incremental service migration.** New API paths can be routed to Rust services while remaining paths continue through legacy services; both generations share their existing data stores during the transition.
+- **Safe cutover mechanics.** Shadow comparisons and staged traffic shifts make behavior observable before a new implementation becomes authoritative, with route-level rollback available.
+- **Asynchronous integration.** Events and queues handle notifications and background work without coupling every client request to downstream processing.
+- **Measured performance work.** Benchmarks compare representative legacy and replacement paths so latency and resource changes can be evaluated rather than assumed.
+
+## Outcomes and trade-offs
+
+The project establishes a path from a tightly coupled legacy application toward modular services without requiring a risky big-bang data migration. Incremental routing preserves rollback options, while the shared-database approach makes schema compatibility and clear ownership especially important.
+
+## Stack
+
+- Next.js 16, React, and TypeScript
+- Rust serverless services and a legacy PHP API
+- MySQL, MongoDB, API Gateway, queues, and event-driven processing
+- Docker, Terraform, and performance benchmarks

@@ -1,21 +1,30 @@
 ---
 title: Support Ticket Tracker
-description: A full-stack ticket management application with an asynchronous API, relational storage, and a typed web client.
+description: A full-stack support workflow with an asynchronous API, indexed relational queries, and a schema-generated typed client.
 date: "2026-10-11"
+url: "#"
+repository: ericgitangu/mini-ticket-tracker
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A compact support workflow for creating, reviewing, updating, and closing tickets. The web interface communicates with a typed API backed by a relational database.
+Support teams need a dependable way to create, triage, update, and close tickets while keeping the browser and API aligned on the same contract. A compact implementation is useful only if it preserves input validation and remains practical to run and test.
 
-## Capabilities
+## Engineering approach
 
-- Create and edit tickets with validated fields.
-- Filter and sort records through indexed database queries.
-- Generate a type-safe client from the API schema.
-- Run the web application and API together in a containerized development environment.
+- **Typed API boundary.** FastAPI exposes validated ticket operations and a schema used to generate a TypeScript client, reducing handwritten contract drift.
+- **Query paths designed for triage.** Relational storage and indexed filters support common ticket sorting and search without loading the complete record set into the browser.
+- **A focused web workflow.** The Next.js client provides ticket creation, editing, and review against the asynchronous service API.
+- **Reproducible local operation.** The API, database, and web application can be started together in a containerized development environment.
+
+## Outcomes and trade-offs
+
+The project brings ticket operations and service data into one small, testable application, with a generated client contract between the UI and API. Its deliberately focused scope favors clear CRUD and query behavior over a broader support-suite feature set.
 
 ## Stack
 
-FastAPI, Python, PostgreSQL, SQLAlchemy, Next.js, and TypeScript.
+- Python, FastAPI, and SQLAlchemy
+- PostgreSQL and schema-driven API documentation
+- Next.js and TypeScript
+- Docker Compose and automated tests

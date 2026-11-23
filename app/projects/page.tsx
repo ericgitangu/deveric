@@ -28,7 +28,11 @@ export default async function ProjectsPage() {
 			if (!Number.isFinite(bDate)) return -1;
 			return bDate - aDate;
 		});
-	const [featured, top2, top3, ...sorted] = byDate;
+	const displayOrder = [
+		...byDate.filter((project) => project.featured),
+		...byDate.filter((project) => !project.featured),
+	];
+	const [featured, top2, top3, ...sorted] = displayOrder;
 	return (
 		<div className="relative pb-16">
 			<script
@@ -36,7 +40,7 @@ export default async function ProjectsPage() {
 				dangerouslySetInnerHTML={{
 					__html: jsonLdScript(
 						projectListSchema(
-							byDate.map((p) => ({
+							displayOrder.map((p) => ({
 								slug: p.slug,
 								title: p.title,
 								description: p.description,

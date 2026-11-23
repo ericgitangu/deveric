@@ -1,21 +1,30 @@
 ---
 title: Medical AI Assurance Platform
-description: A governance and security platform for evaluating machine-learning systems used in healthcare, with adversarial testing and audit-ready evidence.
+description: A governance workspace for assessing healthcare machine-learning systems, tracking risk, and preserving reviewable evidence.
 date: "2024-04-01"
+url: "#"
+repository: ericgitangu
 published: true
-
 ---
 
-# Overview
+# Context and problem
 
-An assurance platform for teams that build or operate machine-learning systems in healthcare. It combines model robustness checks, risk tracking, and tamper-evident audit records to make security and compliance evidence easier to review.
+Healthcare teams need a disciplined way to assess model behavior and organize the resulting findings without treating an evaluation score as sufficient assurance. The platform brings robustness checks, risk ownership, and an audit trail together so reviewers can understand what was tested and what remains unresolved.
 
-## Capabilities
+## Engineering approach
 
-- Evaluate models against adversarial and robustness scenarios.
-- Organize evidence, findings, and remediation across isolated workspaces.
-- Preserve audit events in a tamper-evident record for later review.
+- **Evaluation as a workflow.** Adversarial and robustness scenarios produce evidence that can be connected to findings and follow-up remediation.
+- **Separated workspaces.** Findings and evidence are organized by workspace, supporting distinct teams and review contexts.
+- **Reviewable history.** A tamper-evident audit record preserves important evaluation and governance events for later examination.
+- **Polyglot execution boundary.** A typed web application, Rust services, and Python evaluation workers separate user interaction from model-testing workloads.
+
+## Outcomes and trade-offs
+
+The project makes model assurance a traceable engineering process rather than a one-time test report. Combining specialized services adds operational complexity, so the public-facing design emphasizes explicit evidence and risk tracking rather than unsupported claims of regulatory certification.
 
 ## Stack
 
-Rust services, Python model-evaluation workers, a TypeScript web application, and PostgreSQL.
+- Rust services and Python model-evaluation workers
+- TypeScript web application
+- PostgreSQL-backed evidence and audit records
+- Adversarial testing and model-governance workflows

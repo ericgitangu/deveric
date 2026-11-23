@@ -1,16 +1,30 @@
 ---
 title: Mobility Services API
-description: A backend API for coordinating accounts, trips, and operational workflows across multiple application surfaces.
+description: A shared backend-for-frontend that centralizes identity, mobility workflows, and service integrations for multiple client applications.
 date: "2022-07-08"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A service layer that centralizes business rules and data access for a multi-role mobility application. Separate clients can use consistent endpoints for user, trip, and operations workflows.
+Several customer, provider, partner, and operations applications need consistent access to the same accounts and service workflows. Duplicating those rules in each client would create divergent behavior and make cross-surface changes difficult to operate safely.
 
-## Capabilities
+## Engineering approach
 
-- Expose application workflows through a shared API.
-- Coordinate trip and account state across client applications.
-- Keep backend concerns separate from presentation-layer clients.
+- **A single application boundary.** A REST backend-for-frontend serves web application paths and mobile API clients from one service, keeping session, account, trip, and operational rules behind a shared contract.
+- **Shared persistence with clear service boundaries.** Application models use a MongoDB replica set, with Redis for sessions and caching; external payment, messaging, and notification integrations remain behind backend modules.
+- **Environment-driven operation.** The same application supports local, containerized, and hosted deployments while keeping environment-specific configuration out of the committed source.
+- **Operational visibility.** Structured service metrics and logs support diagnosis across requests that cross application and provider boundaries.
+
+## Outcomes and trade-offs
+
+The API gives multiple client surfaces one consistent contract and system of record, reducing duplicated business rules. It also keeps a legacy backend in place while allowing the web clients to evolve independently. The principal trade-off is maintaining a broad service boundary; modular controllers and shared integration layers make that complexity more manageable.
+
+## Stack
+
+- PHP 8.3 and CodeIgniter 3
+- MongoDB replica-set storage and Redis sessions/cache
+- REST APIs, nginx, and PHP-FPM
+- Containerized local development and structured metrics/logging

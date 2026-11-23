@@ -1,16 +1,30 @@
 ---
 title: Service Operations Control Center
-description: An administrative workspace for monitoring service activity, resolving exceptions, and supporting day-to-day operations.
+description: An operator-facing console for managing accounts, service workflows, financial operations, and platform health.
 date: "2026-06-14"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A centralized operations interface that brings together activity monitoring and administrative workflows. It is designed to help staff review live work, handle exceptions, and keep service operations organized.
+An operations team needs a reliable way to manage users, review service activity, handle exceptions, and monitor platform behavior without relying on a collection of unrelated legacy screens. This project delivers that staff-facing surface as a separate application over an existing service API.
 
-## Capabilities
+## Engineering approach
 
-- Present operational activity in a consolidated dashboard.
-- Support account and workflow administration.
-- Surface exceptions that need staff attention.
+- **Operational workflows in one console.** The application brings account onboarding, document review, payment operations, partner administration, content management, and observability into one interface.
+- **Static deployment, API-backed data.** Next.js is exported as static assets and served by Nginx; client-side data access uses a shared backend-for-frontend instead of requiring a Node runtime in production.
+- **Explicit routing and identity boundaries.** A configurable base path, role bootstrap, and cookie-backed session flow keep the console compatible with the existing hosting and authentication model.
+- **Maintainable UI surface.** Typed request validation, reusable components, and a comprehensive Vitest/React Testing Library suite support safe changes across many operational screens.
+
+## Outcomes and trade-offs
+
+A single operator application replaces multiple disconnected admin flows while remaining deployable independently of the backend. The static-export constraint reduces runtime requirements but makes base-path handling, client-side API contracts, and production build configuration important design concerns. The documented suite contains more than 800 tests.
+
+## Stack
+
+- Next.js 16 App Router, TypeScript 5, and static export
+- Base UI, CSS Modules, SWR, Zustand, and Zod
+- Vitest and React Testing Library
+- Shared REST/BFF integration and Nginx hosting

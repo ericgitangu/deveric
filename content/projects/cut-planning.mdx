@@ -2,20 +2,31 @@
 title: Material Cut Planning and Quoting
 description: A workshop tool that converts material cut lists into optimized layouts, priced quotes, and printable plans.
 date: "2026-09-24"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A planning workflow for turning customer measurements into practical board layouts and consistent quotes. It tracks reusable offcuts, applies configurable material and service prices, and produces a printable plan for fulfilment.
+Workshop orders often arrive as handwritten lists or messages that must be re-entered, manually laid out, and priced by whoever is on shift. That makes quoting slow, creates avoidable transcription errors, and can waste material.
 
-## Capabilities
+## Engineering approach
 
-- Optimize part placement while accounting for cut width and grain direction.
-- Calculate quotes from a workshop's price list.
-- Convert uploaded photos or documents into draft cut lists for human confirmation.
-- Track jobs from intake through planning, quoting, and invoicing.
+- **A customer-to-workshop workflow.** Each workshop can share an order link. Customers enter dimensions directly or upload a photo/PDF; image extraction creates draft rows that staff confirm before a job is created.
+- **Plans that reflect the saw.** The optimizer accounts for blade kerf and grain direction, places cuts on available boards, and tracks reusable offcuts rather than treating every remainder as waste.
+- **Quotes derived from the plan.** Material, cutting, and edging prices are applied to the same layout that produces the printable cutting plan, keeping the estimate and fulfilment instructions consistent.
+- **Operational safeguards.** Idempotency keys make retries safe, workers claim jobs without duplicate processing, invoice numbers are allocated transactionally, and uploads are validated by file content.
+- **Human control at the boundary.** AI assists with reading documents but does not approve a quote or create a priced job without staff confirmation.
+
+## Outcomes and trade-offs
+
+The prototype connects intake, optimization, quoting, and job follow-up in one workflow, replacing manual re-entry with a repeatable process. Sample data is used; payment processing remains in a sandbox and the production deposit flow is not enabled. The key trade-off is deliberate: uncertain extraction is surfaced for review rather than being allowed to silently change a cut list or price.
 
 ## Stack
 
-Next.js, TypeScript, PostgreSQL, document generation, and image-assisted data entry.
+- Next.js 15, React 19, and strict TypeScript
+- Supabase PostgreSQL, row-level security, and Supabase Storage
+- Zod validation, PDF generation, and image-assisted extraction
+- Vitest and PostgreSQL integration tests
+- Vercel deployment
