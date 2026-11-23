@@ -21,11 +21,13 @@ export default async function ProjectsPage() {
 
 	const byDate = allProjects
 		.filter((p) => p.published)
-		.sort(
-			(a, b) =>
-				new Date(b.date ?? Number.POSITIVE_INFINITY).getTime() -
-				new Date(a.date ?? Number.POSITIVE_INFINITY).getTime(),
-		);
+		.sort((a, b) => {
+			const aDate = a.date ? new Date(a.date).getTime() : Number.NaN;
+			const bDate = b.date ? new Date(b.date).getTime() : Number.NaN;
+			if (!Number.isFinite(aDate)) return Number.isFinite(bDate) ? 1 : 0;
+			if (!Number.isFinite(bDate)) return -1;
+			return bDate - aDate;
+		});
 	const [featured, top2, top3, ...sorted] = byDate;
 	return (
 		<div className="relative pb-16">
