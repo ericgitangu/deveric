@@ -1,0 +1,21 @@
+---
+title: Local-First AI Development Harness
+description: A Rust-based task runner for local coding workflows, with pluggable model and storage adapters, verification steps, and explicit budget limits.
+date: "2026-05-26"
+published: true
+---
+
+# Overview
+
+A developer tool for running structured coding tasks on local hardware first, with optional remote escalation when explicitly allowed. Its core separates task planning and budget decisions from model, compute, storage, and event adapters.
+
+## Capabilities
+
+- Execute task graphs through a command-line interface and JSON-RPC endpoint.
+- Route work across interchangeable local and remote model adapters.
+- Enforce session spending limits before paid work is dispatched.
+- Review changes and validate commit messages through local hooks.
+
+## Stack
+
+Rust workspace with modular adapters for models, compute, persistence, verification, and telemetry.
