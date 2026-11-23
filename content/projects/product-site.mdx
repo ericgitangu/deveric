@@ -1,16 +1,29 @@
 ---
 title: Digital Service Product Site
-description: A responsive public website that explains a digital service and guides visitors through its main user journeys.
+description: A standalone marketing entry point for a multi-application service platform, built for static delivery and clear navigation.
 date: "2026-07-03"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A product-facing web experience built to make service information easy to discover across desktop and mobile layouts.
+The public website is the first point of orientation for a service delivered through several distinct applications. It needs to explain the product and help visitors reach the appropriate customer or partner workflow without adding another production server to maintain.
 
-## Capabilities
+## Engineering approach
 
-- Present core product information in a clear, responsive layout.
-- Guide visitors toward relevant service flows.
-- Share consistent interface patterns with related web applications.
+- **Independent marketing surface.** The landing application is one of several separately built front ends, with its own package manifest, configuration, tests, and CI.
+- **Static export.** A Next.js build produces static assets that can be served at the root path behind the existing web tier.
+- **Explicit deployment configuration.** Base-path and environment settings are handled at build time, keeping the generated site portable across deployment targets.
+- **Consistent operating model.** The app follows the same source-only, secret-safe repository conventions as the related front ends.
+
+## Outcomes and trade-offs
+
+The site provides a lightweight public entry point while allowing the product applications to retain independent release cycles. Static output simplifies hosting and reduces runtime coupling, at the cost of making build-time configuration and cross-app navigation part of the deployment contract.
+
+## Stack
+
+- Next.js 16, React, and TypeScript
+- Static export and Nginx-compatible hosting
+- npm-based application tooling with project-local tests and CI

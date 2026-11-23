@@ -2,20 +2,30 @@
 title: Local-First AI Development Harness
 description: A Rust-based task runner for local coding workflows, with pluggable model and storage adapters, verification steps, and explicit budget limits.
 date: "2026-05-26"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A developer tool for running structured coding tasks on local hardware first, with optional remote escalation when explicitly allowed. Its core separates task planning and budget decisions from model, compute, storage, and event adapters.
+AI coding tools can make local work dependent on paid cloud access, opaque model choices, and review steps that are difficult to audit. This developer harness makes local execution the default and treats remote escalation, spending, and verification as explicit workflow decisions.
 
-## Capabilities
+## Engineering approach
 
-- Execute task graphs through a command-line interface and JSON-RPC endpoint.
-- Route work across interchangeable local and remote model adapters.
-- Enforce session spending limits before paid work is dispatched.
-- Review changes and validate commit messages through local hooks.
+- **Ports and adapters.** A synchronous domain core models task graphs, routing, budgets, and session history; async I/O and process execution stay in the runtime and replaceable adapters.
+- **Local-first routing.** Work can use local model servers, with cloud escalation only when configured and within the session's spending limit.
+- **Two distinct quality signals.** A low-confidence/log-probability filter catches incoherent output; a verifier handles plausible but incorrect output. Missing signals degrade to the next configured check rather than being treated as success.
+- **Developer workflow integration.** The CLI and JSON-RPC interface run task DAGs, while local hooks review staged changes and validate commit-message conventions without requiring a hosted API key.
+- **Offline operation.** Core planning and static checks remain usable without network access; model-backed behavior is explicitly dependent on the configured local or remote adapter.
+
+## Outcomes and trade-offs
+
+The current release candidate provides a 21-crate workspace, eight adapter ports with multiple implementations, a task runner, JSON-RPC server, and local commit hooks; its documented test suite contains 102 tests. Live local-model inference and the model-based reviewer remain later roadmap work, so the project distinguishes shipped static checks from planned model review. This keeps the architecture's intended direction separate from verified current behavior.
 
 ## Stack
 
-Rust workspace with modular adapters for models, compute, persistence, verification, and telemetry.
+- Rust workspace and Tokio runtime
+- CLI/TUI and JSON-RPC interfaces
+- Adapters for models, compute, storage, events, verification, skills, and goal expansion
+- Cargo tests, Clippy, and local Git hooks

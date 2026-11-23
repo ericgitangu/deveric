@@ -1,21 +1,31 @@
 ---
 title: Multilingual AI Assistant
-description: A real-time conversational assistant with persistent chat history, account access, and a live service health dashboard.
+description: A multilingual conversational assistant that streams responses, retains chat history, and exposes service health alongside user workflows.
 date: "2026-03-13"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A web-based assistant that streams responses to users, preserves conversation history, and provides a status view for operational metrics. A small native extension handles selected text-processing tasks, with a fallback implementation for environments where the extension is unavailable.
+Conversational AI interfaces need to remain responsive during generation, preserve context across sessions, and make service degradation visible. This project combines the user-facing chat experience with operational status while keeping selected text-processing functionality usable when a native component is not available.
 
-## Capabilities
+## Engineering approach
 
-- Stream responses and render formatted content.
-- Persist conversations for later access.
-- Support multilingual interactions.
-- Show service health and latency metrics.
+- **Streaming interaction.** Responses are delivered incrementally and rendered as formatted content, rather than waiting for a full completion.
+- **Persistent user context.** Conversations are stored for later access, with account workflows kept within the application.
+- **Multilingual support.** The assistant supports interaction across multiple languages without coupling the interface to a single-language workflow.
+- **Operational visibility.** A health dashboard surfaces service availability and latency metrics next to the product experience.
+- **Portable text processing.** A native extension accelerates selected tasks, with a fallback implementation for environments where that extension cannot be loaded.
+
+## Outcomes and trade-offs
+
+The application combines user-visible AI functionality with enough service telemetry to understand when its supporting components are unhealthy. Native acceleration is optional rather than a deployment requirement, which broadens runtime compatibility at the cost of maintaining two paths for selected processing.
 
 ## Stack
 
-Python, Rust, TypeScript, PostgreSQL, Redis, and containerized services.
+- Python, Rust, and TypeScript
+- PostgreSQL and Redis
+- Streaming chat and service-health reporting
+- Containerized application services

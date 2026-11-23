@@ -1,16 +1,30 @@
 ---
 title: Multi-Application Frontend Workspace
-description: A shared frontend workspace for customer and operations interfaces, with reusable packages and consistent development tooling.
+description: A coordinated repository for independently built customer, provider, partner, operations, and marketing applications.
 date: "2026-08-31"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A monorepo structure for coordinating multiple web applications and the packages they share. Common tooling and dependencies make cross-application changes easier to maintain.
+Several web surfaces need to evolve together but still ship independently. A conventional shared workspace would introduce build and dependency coupling that does not match the static hosting model or the existing application boundaries.
 
-## Capabilities
+## Engineering approach
 
-- Organize several frontend surfaces in one workspace.
-- Share UI and application packages where appropriate.
-- Use consistent build and development conventions.
+- **Co-located, independently operated apps.** The repository groups six Next.js applications under one history, but each retains its own package manifest, lockfile, configuration, tests, and CI.
+- **Static output per surface.** Every app builds to a static bundle served under its own configured path; production does not require a Node server for these clients.
+- **Package-manager boundaries stay explicit.** Apps use their established npm or pnpm workflows rather than introducing root-level dependency hoisting.
+- **Shared repository hygiene.** Ignore rules and credential checks protect the combined workspace, while project-specific build and base-path checks preserve each app's deployment contract.
+
+## Outcomes and trade-offs
+
+The layout makes cross-application changes easier to coordinate without pretending the apps share one runtime or dependency graph. The trade-off is duplicated install/build configuration; keeping those boundaries explicit makes each deployment independently reproducible.
+
+## Stack
+
+- Next.js 16, React, and TypeScript
+- npm and pnpm with per-app configurations
+- Static export and Nginx path-based hosting
+- Project-level lint, type-check, tests, and CI
