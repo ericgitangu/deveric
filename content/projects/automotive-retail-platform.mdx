@@ -1,21 +1,31 @@
 ---
 title: Automotive Retail Operations Platform
-description: A mobile-first storefront and operations suite for managing product discovery, customer requests, and day-to-day service workflows.
+description: A mobile-first vehicle-services storefront paired with an operations CRM, shared API, and AI-assisted customer support.
 date: "2026-03-17"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A retail experience paired with an administrative workspace and a shared service API. The customer-facing app is designed for mobile use, while staff tools support catalog updates and request handling.
+Vehicle-service businesses need a useful mobile storefront and a separate way to keep service information, customer conversations, and operational content current. Building those surfaces independently would duplicate data models and make changes harder to coordinate.
 
-## Capabilities
+## Engineering approach
 
-- Present products and services through an installable web experience.
-- Support low-connectivity use with progressive web app features.
-- Provide separate customer and administration interfaces.
-- Connect application workflows to a shared API and relational data store.
+- **Two focused front ends.** A public PWA presents service and project information, contact paths, and an offline fallback; a separate CRM supports service/content management, conversation review, and analytics.
+- **Shared typed backend.** Both clients use a Rust HTTP API and shared TypeScript contracts, backed by PostgreSQL and a schema-managed data layer.
+- **Installable and resilient UX.** The PWA supports installation, offline access, and background synchronization, with mobile-first layouts and light/dark themes.
+- **Context-aware assistance.** A retrieval-backed chat and translation flow uses the service catalogue as context, while operational controls remain in the staff application.
+- **Reproducible delivery.** The workspace keeps web, admin, API, shared packages, and infrastructure in one repository with containerized local development and automated build/test gates.
+
+## Outcomes and trade-offs
+
+The result is a connected customer and staff experience rather than a standalone brochure site: the public catalogue and internal CRM operate on one service model, and the backend can scale independently of the front ends. The architecture favors a small Rust API and server-rendered web surfaces while retaining PWA caching for low-connectivity use.
 
 ## Stack
 
-Next.js, React, Rust, PostgreSQL, and infrastructure-as-code.
+- Next.js 16, React 19, TypeScript, Tailwind CSS, and Zustand
+- Rust with Axum, PostgreSQL with pgvector, and Prisma
+- Firebase Authentication and a retrieval-backed Gemini integration
+- GCP Cloud Run, Terraform, and pnpm workspaces

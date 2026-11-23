@@ -1,16 +1,29 @@
 ---
 title: Passenger Mobility App
-description: A mobile-first experience for requesting, tracking, and managing journeys.
+description: A rider-facing self-service application for initiating journeys and following trip status from a mobile device.
 date: "2026-06-30"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A customer application that brings journey requests and live trip information into a responsive interface.
+Riders need a clear mobile interface for accessing trip services without exposing internal provider or operator workflows. This application is the customer-facing surface in a larger suite of independently deployed web clients.
 
-## Capabilities
+## Engineering approach
 
-- Start and manage journey requests.
-- Follow trip status from a mobile device.
-- Present account and service information in one place.
+- **A dedicated rider experience.** The application organizes customer service and journey workflows separately from driver, partner, and operations applications.
+- **Shared platform contract.** Account and service state is accessed through the existing backend-for-frontend, keeping business rules out of the presentation layer.
+- **Static export under a stable path.** Next.js produces a static bundle served by the shared web tier; path-aware navigation ensures deep links and assets work under the configured application prefix.
+- **Independent delivery.** The rider client retains its own package, build configuration, and test workflow so it can ship without coupling every web surface to one runtime.
+
+## Outcomes and trade-offs
+
+The result is a focused customer application that fits into a broader multi-portal system while remaining deployable on its own. Static hosting lowers runtime complexity but makes base-path and shared API behavior explicit integration contracts.
+
+## Stack
+
+- Next.js 16 App Router, React, and TypeScript
+- Static export, responsive UI, and project-local build/test tooling
+- Shared REST/BFF integration and browser authentication

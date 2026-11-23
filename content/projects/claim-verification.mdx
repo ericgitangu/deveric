@@ -2,20 +2,31 @@
 title: AI-Assisted Claim Verification
 description: A source-grounded assessment system that combines automated claim intake, evidence retrieval, confidence scoring, and human review.
 date: "2026-10-03"
+url: "#"
+repository: ericgitangu/fact_checker_ke
 published: true
 ---
 
-# Overview
+# Context and problem
 
-An application for turning submitted claims into traceable assessments. A staged pipeline extracts checkable statements, gathers supporting sources, validates citations, and routes uncertain or high-risk cases for review rather than forcing a verdict.
+Fast-moving public claims can outpace manual review, while an unsupported binary verdict can do more harm than an incomplete assessment. This project turns incoming claims into evidence-backed assessments and explicitly represents uncertainty instead of treating missing evidence as proof.
 
-## Capabilities
+## Engineering approach
 
-- Accept claims from automated feeds or direct submissions.
-- Track each assessment through an event-driven workflow with retry-safe processing.
-- Publish evidence and calibrated confidence alongside each result.
-- Stream status updates to the user interface.
+- **One lifecycle for every intake path.** Automated discovery and user submissions enter the same event-driven workflow: analysis, evidence retrieval, publication policy, and a terminal review state.
+- **Grounded verification.** The pipeline separates claim extraction from corroboration, checks that citations support the drafted assessment, and leaves claims awaiting sources when evidence is insufficient.
+- **Retry-safe processing.** Transactional event recording and idempotent queue handling allow work to be retried without creating duplicate assessments or losing state.
+- **Risk-aware publication.** Lower-confidence or higher-risk cases can be escalated for editorial review instead of being published automatically.
+- **Useful progress signals.** Status changes stream to the web client so a long-running assessment remains observable.
+
+## Outcomes and trade-offs
+
+The result is a complete claim-to-assessment workflow in which each published result carries its supporting sources and confidence, while inconclusive claims remain explicitly inconclusive. The main design constraint was balancing automation with content integrity; the policy gate and review path make that boundary part of the system rather than an editorial convention.
 
 ## Stack
 
-TypeScript and Python services, a web application, PostgreSQL, queued event delivery, and language-model-assisted analysis.
+- TypeScript, Next.js, Fastify, Python, and FastAPI
+- PostgreSQL with Drizzle ORM and shared typed contracts
+- Event-driven processing with idempotent queue delivery
+- Cloud Run, Vercel, and Terraform
+- Vitest and Pytest

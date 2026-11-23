@@ -1,16 +1,30 @@
 ---
 title: Partner Operations Portal
-description: A web workspace for external partners to manage their profiles and follow operational activity.
+description: A partner-facing workspace for managing program participation, referrals, compliance status, and settlement activity.
 date: "2026-06-17"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A dedicated portal that gives partners a focused view of their service participation and related workflows.
+External partners need to manage their relationship with a service platform without being granted access to internal operations tools. Their workflows span account details, program participation, referrals, compliance, and financial follow-through.
 
-## Capabilities
+## Engineering approach
 
-- Maintain partner-facing account information.
-- Review activity and request status.
-- Separate partner tasks from internal administration.
+- **A focused partner surface.** The portal brings partner profiles, program status, referral activity, reputation indicators, and settlement information into a dedicated application.
+- **Moderated state transitions.** Program guidance is submitted by a partner but moves through an administrative approval state before it becomes authoritative.
+- **Shared identity and API contract.** The client uses the platform's existing authenticated backend-for-frontend while keeping partner permissions distinct from staff permissions.
+- **Deployable as a static SPA.** A configurable base path, generated static assets, and project-level tests support independent releases alongside the other application surfaces.
+
+## Outcomes and trade-offs
+
+The portal gives partners a clear self-service view while retaining administrative control over sensitive program changes. The main implementation constraint is coordinating shared data and identity across independently deployed apps; explicit routes and role-aware API access keep those boundaries visible.
+
+## Stack
+
+- Next.js 16 App Router, React, and TypeScript
+- Base UI, CSS Modules, SWR, Zod, and client-side search
+- Shared REST/BFF integration, static export, and Nginx
+- Vitest and React Testing Library

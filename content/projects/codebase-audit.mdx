@@ -1,16 +1,30 @@
 ---
-title: Codebase Quality Audit Toolkit
-description: A repository audit workflow for surfacing quality, configuration, and delivery issues and tracking their remediation.
+title: Legacy Platform Production-Readiness Audit
+description: An evidence-led assessment of reliability, security, operations, and delivery readiness for a large legacy service platform.
 date: "2026-06-08"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A set of automated checks and reporting workflows for reviewing repository health. The goal is to make quality findings actionable and preserve a clear record of follow-up work.
+Mature service platforms accumulate operational risk across application code, infrastructure, data access, deployment, and observability. A useful audit must connect findings to evidence and to a practical remediation path rather than produce a disconnected list of recommendations.
 
-## Capabilities
+## Engineering approach
 
-- Inspect repositories for maintainability and delivery concerns.
-- Summarize findings in a reviewable format.
-- Track remediation over time.
+- **Evidence before conclusions.** Findings are linked to reproducible checks, architecture records, and acceptance criteria so that reviewers can distinguish verified behavior from assumptions.
+- **Workstream-based assessment.** The review covers application boundaries, data integrity, access controls, release safety, observability, capacity, and operational readiness.
+- **Staged remediation.** Recommendations are organized by dependency and risk, with decision records documenting trade-offs and explicit conditions for production changes.
+- **Reviewable hand-off.** A structured evidence set and walkthrough make results usable by engineering, operations, and leadership without requiring each audience to reconstruct the investigation.
+
+## Outcomes and trade-offs
+
+The audit turns a broad platform review into a traceable readiness program with a clear separation between observed evidence, proposed work, and decisions that require an owner. Sensitive environment details and exploit-level findings are intentionally excluded from this public summary.
+
+## Stack
+
+- Legacy PHP service architecture and MongoDB
+- Redis, Nginx, and containerized staging workflows
+- Structured tests, operational metrics, and architecture decision records
+- Security, data-integrity, deployment, and production-readiness review methods

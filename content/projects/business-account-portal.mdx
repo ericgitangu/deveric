@@ -1,16 +1,29 @@
 ---
 title: Business Account Portal
-description: A self-service web portal for managing organization profiles, users, and service activity.
+description: A self-service workspace for organizations to manage mobility budgets, trip approvals, payment setup, and dispatch coordination.
 date: "2026-06-14"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A web workspace for organization accounts to review activity and manage their participation in a shared service platform.
+Organizations coordinating employee travel need more than a personal rider account: they need policy-aware controls, shared account administration, and visibility into the trips and payments they authorize.
 
-## Capabilities
+## Engineering approach
 
-- Provide account and profile management.
-- Organize user access and operational activity.
-- Offer a dedicated interface separate from staff administration.
+- **Organization-focused workflows.** The portal supports business profile management, employee mobility budgets, trip authorization, payout setup, and dispatch coordination.
+- **A focused client over a shared service API.** The application stays separate from internal operations while using the platform's common backend-for-frontend for identity and data mutations.
+- **Static application delivery.** Next.js exports static assets under a configurable application path, allowing the portal to share infrastructure without requiring a separate Node server.
+- **Map and payment integrations.** Dispatch and route views combine map-based location context with self-service payment setup, while account operations remain behind authenticated API calls.
+
+## Outcomes and trade-offs
+
+The portal gives organizations one place to manage their service relationship without mixing business-account tasks into the consumer or operator interface. Static export keeps hosting simple, but requires careful base-path configuration and a stable backend contract.
+
+## Stack
+
+- Next.js 16 App Router, TypeScript 5, and static export
+- Base UI, CSS Modules, SWR, Zod, and React mapping components
+- Shared REST/BFF integration, Nginx, and browser-based authentication

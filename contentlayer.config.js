@@ -42,6 +42,10 @@ export const Project = defineDocumentType(() => ({
 		repository: {
 			type: "string",
 		},
+		featured: {
+			type: "boolean",
+			required: false,
+		},
 	},
 	computedFields,
 }));

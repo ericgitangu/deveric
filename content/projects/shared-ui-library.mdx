@@ -1,16 +1,29 @@
 ---
 title: Shared Interface Component Library
-description: A reusable UI foundation for keeping patterns and interactions consistent across a family of web applications.
+description: A shared source of interface tokens and cross-application conventions for independently deployed web clients.
 date: "2026-07-25"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A shared component library that reduces duplication across application surfaces and gives teams a common set of interface patterns.
+Several front ends need to present the same trust and reputation states consistently. Because they are separate repositories with independent build and deployment environments, a local sibling-package dependency is not available in production.
 
-## Capabilities
+## Engineering approach
 
-- Reuse components and design conventions across apps.
-- Keep common interactions consistent.
-- Support coordinated changes through a shared package.
+- **One authoritative token definition.** A small TypeScript package owns the canonical tier palette and the mapping between internal values and display labels.
+- **Explicit synchronization contract.** Each application mirrors only the shared data it needs, while keeping presentation helpers local to its own styling system.
+- **Safe evolution.** Palette or mapping changes are made at the source and propagated deliberately, avoiding silent drift between independently built clients.
+- **A path to consolidation.** The convention can collapse into normal package imports if the applications later move into a shared workspace.
+
+## Outcomes and trade-offs
+
+The library provides a reliable source of truth without forcing a premature monorepo migration. Committed mirrors introduce a synchronization step, but that cost is explicit and compatible with the current independent deployment model.
+
+## Stack
+
+- TypeScript design tokens and mapping helpers
+- Next.js and React applications as consuming clients
+- CSS Modules and Tailwind-based presentation layers

@@ -2,20 +2,28 @@
 title: Blockchain Supply Chain Tracker
 description: A role-based inventory and provenance application that records supply-chain events and supports on-chain verification.
 date: "2025-04-14"
+url: "#"
+repository: ericgitangu
 published: true
 ---
 
-# Overview
+# Context and problem
 
-A web application for tracking goods as they move through a supply chain. Inventory records, user permissions, and status updates are connected to verifiable blockchain events.
+Supply-chain records are difficult to verify when inventory state, user permissions, and provenance events are held in disconnected workflows. This project explores how a web application can make item history visible while allowing selected events to be independently checked.
 
-## Capabilities
+## Engineering approach
 
-- Authenticate users through a connected wallet.
-- Manage role-based access to inventory and tracking workflows.
-- Follow product movement with real-time status updates.
-- Verify selected records against blockchain transactions.
+- **Role-aware workflows.** Wallet-based authentication gates inventory and tracking actions according to a user's role.
+- **Shared operational state.** Inventory updates and movement status are managed through application APIs and persisted in a document database.
+- **Verifiable events.** Selected supply-chain records can be checked against blockchain transactions rather than relying only on a mutable application view.
+- **Live status.** The interface surfaces updates as products move through the tracked workflow.
+
+## Outcomes and trade-offs
+
+The prototype combines inventory management, access control, and transaction verification in one web experience. It demonstrates the integration boundary between a conventional application data store and a public ledger; the README does not claim a production deployment or quantify operational impact.
 
 ## Stack
 
-Next.js, React, MongoDB, and Web3 integrations.
+- Next.js 14, React 18, and Tailwind CSS
+- Next.js API routes and MongoDB Atlas
+- Wallet Connect and Ethereum/Web3 integration
