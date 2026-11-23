@@ -1,30 +1,36 @@
 ---
-title: Mobility Services API
-description: A shared backend-for-frontend that centralizes identity, mobility workflows, and service integrations for multiple client applications.
+title: Mobility, Payments & Operations Platform
+description: A long-running multi-channel service platform strengthened through a sustained security, payments, and production-readiness effort.
 date: "2022-07-08"
 url: "#"
 repository: ericgitangu
+featured: true
 published: true
 ---
 
 # Context and problem
 
-Several customer, provider, partner, and operations applications need consistent access to the same accounts and service workflows. Duplicating those rules in each client would create divergent behavior and make cross-surface changes difficult to operate safely.
+An established mobility platform served consumer, driver, business, partner, and operations experiences through a shared service and API layer. As identity, payments, card services, and operational workflows grew, small changes could affect multiple clients and external providers. The work was to keep extending the platform while making its contracts safer to change, its financial flows easier to verify, and its production behavior easier to observe.
 
 ## Engineering approach
 
-- **A single application boundary.** A REST backend-for-frontend serves web application paths and mobile API clients from one service, keeping session, account, trip, and operational rules behind a shared contract.
-- **Shared persistence with clear service boundaries.** Application models use a MongoDB replica set, with Redis for sessions and caching; external payment, messaging, and notification integrations remain behind backend modules.
-- **Environment-driven operation.** The same application supports local, containerized, and hosted deployments while keeping environment-specific configuration out of the committed source.
-- **Operational visibility.** Structured service metrics and logs support diagnosis across requests that cross application and provider boundaries.
+- **One contract across client surfaces.** A shared backend-for-frontend provides common identity, mobility, wallet, payout, KYC, communications, and operator workflows to several web and mobile clients, reducing duplicated business rules.
+- **Partner payment integrations.** Integrated KCB banking and card services with Mastercard-network card capabilities and regional mobile-money rails. Provider-specific boundaries, explicit failure states, and contract tests keep differences from leaking across the platform.
+- **UAT evidence into controlled delivery.** Partner-confirmed API behavior was captured in repeatable contract fixtures. Selected card lifecycle and synchronization work moved from UAT-only operation into production with scheduled health probes and monitoring; unconfirmed behavior remained gated rather than being treated as proven.
+- **Security as a delivery control.** Strengthened the change path with blocking static analysis and taint checks, dependency and credential scanning, output-escaping checks, staging DAST, and red-team regression coverage. Baselines and explicit review gates make security debt visible instead of silently waiving it.
+- **Production observability beyond HTTP status.** Built out metrics, dashboards, logs, traces, and alerting with Prometheus, Grafana, Loki, Tempo, and OpenTelemetry. Coverage includes route latency and errors, scheduled-job liveness, payment/provider health, session-store capacity, and application-level failures that can hide behind successful HTTP responses.
+- **Architecture decisions with operational follow-through.** Used decision records, API contracts, tests, runbooks, and staged promotion checks to make integration trade-offs reviewable and production changes repeatable.
 
 ## Outcomes and trade-offs
 
-The API gives multiple client surfaces one consistent contract and system of record, reducing duplicated business rules. It also keeps a legacy backend in place while allowing the web clients to evolve independently. The principal trade-off is maintaining a broad service boundary; modular controllers and shared integration layers make that complexity more manageable.
+The platform now supports a broader set of payment and card workflows while making their contract assumptions executable and their operational state observable. The recent six-month effort tightened the path from change review through UAT and production, and improved detection of failures that ordinary uptime checks miss. The service remains a mature legacy application, so changes are deliberately incremental: preserve stable client contracts, isolate provider behavior, and use guarded promotion rather than attempting a risky rewrite.
 
-## Stack
+Partner rollout outcomes are described in operational terms rather than unsupported revenue claims: UAT-confirmed behavior is captured as executable test coverage, selected card flows are monitored in production, and unconfirmed contracts remain gated. This keeps verified release evidence distinct from commercial outcomes that are not in the public record.
 
-- PHP 8.3 and CodeIgniter 3
-- MongoDB replica-set storage and Redis sessions/cache
-- REST APIs, nginx, and PHP-FPM
-- Containerized local development and structured metrics/logging
+## Architecture and operational practices
+
+- Shared REST backend-for-frontend for web and mobile clients
+- MongoDB-backed application data with Redis sessions and caching
+- Provider-isolated payment, card, messaging, and notification integrations
+- Prometheus and Grafana metrics/alerting, Loki logs, and Tempo/OpenTelemetry traces
+- Layered security gates, contract fixtures, runbooks, and staged UAT-to-production promotion
