@@ -134,13 +134,19 @@ export default function RootLayout({
 					}}
 				/>
 			</head>
-			<SnackbarProvider>
-				<HapticSnackbarProvider>
-					<body
-						className={`bg-black ${
-							process.env.NODE_ENV === "development" ? "debug-screens" : undefined
-						}`}
-					>
+			<body
+				className={`bg-black ${
+					process.env.NODE_ENV === "development" ? "debug-screens" : undefined
+				}`}
+			>
+				{/* Providers live INSIDE <body>. HapticSnackbarProvider renders a
+				    <div> after its children; as a direct child of <html> the HTML
+				    parser moves it into <body>, so the server tree and React's tree
+				    disagree (hydration errors #418/#423), React rebuilds the document
+				    on the client, and the script tags Analytics/SpeedInsights inject
+				    into <head> are discarded. */}
+				<SnackbarProvider>
+					<HapticSnackbarProvider>
 						<Analytics />
 						<SpeedInsights />
 						{children}
@@ -161,9 +167,9 @@ export default function RootLayout({
 								}
 							`}
 						</Script>
-					</body>
-				</HapticSnackbarProvider>
-			</SnackbarProvider>
+					</HapticSnackbarProvider>
+				</SnackbarProvider>
+			</body>
 		</html>
 	);
 }
