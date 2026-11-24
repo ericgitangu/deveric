@@ -4,6 +4,7 @@ import { allProjects } from "contentlayer/generated";
 import { Navigation } from "../components/nav";
 import { Card } from "../components/card";
 import { Article } from "./article";
+import Particles from "../components/particles";
 import { redis } from "@/lib/redis";
 import { Eye } from "lucide-react";
 import { jsonLdScript, projectListSchema } from "@/lib/structured-data";
@@ -34,7 +35,7 @@ export default async function ProjectsPage() {
 	];
 	const [featured, top2, top3, ...sorted] = displayOrder;
 	return (
-		<div className="relative pb-16">
+		<div className="relative min-h-screen pb-16 bg-gradient-to-tl from-black via-zinc-600/20 to-black">
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
@@ -50,22 +51,29 @@ export default async function ProjectsPage() {
 				}}
 			/>
 			<Navigation />
-			<div className="px-6 pt-16 mx-auto space-y-8 max-w-7xl lg:px-8 md:space-y-16 md:pt-24 lg:pt-32">
-				<div className="max-w-2xl mx-auto lg:mx-0">
-					<h1 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
-						Projects
-					</h1>
-					<p className="mt-4 text-zinc-400">
-						Welcome to my tinkering workspace. Here you will find a collection
-						of my hobby projects some inflight. I am always working on something
-						new, so check back often.
-						<Link href="https://github.com/ericgitangu/">
-							View more of my projects <span aria-hidden="true">&rarr;</span>
-						</Link>
-					</p>
-				</div>
-				<div className="w-full h-px bg-zinc-800" />
-
+			<Particles
+				className="absolute inset-0 -z-10 animate-fade-in"
+				quantity={100}
+			/>
+			{/* Same hero treatment as About, Journal, Contact and Blog. */}
+			<main className="relative z-10 flex flex-col items-center px-4 pt-16 md:pt-24">
+				<h1 className="mb-8 text-4xl text-transparent duration-1000 bg-white cursor-default text-edge-outline animate-title font-display sm:text-6xl md:text-9xl whitespace-nowrap bg-clip-text">
+					Projects
+				</h1>
+				<div className="hidden w-screen h-px mb-12 animate-glow md:block animate-fade-right bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0" />
+				<p className="max-w-2xl mb-12 text-center animate-fade-in text-zinc-400">
+					Welcome to my tinkering workspace. Here you will find a collection of
+					my hobby projects some inflight. I am always working on something new,
+					so check back often.{" "}
+					<Link
+						href="https://github.com/ericgitangu/"
+						className="duration-150 text-zinc-200 hover:text-white"
+					>
+						View more of my projects <span aria-hidden="true">&rarr;</span>
+					</Link>
+				</p>
+			</main>
+			<div className="relative z-10 px-6 mx-auto space-y-8 max-w-7xl lg:px-8 md:space-y-16 animate-fade-in">
 				<div className="grid grid-cols-1 gap-8 mx-auto lg:grid-cols-2 ">
 					<Card>
 						<Link href={`/projects/${featured.slug}`}>
