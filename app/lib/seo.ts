@@ -38,12 +38,15 @@ export function pageMetadata({
 	path: string;
 }): Metadata {
 	const description = snippet(fullDescription);
+	// A title that already carries the site name must not get it appended again
+	// by the layout template or the OG title.
+	const hasSiteName = title.includes(SITE_NAME);
 	return {
-		title,
+		title: hasSiteName ? { absolute: title } : title,
 		description,
 		alternates: { canonical: path },
 		openGraph: {
-			title: `${title} · ${SITE_NAME}`,
+			title: hasSiteName ? title : `${title} · ${SITE_NAME}`,
 			description,
 			url: path,
 			siteName: SITE_NAME,
@@ -53,7 +56,7 @@ export function pageMetadata({
 		},
 		twitter: {
 			card: "summary_large_image",
-			title: `${title} · ${SITE_NAME}`,
+			title: hasSiteName ? title : `${title} · ${SITE_NAME}`,
 			description,
 			site: TWITTER_HANDLE,
 			creator: TWITTER_HANDLE,
