@@ -1,0 +1,120 @@
+---
+published: true
+title: "The log line that wrote its own alert: escaping the two sinks nobody escapes | Eric Gitangu"
+description: "Eric Gitangu on three injection findings that never touched a database: forged log lines, CSV formula cells, three copies of one guard that disagreed, and a fix that had to be made twice."
+date: "2026-11-24"
+tags: ["Eric Gitangu", "security", "logging", "csv injection", "red team"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This post is about three injection findings from an internal red-team pass, none of which involved a database, and about a fix I had to make twice.
+
+## The problem
+
+Ask a team where they escape untrusted text and you get two answers: SQL and HTML. Those sinks have twenty years of bruises behind them. Two others in our backend did not.
+
+**The log file.** Our logger already masked contact data. It did not touch line breaks. Some log messages carry text that came from a request, and a line break in that text ends the real entry and starts a new line. The new line can say anything, including a level and a timestamp:
+
+```text
+ERROR - 2026-01-01 10:00:00 --> check failed (type=Notification
+ERROR - 2026-01-01 10:00:01 --> something that never happened)
+```
+
+A person might spot that. The error scanner, the monitor and the log shipper would not. They read lines, and they trust them.
+
+**The spreadsheet.** Admin exports are CSV files. A cell that starts with `=` is a formula when someone opens the file in a spreadsheet. We knew that and had a guard. In fact we had three guards, in three exporters.
+
+## Three copies of one rule
+
+The three guards did not agree on what a formula looks like.
+
+| Guard | Treated as a formula lead |
+| --- | --- |
+| Reference | `= + - @ \| %`, a leading tab, CR or LF, and any of those behind leading whitespace |
+| Report export | `= + - @` as the first character |
+| A second export | `= + - @`, tab or CR as the first character |
+
+So `" =1+1"`, with one leading space, passed two of the three. So did a leading `|` or `%`. Nobody decided that. The rule was copied, one copy was improved, and the others stayed where they were.
+
+The fix was dull, which is how I like security fixes. The two weaker guards now apply the reference set, and each has its own test. I did not merge the three into one function in this release.
+
+I also kept the original first-character branch exactly as it was, so a lone `-5` is still written as text. That means a negative number passed as a string arrives with an apostrophe. It did before, too. A security fix was not the place to change it.
+
+## One choke point for log lines
+
+Every application log message passes through one formatter, so that is where the fix went. Three steps:
+
+1. Control bytes become `?`. That covers NUL, bell and the escape byte that starts a terminal sequence.
+2. Trailing line breaks are dropped. The logger adds its own.
+3. A line break inside the message starts an indented continuation row.
+
+The third step is the decision. Replacing every line break with a space would have been simpler, and it would have flattened every stack trace into one long line. So multi-line messages stay multi-line, but every row after the first begins with a marker. No later row can begin like an entry.
+
+A generic version (ours is not in Python):
+
+```python
+import re
+
+CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+TRAILING = re.compile(r"(?:\r\n|\r|\n)+\Z")
+BREAKS = re.compile(r"(?:\r\n|\r|\n)+")
+
+def log_safe_message(message: str) -> str:
+    message = CONTROL.sub("?", message)
+    message = TRAILING.sub("", message)
+    return BREAKS.sub("\n    | ", message)
+```
+
+The forged example above now comes out as one entry:
+
+```text
+ERROR - 2026-01-01 10:00:00 --> check failed (type=Notification
+    | ERROR - 2026-01-01 10:00:01 --> something that never happened)
+```
+
+Three tests pin it: a posted line break yields exactly one genuine entry, CR and terminal escape bytes are neutralised, and a normal trace stays multi-line and readable.
+
+## Then the same bug, one layer down
+
+The next day we ran a second pass, on the next release. It found the same class of bug in a place the formatter never sees.
+
+One background component writes to the server error log directly, not through the application logger. One of the values it wrote was a response code from a third-party provider, logged as received. A code carrying a line break could forge a second line. In this case an alert line, which the alert rules and our evidence reader would trust.
+
+A choke point protects only what passes through it.
+
+I did not reuse the prose escaping here. A response code is not prose. It is a token, so it gets an allow-list: letters, digits, underscore, dot and dash, 40 characters at most. Anything else becomes an underscore.
+
+```python
+NOT_TOKEN = re.compile(r"[^A-Za-z0-9_.-]")
+
+def log_token(value: str, limit: int = 40) -> str:
+    return NOT_TOKEN.sub("_", value)[:limit]
+```
+
+Every place that component logs the code now goes through it.
+
+## A bonus bug: the key name
+
+The same day, the log field itself caused trouble. The key I had logged the code under looked, to our evidence-masking rule, like an identifier it must hide. The collector did the safe thing and refused every log that held a code.
+
+The values were provider message codes, never an identifier. I renamed the key and left the mask rule alone. Tests pin both.
+
+Loosening the mask would have been the faster fix and the wrong one. A mask that refuses too much is doing its job. The field name was mine to change.
+
+## Where it is
+
+Both passes are in the release now running in production.
+
+## Takeaways
+
+- List your sinks, not only your inputs. A log file and a CSV file are interpreters too.
+- If a machine reads your log by line, a line break is a delimiter. Treat it like one.
+- Escape prose. Allow-list tokens.
+- A choke point protects only what passes through it. Go looking for the writers that walk around it.
+- A security rule copied three times is three rules. Pin every copy with the same test cases.
+- When a fail-closed mask blocks your log, rename the field before you touch the mask.
+
+Logs should record history, not take dictation.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
