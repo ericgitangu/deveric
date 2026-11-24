@@ -1,0 +1,83 @@
+---
+published: true
+title: "Nobody files a bug for a stale logo: write-once assets, a short-lived pointer, a drift guard | Eric Gitangu"
+description: "Eric Gitangu on serving one brand asset to every surface: a write-once content-hashed store, immutable cache headers with a short-lived manifest, and a drift guard that makes a second copy fail the build."
+date: "2026-11-24"
+tags: ["Eric Gitangu", "system design", "caching", "release engineering", "web performance"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This post is about a boring question that kept getting more expensive: where does the logo live?
+
+## The problem
+
+Several web apps, each with its own copy of the brand mark. A bundled PNG here, a hardcoded storage URL there, a legacy config constant in the backend, and share cards rendered from whichever copy the build happened to see. Changing the mark meant a hunt, and the hunt always missed one. A direct request to a share-card image could still return the previous mark long after the page had moved on.
+
+Nobody files a bug for a stale logo. It shows up in a screenshot someone sends to a customer.
+
+## The decision
+
+One source of truth, three rules:
+
+- Build every variant once, from a master, deterministically.
+- Serve it from one place, at a URL that contains a hash of the content.
+- Make a second copy a failing test, not a code-review comment.
+
+## The store: write-once, versioned by content
+
+Files live under a path shaped like `/<brand>/v/<hash>/<variant>/<name>-<size>.<format>`. One folder per brand, a short content hash as the version segment, and a manifest at the root that maps each variant to its path and checksum.
+
+The installer is deliberately strict:
+
+- It refuses to change a byte at a path that already exists.
+- It refuses a manifest that drops a path an older page may still reference.
+- It writes the manifest last, so a half-installed set is never advertised.
+
+Nothing is ever deleted. A rebrand adds a new version, and the old URLs in old emails and cached pages keep working. Storage is cheap. Broken images in a customer's inbox are not.
+
+## The pointer is short-lived, the content is immortal
+
+Cache headers split along that line. Versioned files get a far-future `immutable`. The manifest gets a few minutes.
+
+Because a changed logo always has a new URL, there is nothing to purge. Cache invalidation is solved by never reusing a name.
+
+## A small API in front of it
+
+A redirect endpoint and a JSON "resolve" endpoint. WebP by default, PNG as the fallback. Parameters are checked against a strict shape and then looked up in the manifest. The path that gets served comes from the manifest, never from the request. A known-bad request gets a named 400, an unknown combination gets a named 404.
+
+Clients say "this brand, this variant, this size". They never learn the hash.
+
+## The drift guard
+
+A unit test scans the tree for hardcoded logo paths, legacy logo constants and dead storage URLs. Existing offenders sit in an allow-list that only shrinks, the same ratchet idea as in [a lint baseline that can only shrink](/blog/lint-baseline-that-only-shrinks). A new offender fails the build.
+
+That is the part that keeps it a source of truth. Without it, the store is just one more copy.
+
+## Deploy: additive, so it never rolls the release back
+
+The logo install runs after the release has flipped and passed its smoke test. It then fetches one file from the public host and checks the status, the content type and the checksum against the manifest.
+
+If that fails, it logs and raises an alert. It does not roll the release back. The install is additive and write-once, so a late image set cannot break a page that already resolves to what is installed. Coupling an app rollback to an asset upload would be the wrong blast radius.
+
+## Three bugs my own tests found
+
+1. **A manifest that was not in git.** The repo's ignore rule for JSON files swallowed the manifest and the master list. The store test passed on my machine, and only where those untracked files existed. The ignore rule now excepts those exact paths, and the lesson is to run the test on a clean checkout, because that is the only honest place to run it.
+2. **A guard that read half the config.** Staging deliberately makes every asset non-cacheable. The header check read only the virtual-host file, so an include of the immutable snippet slipped past it. It now reads every snippet the host includes, and fails on an include the installer does not manage.
+3. **A folder name that tripped an unrelated guard.** The built set sat in a directory name the pre-commit check treats as regenerable build output. These files are reviewed, versioned assets, so I renamed the folder instead of weakening the check.
+
+## Front ends follow
+
+The apps stop bundling their own copy and point at the central route. The build checks each path against the live resolve route, share cards are rendered from that route at build time, and the baked alternates are regenerated from the same source, so a direct request cannot return the old mark.
+
+## Where it stands
+
+The backend half (store, API, edge headers, deploy step, drift guard) went out in a production release and is live. The front-end switch is queued for the next release.
+
+## Takeaways
+
+- A logo is data with consumers. Give it a registry, not copies.
+- Name by content and caches stop being your problem.
+- Short-lived pointer, immortal content.
+- Make duplication fail in CI.
+- Run the test on a clean checkout.
+
+The generic pattern, with a self-test, is in [this gist](https://gist.github.com/ericgitangu/GIST_ID).
