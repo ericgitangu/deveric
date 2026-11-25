@@ -1,0 +1,90 @@
+---
+published: true
+title: "The analyzer stub that covered for a payment bug: two classes, one name | Eric Gitangu"
+description: "Eric Gitangu on a static-analysis stub that hid two classes sharing one name on a card-payment path: how it was found, renamed without touching money logic, and proven in a fresh process."
+date: "2026-11-25"
+tags: ["Eric Gitangu", "static analysis", "payments", "testing", "code quality"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This is about a static-analysis stub that kept the analyzer quiet about a crash waiting on a card-payment path, and what happened when I made it stop covering.
+
+## The setup
+
+Two things in the codebase answered to the same name. One was our own wrapper library around a card payment provider. The other was the provider's old vendored SDK, whose entry class had the same name in the global namespace.
+
+If one request loaded both, the runtime refused: class already declared, fatal, before a single charge was sent. One controller loaded the wrapper in its constructor and pulled in the SDK later, on the card auto-pay path, after the ride had been claimed for a one-shot charge and before that claim could be released.
+
+## Why nobody had seen it
+
+Because it could not happen in production. That path ran only from the command line and nothing in the code called it. The other old callers were retired. The live top-up route never loaded the wrapper, so it worked before and it works now.
+
+So: a latent bug in code with no caller. Tests green, deploys fine, nobody paged.
+
+The analyzer had its own reason to stay calm. It had been given a stub for the SDK, a hand-written signature file naming the class and the one static method the call sites used. A stub replaces the real declaration at every call. The tool saw one class with that name, with the method it expected, and moved on. There were two classes. It was shown the one that did not exist at runtime.
+
+A stub is a promise to the analyzer. This one promised the wrong thing, and the analyzer believed it.
+
+## What I didn't do in this patch
+
+Two bigger fixes were on the table: move the legacy charge calls to the newer namespaced SDK, or retire the legacy SDK entirely. Both are money changes on a path I could not exercise end to end in one patch. I wrote them down as owed and picked the smallest change that makes the names distinct.
+
+## The decision
+
+Two commits, in this order.
+
+**First, the stub gives the class back.** It keeps only the legacy exception type. From then on the analysis reports those calls against the class it can actually see.
+
+**Then the rename.** The SDK's singleton gets a new name: the class name only, in four vendored files, plus the six key-setter calls that name it. The wrapper keeps its name, so no load site changes.
+
+The commit message says what did not move: no charge argument, currency, amount, customer, description or error handling. The person reviewing money should not have to infer that from a diff.
+
+The cost, also written down: the vendored SDK now differs from upstream by one class name. The durable fix is to retire it.
+
+## Proving a load-time crash
+
+A "name already declared" failure happens when the file loads. You cannot catch it in the process that hit it. Our test bootstrap also declared its own stand-in with that name, which would have masked it anyway.
+
+So the test starts a fresh process, loads both files, and does it in both orders, once per call site, using the class name that site names. It then checks that the SDK's own code reads the class back through the new name. A second check on the source refuses a bare global name in the SDK, and a static call on it in first-party code. Red before, with the fatal. Green after.
+
+A generic version is in the gist at the end.
+
+## What the stub had been hiding
+
+With the stub no longer shadowing it, the analyzer read the wrapper as itself for the first time. A few dozen blocking findings, every one in that file.
+
+The rule I set: no suppressions, no new baseline entries. That turned a pile of findings into a code review.
+
+- A property created on the fly in the constructor. Declared it.
+- SDK docs promise a generic object, but the calls build a named class. Annotated what they really build, and checked with reflection that the methods we call exist. None of those was a runtime fault.
+- Two reads that belonged to our controller base, not the parent the code named.
+- An equals-true test and a non-empty test on the same value, in the same condition, twice.
+- The interesting one: an inner check on "was it captured" nested inside an outer check on the same value being non-empty. The inner else could never run. I removed the inner test and the dead branch. The body is unchanged.
+
+## The guard that was a literal
+
+Two guards on a flag were reported as redundant, because the flag was defined as the literal `true`.
+
+The tempting fix is to delete the guards. But that flag is a kill switch on a money update, and it stays. The analyzer was right that something lied. The lie was the constant, not the guard.
+
+So the flag is now read from the environment. Unset, empty or anything unrecognised means on, exactly as before. Only an explicit off value turns it off. A test went in red first, then green. Production behaviour: unchanged.
+
+## It shipped
+
+The release went to production the next day and stayed quiet, which is the nicest thing a payment change can do.
+
+## Takeaways
+
+- A stub that names a class your project also defines replaces the real class. Every call to it goes unchecked.
+- Fixing the tool's blind spot and fixing what it was hiding are separate jobs. Land them as separate commits.
+- "Nothing calls it" is a reach analysis, not a fix. Write the analysis down, then fix it anyway.
+- Zero new suppressions forces you to read the code.
+- A redundant guard next to a constant `true` usually means the constant is the bug.
+- Test load-time failures in a fresh process, in every order.
+
+Two classes, one name: an identity crisis with a stack trace, and the only one I have been glad to find.
+
+The generic pattern, with a self-test, is in [this gist](https://gist.github.com/ericgitangu/ff788b0461d793ae1b1e6915adb3a2f6).
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
