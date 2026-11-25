@@ -1,0 +1,96 @@
+---
+published: true
+title: "Fixing the API docs looked like breaking the API: a narrow exception for a strict contract gate | Eric Gitangu"
+description: "Eric Gitangu on API contract gates: how to let a documentation correction through a breaking-change check without a general override, by asking for an asserting test and unchanged wire code."
+date: "2026-11-25"
+tags: ["Eric Gitangu", "system design", "api design", "contract testing", "ci cd"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. The design question here: how does a breaking-change gate let you fix a wrong API description without also letting a real break through?
+
+## The rule
+
+The API description lives in the repository. A gate compares the description on a branch with the one at its merge-base and fails on a breaking change: a removed field, a retyped response, a request parameter that became required.
+
+For the public API, the one mobile clients depend on, there is no approval. A real break ships as a new version. Old app builds stay in people's pockets for a long time, and they do not read release notes.
+
+Three details keep the gate honest:
+
+- It judges against the merge-base, not the moving tip of the target branch. Otherwise an older branch appears to "remove" everything added since it forked.
+- Internal APIs, whose clients we ship ourselves, can approve a break for the "contract" step of expand, migrate, contract. An approval names exactly one break, carries a reason, counts only in the diff that adds it, and fails the build if it matches nothing. Waivers cannot pile up and quietly cover a later change.
+- At merge time the gate's code comes from the target branch and reads the pull request as data. A change does not get to bring its own judge.
+
+## The problem
+
+Then the published description turned out to be wrong.
+
+A status field was documented as one type and was being sent as another. A handful of request fields were not documented as required, although the server refused a request without them.
+
+Fixing the document changes nothing on the wire. To a diff tool it looks exactly like breaking the API: a retyped response and newly required parameters. The gate refused it, correctly by its own rules.
+
+A contract check compares two descriptions. It has no idea which of them matches the running system.
+
+## Options I rejected
+
+**Ship a new API version.** This asks every client to migrate in order to receive behaviour they already have. It also leaves the wrong description published for the old version.
+
+**An override flag or label.** Cheap to build. But "this is only a docs fix" is exactly what someone believes just before they find out it was not. An override moves the whole judgement onto a reviewer at the busiest moment.
+
+**Edit the spec on the target branch and skip the gate.** Now the gate has a side door, and the history does not say why anyone used it.
+
+**Require the name of a test.** This was my first version of the exception, and reviewing it showed how little it asked for. If the check only looks for a method name somewhere in the test folder, then an empty test, a skipped test, an unrelated test or a name inside a comment all count. Worse, a diff could change the server and the document together and still claim to be a correction.
+
+## The decision: claim it, then prove two things
+
+A documentation correction is its own class of approval. Only two kinds of break qualify: a retyped response field, and a request field newly documented as required. Removing an endpoint or a field, narrowing an enum or making something nullable never qualifies.
+
+The entry matches one reported break and names two proofs.
+
+**Proof one: a test that shows the wire.** The gate reads the test file with the language's own tokenizer, so comments do not count. The named test class and method must exist, and the method must look like a test, assert something, not be marked skipped or incomplete, and mention the field in question.
+
+**Proof two: the source that puts the field on the wire, byte-identical to the merge-base.** If that code changed in the same diff, the entry is refused and the change is judged as the break it is.
+
+The second proof carries the weight. The first states what the server does. The second requires that this diff left the named code alone. If that code needs to change too, it lands as a separate merge.
+
+Roughly, in a generic sketch:
+
+```python
+def allow_doc_correction(entry, break_, tree, merge_base):
+    if break_.kind not in {"response-retyped", "param-newly-required"}:
+        return "this kind of break is never a docs fix"
+    if not asserting_test_about(tree, entry.proof_test, break_.field):
+        return "the proof test proves nothing about this field"
+    if not entry.wire_sources:
+        return "no wire source named"
+    for path in entry.wire_sources:
+        base = merge_base.read(path)
+        if base is None or tree.read(path) != base:
+            return f"{path} is new or changed: judge this as a real break"
+    return None  # allowed, and reported by name in the gate output
+```
+
+A fuller version, with tests that run, is in the gist linked at the end.
+
+## Where the person comes in
+
+A gate can check the shape of a claim. Whether the evidence is convincing is a judgement, so adding an approval needs an explicit human acknowledgement at merge time. The person gets a short, specific question: does this test pin this field, and is this the file that sends it?
+
+## How it landed
+
+I wrote the gate's scenarios first and ran them red against the previous version: a missing proof, a test for a different field, a skipped test, a changed source file, and a real break dressed up with a complete, well-formed claim. Then I made them pass.
+
+The wire tests for the first corrections were written as their own commit, with no application code changes. They check what the server would send today. The description corrections were then recorded against them, one entry per break.
+
+## Takeaways
+
+- A strict rule needs a designed exception, or someone will improvise one.
+- Make the exception a claim with evidence, not a switch.
+- Check the evidence for substance. A test's name is not a test.
+- "Nothing changed" is checkable: compare bytes against the merge-base.
+- Decide which questions are judgement calls, and put a person exactly there.
+
+Documentation bugs are still bugs. They just have unusually good manners until a client generates code from them.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
