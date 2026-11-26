@@ -1,0 +1,85 @@
+---
+published: true
+title: "Green tests, deleted work: a merge gate that asks whose lines you are removing | Eric Gitangu"
+description: "Eric Gitangu on a merge gate that refuses to silently remove a colleague's recent code: judge the merge result, blame the removed lines, demand a written reason, and run the same check early."
+date: "2026-11-26"
+tags: ["Eric Gitangu", "git", "merge gates", "code review", "ci/cd"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This is about a failure that tests are badly placed to catch: a merge that removes something a colleague added recently, while everything stays green.
+
+## The design question
+
+A branch resolves a conflict by keeping its own side. Or someone pastes an older copy of a file over a newer one. The removed lines were a guard, a log field, a fix from last week. If they had a test, you might hear about it. If the test went with them, you will not.
+
+Review should catch it. But a reviewer reads a large diff looking at what was added, and a deletion in a file the pull request had a reason to touch looks like housekeeping.
+
+So the question: can a machine tell "I rewrote my own code" apart from "I removed yours"? Not perfectly. Git does know who wrote each line and when, and that is enough to make someone say it out loud.
+
+## Judge what would land
+
+The first choice is which diff to read. "What the branch changed since it forked" is the familiar one, and it is the wrong one here. The destination has moved since then, and the thing I care about is what the destination receives.
+
+So the gate asks git for the three-way merge of destination and branch without touching a working tree (`git merge-tree --write-tree`), then diffs that tree against the destination. Whatever a bad conflict resolution or a pasted-over file would do to the target is in that diff.
+
+## Blame the removed lines
+
+Every removed line is blamed at the destination, with whitespace ignored and git's move and copy detection on, which helps credit the original writer and not whoever last re-indented the line.
+
+A removed line is flagged when both of these hold:
+
+- its author is not one of the authors of the commits the branch brings, and
+- it is recent, inside a configurable window.
+
+One person often commits under more than one identity, and being told you clobbered yourself teaches people to ignore the tool.
+
+## Noise
+
+A gate that cries wolf gets switched off, so some noise has to be filtered. Every filter is also a blind spot, so each deserves the same review as the gate. A move between files still asks for a sentence, a cost I accepted.
+
+## Explaining a removal
+
+Deleting other people's code is often correct. The gate does not argue. It wants a line in the pull request description:
+
+```text
+removal-ok: src/billing/rounding.cfg -- replaced by the shared money type
+removal-ok: src/jobs/retry.cfg:max_attempts -- limit now lives in the scheduler
+```
+
+A path, optionally a fragment of the line, then a reason. An entry with no reason is ignored. The reason sits where the reviewer reads, and the gate prints every accepted removal next to it.
+
+## Two rules about output
+
+**Never print the removed line.** The report is posted on the pull request. A line someone deleted may be the one you least want republished. The gate prints the path, the line number, the original commit and its date. Anyone with access to the repository can look it up.
+
+**Never pass by giving up.** Blame is slow, and a huge change can make it very slow. Past a file budget the gate stops and fails with its own exit code, saying it did not finish. A check that hangs gets killed by an impatient human, and a check that passes because it stopped early is not a check.
+
+## Run it before the expensive part
+
+The first placement was obvious: inside the merge step, beside the check for breaking changes to the public API. It worked, and it was late. For a release made of many branches, the first time anything compared the whole release with its destination was the merge rehearsal. That is where removals and contract breaks showed up.
+
+The fix was not a second, lighter copy of the check. Copies drift, and then "it passed locally" starts meaning something. A small preflight script calls the same two gates the merge step calls, and it now runs ahead of the slow stages in the full gate run, and first in the batch check on a release branch.
+
+Its rules:
+
+- Fetch the destination first. If the fetch fails, refuse: a stale target must not pass.
+- Run both gates even if the first one fails, so one run shows every refusal.
+- Separate "refused" from "could not judge" with different exit codes. Neither is a pass.
+
+The test builds a real git repository in which one author's line is removed by another, then runs the real scripts. It checks that the removal is named, that its text never appears in the output, that an allowance without a reason does nothing, that a missing destination is a refusal, and that the preflight is ordered ahead of the slow stages. It is merged, and the merge step calls the gate.
+
+## What it cannot do
+
+It does not know intent. It cannot tell a good deletion from a bad one, and it will not notice a fix that was broken by *adding* a line. It turns a silent removal into a written claim, and a reviewer still has to read the claim.
+
+## Takeaways
+
+- Diff the merge result against the destination, not the branch against its past.
+- Authorship and age are cheap signals for "someone should be asked".
+- Ask for the reason in writing.
+- A report about deleted content should point at it, not quote it.
+- When a gate is too late, move the same gate earlier. Do not write a second one.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
