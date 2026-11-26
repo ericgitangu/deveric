@@ -1,0 +1,103 @@
+---
+published: true
+title: "One letter, months of silence: a typo in a field projection that stopped a partner callback | Eric Gitangu"
+description: "Eric Gitangu on a one-character typo in a database field projection that quietly stopped completion callbacks to API partners, and the test that now checks every field a handler reads is one it selected."
+date: "2026-11-26"
+tags: ["Eric Gitangu", "testing", "debugging", "api design", "backend"]
+---
+
+I'm Eric Gitangu. I work on the backend of a mobility/fintech platform. This one is about a single wrong letter, and why it took a long time for anything to notice.
+
+## The setup
+
+API partners can create a job through our API and hand us a callback URL. We store it on the job record. When the job is finished, a handler re-reads the record and tells the partner: "your job is done", with their reference and a timestamp. The partner's system takes it from there.
+
+That re-read is a field projection. You list the fields you want, and the store returns only those. It is a good habit. It keeps the read small and it keeps fields you did not ask for out of memory.
+
+## The bug
+
+The list of fields to select said `callbacl_url`.
+
+Not `callback_url`. An `l` where a `k` should be. Here is a generic version of the handler:
+
+```ts
+const job = await jobs.findOne(
+  { id },
+  { projection: { id: 1, status: 1, reference: 1, callbacl_url: 1 } }, // typo
+);
+
+const url = job.callback_url ?? ""; // absent key -> "", no error
+await notifyPartner(job.id, job.reference, url);
+
+async function notifyPartner(id: string, ref: string, url: string) {
+  if (url === "") return; // "no callback registered" and "we lost it" look the same
+  await post(url, { id, ref, at: new Date().toISOString() });
+}
+```
+
+Three small, reasonable decisions stacked on top of each other:
+
+1. A projection with an unknown key is not an error. The store happily selects a field that does not exist. The one you meant is simply missing from the row.
+2. The read defends itself with a default. A missing field becomes an empty string, which is exactly what a job with no callback looks like.
+3. The notifier treats an empty URL as "nothing to do". That is correct for jobs created without a callback, and it is the only branch the typo ever reached.
+
+Each layer is defensible alone. Together they make a failure that looks like success. No exception, no error line, nothing in the logs. As far as the history shows, the typo came in with the feature itself, so for the whole life of the feature the callback on this path never went out. Jobs finished, and a partner's system waited for a message that was never sent.
+
+## Who would notice
+
+Not us. Nothing on our side failed. The only party with a signal was the partner, and a partner whose callback does not arrive has few options: poll, work around it, or conclude the integration is flaky.
+
+A callback that never fires has no stack trace. The only evidence is an absence, and absences are hard to alert on.
+
+## Red first
+
+The fix is one character. I did not start there. I started with a test that fails today, committed on its own, so the history shows the failure before the fix:
+
+```ts
+test("every field the handler reads off the row is in the projection", () => {
+  const { projection, reads } = parseHandler(source);
+  expect(projection).toContain("callback_url");
+  expect(projection).not.toContain("callbacl_url");
+  for (const field of reads) {
+    expect(projection).toContain(field); // names the field that is missing
+  }
+});
+
+test("job creation stores the URL under the key the handler selects", () => {
+  expect(createOrderSource).toMatch(/callback_url:\s*callbackUrl/);
+});
+```
+
+The first test is the general rule: whatever the handler reads must have been selected. The typo is one instance. A field added to the handler next month and forgotten in the projection is the next. The second test pins the write side, so the two ends of the contract, the key stored at creation and the key read at completion, cannot drift apart quietly.
+
+## The test had the same disease
+
+My first version of that test parsed the *first* matching fetch in the file. That was not the fetch that feeds the notifier, so the test could pass or fail for the wrong reason.
+
+The follow-up commit binds the test to the fetch that actually feeds the notify call: find the notify call, then take the last fetch before it. It is a small change, and it is the one I trust more than the original, because it fails when the thing it is named for goes wrong.
+
+## What the test does not prove
+
+I labelled the test file honestly, and I will do it here too. It proves the contract that makes the callback *reachable*: every field read is selected, and the URL is selected. It does not run the notifier, because that makes an outbound HTTP call and no test of ours should reach a real partner host. It does not drive the handler end to end.
+
+So there is still a gap between "the right field is selected" and "a partner got a message". A source-reading test is a cheap tripwire, not a proof.
+
+## Where it stands
+
+As I write this, the fix and its tests are on a branch headed for the next release. They are not live yet. I will not claim they are.
+
+## Takeaways
+
+- A projection with an unknown key fails open. Treat the list of selected fields as part of the contract and test it.
+- A default on a read (`?? ""`) turns "missing" into "empty". Make sure empty is a state you meant.
+- "Nothing to do" and "something went wrong" must not share a code path. At minimum, log the second one.
+- If the failure is a message that never arrives, the only detector is a check on the message that should have gone out.
+- Test the test. Point it at the thing it names and ask what makes it fail.
+
+I had one job: select `callback_url`. Typographical errors are not a new class of bug, but this one found a quiet way to hide for months.
+
+A small generic version of the guard, with a self-test, is in [this gist](https://gist.github.com/ericgitangu/9b9a195bc1f274e11de58e12c969ac38).
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
