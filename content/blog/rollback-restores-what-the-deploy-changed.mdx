@@ -1,0 +1,106 @@
+---
+published: true
+title: "Flipping the code back is half a rollback: restoring what the deploy changed | Eric Gitangu"
+description: "Eric Gitangu on rollback design: restore records bound to a release, a plan that is checked before anything moves, an honest incomplete state, and why a second deploy pass can erase your way back."
+date: "2026-11-27"
+tags: ["Eric Gitangu", "devops", "deployment", "reliability", "bash"]
+---
+
+I'm Eric Gitangu. I work on backend systems. Our releases are directories, a `current` link points at one of them, and rolling back means pointing the link at the previous one. It is instant and it is easy to reason about.
+
+It also covers only what lives inside the release directory.
+
+## What a deploy changes that the link does not own
+
+A deploy of ours also touches things outside the release tree: reverse proxy config, alert rules, the installed deploy tooling, and the environment files the app server reads. Flip the link alone and you get old code running against new config. That is a combination nobody tested, created at the moment you can least afford one.
+
+So the design question is not "how do we get the old code back". It is "what did this deploy change, and can we put every piece back".
+
+## The deploy writes down what it replaced
+
+The rollback script does not guess. For the proxy config and the alert rules, the deploy leaves a record: destination, backup, and the commit it was deploying. The proxy record is written before any file is installed, and a file the deploy is about to create is marked as absent, so rollback removes it. The rules record is written after the apply succeeds, once the backup it names exists. The environment step keeps its own, smaller record, written before it changes anything. Tooling needs no record here: release metadata says which version to go back to.
+
+The binding to a commit matters. A proxy or rules record is replayed only when it belongs to the release being left:
+
+```bash
+# print the records that belong to the release we are leaving
+records_for() {
+  local manifest="$1" leaving="$2" dest backup sha
+  while IFS='|' read -r dest backup sha; do
+    [[ -n "$sha" ]] || continue   # empty sha would match every release
+    if [[ "$(basename "$leaving")" == *"${sha:0:7}"* ]]; then
+      printf '%s|%s|%s\n' "$dest" "$backup" "$sha"
+    fi
+  done < "$manifest"
+}
+```
+
+Look at the empty-sha line. With an empty value, the pattern `*""*` matches any string, so one malformed record would claim every release. The filter that exists to stop stale restores would approve all of them.
+
+The tempting shortcut is "restore the latest backup". Latest is not the same as relevant. A backup from two deploys ago, written over newer state, is damage that looks like recovery.
+
+## Check the plan before moving anything
+
+Before the link flips, the script checks the proxy, alert rule and tooling restores: does each recorded backup exist, and can the tooling really go back to the target commit? If one of those cannot be done, it refuses and nothing has moved.
+
+```bash
+preflight "$leaving" "$target" ||
+  die "cannot restore what the deploy changed; nothing was flipped"
+```
+
+Refusing a rollback sounds backwards. During an incident you want the button to work. But a half-restore discovered afterwards is worse than a clear "no" discovered first, because the clear "no" still leaves you on a state you understand.
+
+There is also `--dry-run`. It prints the plan and writes nothing, so you can read the main restore plan on a calm afternoon.
+
+One piece is deliberately softer. The environment restore never blocks a rollback. If its record belongs to a different release, the plan says so in a warning and the files are left alone.
+
+## After the flip, be honest
+
+Once the link has moved, the script does not try to be clever and move it forward again. It runs the restore steps. If a proxy, alert rule or tooling restore fails, it names the failure, and exits with a distinct code and the words "rollback incomplete". Softer steps, including the environment, only warn, so read the output as well as the exit code.
+
+The proxy step has its own safety: restore the files, run the config test, reload once. If the test fails, the files go back to how rollback found them and nothing reloads.
+
+An exit code that means "code is back, some config is not" is worth having. Success and failure are two states; this is the third one, and it is the one an operator most needs to hear about.
+
+## The second pass that erased the way back
+
+This is the part I would have missed from a diagram.
+
+Our deploy runs the environment step twice. An earlier pass writes the change and saves a record of what was there before. The activating pass runs the same step again and finds nothing to do. The step also had a sensible rule: a run that changes nothing clears the restore record, so an old backup can never be applied later.
+
+Put the two together. The second pass cleared the record the first pass had just written. After activation, a rollback would restore the code and leave the environment where it was.
+
+The fix is to bind the record to the release:
+
+- A no-op run for the **same** release keeps the record.
+- A no-op run for another release, or an unnamed one, clears it.
+- A second writing run for the same release keeps the **first** record, because the target is the state as the release found it, not as its first attempt left it.
+
+Idempotent steps are usually described as safe to repeat. Their side records need the same property.
+
+## Rollback state outlives the code that wrote it
+
+Rollback may restore the tooling before it restores the environment. So the program reading the record can be an **older** version than the one that wrote it.
+
+That ruled out the obvious change of adding fields to the record. The record stays one line. The release binding went into a separate small file, read by the rollback script itself. Write order is chosen for crashes: remove the old binding, write the record, then write the new binding. Stop in the middle and you get an unbound record, handled the old way, rather than one bound to the wrong release.
+
+Finally, a record has a lifetime. Once the watch window of a release closes, the environment record can be closed explicitly, and from then on rollback leaves the environment as it is.
+
+## Where it stands
+
+This shipped in a production release. The tests drive the real scripts against a throwaway deploy root with stubbed system commands, so what they prove is the logic.
+
+## Takeaways
+
+- List everything a deploy changes outside the artifact. Each item needs a restore path or an explicit "not covered".
+- Bind restore records to a release. Reject empty identifiers.
+- Check what you can of the plan before changing anything, and say what the check does not cover.
+- Give "partly restored" its own exit code.
+- Run your deploy steps twice in a test, then check you can still go back.
+- Treat rollback files as a protocol between versions.
+
+Instant rollback is a great feature. Just check what it is instantly rolling back.
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
