@@ -1,0 +1,119 @@
+---
+published: true
+title: "The message that retried hundreds of times: a retry loop with no exit | Eric Gitangu"
+description: "Eric Gitangu on a notification worker that retried one message for a couple of days after a provider outage: per-recipient catch, attempt cap with back-off, a health short-circuit, and one alert per state change."
+date: "2026-11-27"
+tags: ["Eric Gitangu", "backend", "reliability", "architecture", "devops"]
+---
+
+I'm Eric Gitangu. I work on backend systems for a mobility/fintech platform. This is the story of one text message that was retried hundreds of times, and what it took to teach the code to take no for an answer.
+
+## The symptom
+
+A cron worker sends queued notifications. One day the SMS provider started rejecting our account as inactive. Annoying, but a provider outage is supposed to be a boring day: messages fail, someone gets alerted, we move on.
+
+Instead, one queued message kept coming back. Same row, same recipient, every few minutes, across a couple of days. Hundreds of attempts, each one answered with the same refusal. Hello? Hello? Hello?
+
+## Why it looped
+
+Three small decisions, each reasonable alone:
+
+1. The send helper had no catch. A provider error was thrown, not returned.
+2. The worker saved progress (who got the message) only after the recipient loop finished. The throw skipped that save.
+3. A reclaim timer re-picks any row stuck in "in progress" after a few minutes, so a crashed worker can't strand a row.
+
+Put them together. The error escapes, the row is never marked done or failed, it still says "in progress", the timer decides the worker must have died, and picks it up again. The safety net for crashes became a retry loop with no exit.
+
+One more detail made it worse: the run aborted at the first failing recipient. Every recipient after them in the same row was starved too.
+
+## The decision
+
+I wanted to keep the reclaim timer. It exists for good reasons. What was missing was a way for a row to say "I failed on purpose, leave me alone until later". So:
+
+- Catch per recipient, so one bad send can't abort the run or hide behind the others.
+- Count attempts on the row itself, back off exponentially, and stop at a cap with a terminal failure and a reason.
+- Teach the reclaim query to respect a "not before" stamp.
+- Stop sending to a provider we already know is down, and say so once.
+
+## The solution
+
+The policy is a small pure class. It does no I/O of its own; everything it needs comes in as an argument, which is why it is easy to test.
+
+Per recipient, a send has three outcomes, not two:
+
+```ts
+export type Attempt = { outcome: 'sent' | 'failed' | 'retry'; reason: string };
+
+export async function dispatchOne(
+  send: () => Promise<boolean>,
+  providerDown: boolean,
+  isStoreError: (e: unknown) => boolean,
+): Promise<Attempt> {
+  if (providerDown) return { outcome: 'retry', reason: 'provider_unavailable' };
+  try {
+    return (await send())
+      ? { outcome: 'sent', reason: '' }
+      : { outcome: 'failed', reason: 'provider_said_no' }; // final, as before
+  } catch (e) {
+    if (isStoreError(e)) throw e; // our own storage errors keep their old path
+    return { outcome: 'retry', reason: reasonCode(e) };
+  }
+}
+```
+
+A few choices in there are deliberate.
+
+**"The provider said no" and "the provider threw" are different.** A falsy answer is a final answer and stays a terminal failure, exactly as before. Only an exception, or a known outage, counts as retryable.
+
+**Storage errors are not swallowed.** The new catch is for the provider. If our own datastore throws, the outer handler still owns it. A broad catch that hides your own failures is how you end up with the next incident.
+
+**The reason code carries no message.** Provider error text can echo phone numbers or account identifiers. The code reads only the HTTP status and the provider's numeric error code out of the message, and drops the rest. The row stores reasons shaped like `http_<status>_<code>`, safe to log and safe to show an admin.
+
+**The retry decision lives on the row:**
+
+```ts
+export function settle(prev: number, retryCount: number, nowMs: number,
+                       max = 5, baseSec = 60, capSec = 3600) {
+  if (retryCount <= 0) return { attempts: prev, terminal: false, retryAfter: null };
+  const attempts = prev + 1;
+  if (attempts >= max) return { attempts, terminal: true, retryAfter: null };
+  const wait = Math.min(capSec, baseSec * 2 ** (attempts - 1));
+  return { attempts, terminal: false, retryAfter: nowMs + wait * 1000 };
+}
+```
+
+At the cap, the recipients are booked as failed with the reason and put back in the row's "already handled" list, so no later run can send to them again. Before the cap, a recipient that failed is taken *out* of that list in memory, so the next attempt actually retries them. Getting those two directions right was the fiddly part.
+
+The reclaim query got the matching gate: a row is selectable only if it has no `retryAfter`, or the stamp is due. Backing-off and terminal rows are never re-picked.
+
+**A health short-circuit.** The provider's account state is already exported as a gauge by a monitoring job. The worker reads it once per row. If it says "down", it skips the send for the affected recipients instead of firing a request it knows will fail. If the gauge is missing or unreadable, that means unknown, and unknown is treated as up. I would rather attempt a send than stay silent because a metrics file was late.
+
+Markets served by a different, local provider never go through that gate and behave as before.
+
+**One alert per state change.** The worker is a short-lived cron process, so it can't remember the last state in memory. It keeps a tiny marker file, compares, and raises an admin alert only when the state flips: down, then recovered. Fifty rows in one tick produce one alert, not fifty.
+
+## One trade-off I'm not hiding
+
+While the provider is known down, skipped sends still count as attempts. With the default back-off, a long outage will walk a row to its cap and mark it failed with `provider_unavailable`. That is visible and honest, and an admin can re-send. The alternative, retrying indefinitely, is what we just removed. I chose a loud failure over a quiet loop.
+
+## Where it stands
+
+The fix is written, covered by unit tests, and merged into the next release candidate. The tests cover per-recipient isolation, the stable reason code, back-off growth and bounds, the cap, the reclaim gate, the health short-circuit, the one-alert-per-change rule, and a check that the cron controller actually routes sends through the policy. They run against the policy and stubbed senders, so they prove the logic, not a live provider outage.
+
+## Takeaways
+
+- A crash-recovery timer is a retry loop. Ask what happens when the thing it recovers fails every time.
+- Save progress before you can throw, or make "not saved" mean "failed on purpose".
+- Treat "the provider said no" and "the provider threw" as different outcomes.
+- Keep the catch narrow. Your own storage errors should still be loud.
+- Reason codes should never be built from provider message text.
+- Treat missing health data as unknown, not as down.
+- Alert on state changes, not on every tick.
+
+Retries are great, as long as they eventually give up and tell someone.
+
+A small generic version of the policy, with a self-test, is in [this gist](https://gist.github.com/ericgitangu/e2627f3fe13c827c3a163f761e40b5a7).
+
+---
+
+*More engineering write-ups on the [blog](https://developer.ericgitangu.com/blog). Code on [GitHub](https://github.com/ericgitangu).*
